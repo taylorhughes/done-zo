@@ -1,0 +1,36 @@
+application: dnzo
+version: 1
+runtime: python
+api_version: 1
+
+handlers:  
+- url: /stylesheets
+  static_dir: stylesheets
+  expiration: 7d
+  
+- url: /scripts
+  static_dir: scripts
+  expiration: 7d
+  
+- url: /images
+  static_dir: images
+  expiration: 30d
+ 
+- url: /(robots.txt|favicon.ico)
+  static_files: \1
+  upload: (robots.txt|favicon.ico)
+ 
+- url: /admin/.*
+  script: main.py
+  login: admin
+  
+- url: /tasks/.*
+  script: main.py
+  login: required
+  
+- url: /signup/.*
+  script: main.py
+  login: required
+
+- url: /.*
+  script: main.py

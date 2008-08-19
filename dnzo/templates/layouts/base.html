@@ -1,0 +1,25 @@
+{% load tasks_library %}
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>{% block page_title %}{% endblock %}</title>
+  <link rel="stylesheet" href="/stylesheets/style.css" type="text/css" media="all" />
+</head>
+<body>
+  <div id="body">
+    <h1>Dnzo</h1>
+    
+    {% if user %}
+    <p>
+      Hi, <strong>{{ user.user.nickname|escape }}</strong>.
+      Do you want to <a href="{% logout_url %}">log out</a>?
+    </p>
+    {% endif %}
+    
+    <h2>{% block header %}{% endblock %}</h2>
+    
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{% extends "layouts/base.html" %}
+
+{% block page_title %}Welcome to Dnzo!{% endblock %}
+
+{% block content %}
+  <h1>Welcome!</h1>
+  {% if user %}
+    Check out <a href="{{ user.tasks_url }}">your tasks</a>.
+  {% else %}
+    Why not <a href="/signup/">sign up</a>?
+  {% endif %}
+{% endblock %}

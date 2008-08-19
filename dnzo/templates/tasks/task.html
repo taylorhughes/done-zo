@@ -1,0 +1,57 @@
+{% load tasks_library %}
+
+{% if task.editing %}
+  <tr class="editable task-row">
+    <form action="{{ task.url }}" method="POST">
+    <td class="done">
+      <!-- no completing a task while editing. nope. -->
+    </td>
+    <td class="project">
+      <input type="text" value="" class="text-input" name="project">
+    </td>
+    <td class="task">
+      <input type="text" value="" class="text-input" name="body">
+    </td>
+    <td class="context">
+      <input type="text" value="" class="text-input" name="contexts">
+    </td>
+    <td class="due">
+      <a href="#">
+        <input type="text" value="" class="text-input" name="due_date">
+      </a>
+    </td>
+    <td class="created">
+      now
+    </td>
+    <td class="edit">
+      {% if task.is_saved %}
+      <input type="submit" value="Save">
+      {% else %}
+      <input type="submit" value="Add">
+      {% endif %}
+    </td>
+    </form>
+  </tr>
+{% else %}
+  <tr class="task-row">
+    <td class="done"><input type="checkbox"></td>
+    <td class="project">
+      <a href="{{ task_list.url }}in/{{ task.project.short_name|escape }}">{{ task.project.name|escape }}</a>
+    </td>
+    <td class="task">
+      {{ task.body|escape }}
+    </td>
+    <td class="context">
+      {% for context in task.contexts %}
+      <a href="{{ task_list.url }}context/{{ context|escape }}">@{{ context|escape }}</a>
+      {% endfor %}
+    </td>
+    <td class="due">
+      <a href="#">{{ task.due_date|short_date }}</a>
+    </td>
+    <td class="created">
+      <a href="#">{{ task.created_at|short_date }}</a>
+    </td>
+    <td class="edit"><a href="#">edit</a></td>
+  </tr>
+{% endif %}

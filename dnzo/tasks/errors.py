@@ -1,0 +1,3 @@
+
+class AccessError(RuntimeError):
+  pass

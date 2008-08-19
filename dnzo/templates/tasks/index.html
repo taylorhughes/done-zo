@@ -1,0 +1,31 @@
+{% extends "layouts/base.html" %}
+
+{% load tasks_library %}
+
+{% block page_title %}Dnzo: {{ task_list.name|escape }}{% if filter_title %} &ndash; {{ filter_title|escape }}{% endif %}{% endblock %}
+
+{% block header %}
+  {{ task_list.name|escape }}{% if filter_title %}: {{ filter_title|escape }}{% endif %}
+{% endblock %}
+
+{% block content %}
+  <p>
+    &larr; Return to <a href="{{ user.tasks_url }}">my task lists</a>
+  {% if filter_title %}
+    OR <a href="{{ task_list.url }}">show all tasks</a> in {{ task_list.name|escape }}.
+  {% endif %}
+  </p>
+  <table cellspacing="0" cellpadding="0">
+    <tr>
+      <th><a href="#">&nbsp;&nbsp;✓       </a></th>
+      <th><a href="#">Project   </a></th>
+      <th><a href="#">Task      </a></th>
+      <th><a href="#">Context   </a></th>
+      <th><a href="#">Due       </a></th>
+      <th><a href="#">Created at</a></th>
+    </tr>
+    {% for task in tasks %}
+      {% include "tasks/task.html" %}
+    {% endfor %}
+  </table>
+{% endblock %}

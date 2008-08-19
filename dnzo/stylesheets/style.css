@@ -1,0 +1,118 @@
+body,
+.text-input {
+  font: 10px Helvetica;
+}
+p { font-size: 10px; }
+#body {
+}
+h1 {
+  margin-left: 2.4em;
+}
+a {
+  text-decoration: none;
+}
+table
+{
+  width: 100%;
+}
+td, th {
+  text-align: left;
+}
+th {
+  font-weight: normal;
+  font-size: 1.2em;
+  border-bottom: 1px solid #ccc;
+}
+  th a {
+    display: block;
+    padding: 0.4em 0.8em 0.3em 0.8em;
+    color: #999;
+  }	  
+  th:hover,	  
+  th.sorted {
+    background: #eee;
+  }
+    th.sorted a {
+      text-decoration: none;
+      color: #666;
+    }
+    th.sorted a:hover {
+      cursor: default;
+    }
+
+    
+td {
+  padding: 0.3em 0.8em;	  
+  font-size: 1.3em;
+}
+	td a {
+	  text-decoration: none;
+	  color: inherit;
+	}
+	td.project {
+	  text-transform: uppercase;
+	  font-size: 1.2em;
+	}
+	td.edit a {
+	  display: none;
+	}
+	
+tr.task-row:hover td,
+tr.editable td {
+  background: #ff9;
+}
+  tr.task-row:hover td a {
+    text-decoration: underline;
+    color: #369;
+  }
+  tr.task-row:hover td.edit a {
+    display: inline;
+  }
+  tr.task-row td {
+    white-space: nowrap;
+  }
+
+tr.editable.task-row td.project,
+tr.editable.task-row td.task,
+tr.editable.task-row td.context,
+tr.editable.task-row td.due {
+  padding-left: 0.5em;
+}
+tr.editable.task-row td.task
+{
+  width: 50%;
+}
+
+tr.editable.task-row td.edit {
+  padding-left: 0;
+}
+.text-input {
+  padding: 2px;
+  font-size: 1em;
+  border: 1px solid #ccc;
+}
+tr.editable.task-row td.error input {
+  border-color: #c00;
+}
+tr.editable.task-row td.task input,
+tr.editable.task-row td.context input,
+tr.editable.task-row td.project input {
+  width: 100%;
+}
+tr.editable.task-row td.due input {
+  width: 5em;
+}
+
+tr.editable td.message {
+  padding-top: 0;
+  padding-left: 0.5em;
+  padding-bottom: 0.5em;
+  font-size: 1.1em;
+}
+  tr.editable td.message strong {
+    color: #c00;
+  }
+
+tr.error td {
+  background: #c00;
+}
