@@ -31,14 +31,6 @@ indexes:
   - name: created_at
     direction: desc
 
-# Used 3 times in query history.
-- kind: Task
-  properties:
-  - name: complete
-  - name: contexts
-  - name: task_list
-  - name: created_at
-
 # Unused in query history -- copied from input.
 - kind: Task
   properties:
@@ -46,6 +38,14 @@ indexes:
   - name: contexts
   - name: task_list
   - name: created_at
+
+# Unused in query history -- copied from input.
+- kind: Task
+  properties:
+  - name: complete
+  - name: contexts
+  - name: task_list
+  - name: created_at
     direction: desc
 
 # Unused in query history -- copied from input.
@@ -133,7 +133,7 @@ indexes:
   - name: created_at
     direction: desc
 
-# Used once in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   properties:
   - name: complete
@@ -141,7 +141,7 @@ indexes:
   - name: task_list
   - name: body
 
-# Used 15 times in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   properties:
   - name: complete
@@ -158,14 +158,14 @@ indexes:
   - name: created_at
     direction: desc
 
-# Used 4 times in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   properties:
   - name: complete
   - name: task_list
   - name: body
 
-# Used 5 times in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   properties:
   - name: complete
@@ -173,14 +173,14 @@ indexes:
   - name: body
     direction: desc
 
-# Used 2 times in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   properties:
   - name: complete
   - name: task_list
   - name: context
 
-# Used once in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   properties:
   - name: complete
@@ -188,14 +188,14 @@ indexes:
   - name: context
     direction: desc
 
-# Used 72 times in query history.
+# Used 2 times in query history.
 - kind: Task
   properties:
   - name: complete
   - name: task_list
   - name: created_at
 
-# Used 4 times in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   properties:
   - name: complete
@@ -203,14 +203,14 @@ indexes:
   - name: created_at
     direction: desc
 
-# Used 2 times in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   properties:
   - name: complete
   - name: task_list
   - name: due_date
 
-# Used once in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   properties:
   - name: complete
@@ -218,14 +218,14 @@ indexes:
   - name: due_date
     direction: desc
 
-# Used 2 times in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   properties:
   - name: complete
   - name: task_list
   - name: project
 
-# Used once in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   properties:
   - name: complete
@@ -256,7 +256,7 @@ indexes:
   - name: created_at
     direction: desc
 
-# Used 13 times in query history.
+# Used 2 times in query history.
 - kind: TaskList
   properties:
   - name: owner
