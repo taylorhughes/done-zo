@@ -23,9 +23,9 @@ def sorting_header(parser, token):
   except ValueError:
     raise template.TemplateSyntaxError, "%r tag requires exactly four arguments" % token.contents.split()[0]
   
-  return SortingLink(my_name[1:-1], my_sorting[1:-1], current_sorting, direction)
+  return SortingHeader(my_name[1:-1], my_sorting[1:-1], current_sorting, direction)
   
-class SortingLink(Node):
+class SortingHeader(Node):
   def __init__(self, my_name, my_sorting, current_sorting, direction):
     self.my_name = my_name
     self.my_sorting = my_sorting

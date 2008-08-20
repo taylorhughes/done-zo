@@ -17,10 +17,10 @@
   <table cellspacing="0" cellpadding="0">
     <tr>
       <th><a href="#">&nbsp;&nbsp;✓</a></th>
-      {% sorting_header "Project"     "project" order direction %}
-      {% sorting_header "Task"        "body" order direction %}
+      {% sorting_header "Project"     "project"    order direction %}
+      {% sorting_header "Task"        "body"       order direction %}
       <th><a href="#">Context</a></th>
-      {% sorting_header "Due"         "due_date" order direction %}
+      {% sorting_header "Due"         "due_date"   order direction %}
       {% sorting_header "Created At"  "created_at" order direction %}
     </tr>
     {% for task in tasks %}
