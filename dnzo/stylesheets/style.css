@@ -6,8 +6,24 @@ p { font-size: 10px; }
 #body {
 }
 h1 {
-  margin-left: 2.4em;
+  margin-left: 50px;
+  font-size: 10pt;
+  line-height: 12pt;
+  text-transform: uppercase;
 }
+#logout {
+  float: right;
+  margin-top: -12pt;
+}
+h2 {
+  margin-left: 50px;
+  font-size: 16pt;
+}
+#return
+{
+  margin-left: 50px;
+}
+
 a {
   text-decoration: none;
 }

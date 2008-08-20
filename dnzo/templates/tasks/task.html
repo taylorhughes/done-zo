@@ -36,21 +36,21 @@
   <tr class="task-row">
     <td class="done"><input type="checkbox"></td>
     <td class="project">
-      <a href="{{ task_list.url }}in/{{ task.project.short_name|escape }}">{{ task.project.name|escape }}</a>
+      <a href="{% url tasks.views.tasks_index user.short_name,task_list.short_name,project_name=task.project.short_name %}">{{ task.project.name|escape }}</a>
     </td>
     <td class="task">
       {{ task.body|escape }}
     </td>
     <td class="context">
       {% for context in task.contexts %}
-      <a href="{{ task_list.url }}context/{{ context|escape }}">@{{ context|escape }}</a>
+      <a href="{% url tasks.views.tasks_index user.short_name,task_list.short_name,context_name=context %}">@{{ context|escape }}</a>
       {% endfor %}
     </td>
     <td class="due">
-      <a href="#">{{ task.due_date|short_date }}</a>
+      {{ task.due_date|short_date }}
     </td>
     <td class="created">
-      <a href="#">{{ task.created_at|short_date }}</a>
+      {{ task.created_at|short_date }}
     </td>
     <td class="edit"><a href="#">edit</a></td>
   </tr>

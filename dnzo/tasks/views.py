@@ -1,6 +1,9 @@
 from google.appengine.ext import db
+from google.appengine.api.users import create_logout_url
+
 from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect
 from django.shortcuts import render_to_response
+from django.core.urlresolvers import reverse as reverse_url
 
 from tasks.models import *
 from tasks.errors import *
@@ -9,6 +12,13 @@ from tasks.util import *
 from datetime import datetime
 from time import strptime
 import logging
+
+
+def always_includes(params=None):
+  if not params:
+    params = {}
+  params['logout_url'] = create_logout_url('/')
+  return params
 
 def lists_index(request, username):
   try:
@@ -27,10 +37,10 @@ def lists_index(request, username):
   lists = TaskList.gql('WHERE owner=:owner ORDER BY name ASC', owner=user).fetch(50)
   lists.insert(0, new_list)
   
-  return render_to_response('task_lists/index.html', {
+  return render_to_response('task_lists/index.html', always_includes({
     'user': user,
     'task_lists': lists
-  })
+  }))
   
   
 def tasks_index(request, username, task_list=None, context_name=None, project_name=None):
@@ -109,19 +119,26 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
     wheres.append('complete=:complete')
     params['complete'] = False
 
-  order = 'created_at DESC'
+  sortable_columns = ('project', 'body', 'due_date', 'created_at', 'context')
+  order, direction = 'created_at', 'ASC'
+  if 'order' in request.GET and request.GET['order'] in sortable_columns:
+    order = request.GET['order']
+  if 'descending' in request.GET and request.GET['descending'] == 'true':
+    direction = 'DESC'
 
-  gql = 'WHERE %s ORDER BY %s' % (' AND '.join(wheres), order)
+  gql = 'WHERE %s ORDER BY %s %s' % (' AND '.join(wheres), order, direction)
 
   tasks = Task.gql(gql, **params).fetch(50)
   tasks.insert(0, new_task)
   
-  return render_to_response('tasks/index.html', {
+  return render_to_response('tasks/index.html', always_includes({
     'tasks': tasks,
     'user': user,
     'task_list': task_list,
-    'filter_title': filter_title
-  })
+    'filter_title': filter_title,
+    'order': order,
+    'direction': direction,
+  }))
 
 def task(request, username, task_key):
   try:
@@ -138,7 +155,7 @@ def task(request, username, task_key):
 def redirect(request):
   user = get_dnzo_user()
   if user:
-    return HttpResponseRedirect(user.tasks_url)
+    return HttpResponseRedirect(reverse_url('tasks.views.lists_index',args=[user.short_name]))
   else:
     return HttpResponseRedirect('/')
 

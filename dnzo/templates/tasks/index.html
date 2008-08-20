@@ -2,30 +2,33 @@
 
 {% load tasks_library %}
 
-{% block page_title %}Dnzo: {{ task_list.name|escape }}{% if filter_title %} &ndash; {{ filter_title|escape }}{% endif %}{% endblock %}
+{% block page_title %}Dnzo: {{ task_list.name|escape }}{% if filter_title %} / {{ filter_title|escape }}{% endif %}{% endblock %}
 
 {% block header %}
-  {{ task_list.name|escape }}{% if filter_title %}: {{ filter_title|escape }}{% endif %}
+  {% if filter_title %}<a href="{% url tasks.views.tasks_index user.short_name,task_list.short_name %}">{% endif %}
+  {{ task_list.name|escape }}{% if filter_title %}</a> / {{ filter_title|escape }}{% endif %}
 {% endblock %}
 
 {% block content %}
-  <p>
-    &larr; Return to <a href="{{ user.tasks_url }}">my task lists</a>
-  {% if filter_title %}
-    OR <a href="{{ task_list.url }}">show all tasks</a> in {{ task_list.name|escape }}.
-  {% endif %}
+  <p id="return">
+    &larr; Return to <a href="{% url tasks.views.lists_index user.short_name %}">my task lists</a>
   </p>
+  
   <table cellspacing="0" cellpadding="0">
     <tr>
-      <th><a href="#">&nbsp;&nbsp;✓       </a></th>
-      <th><a href="#">Project   </a></th>
-      <th><a href="#">Task      </a></th>
-      <th><a href="#">Context   </a></th>
-      <th><a href="#">Due       </a></th>
-      <th><a href="#">Created at</a></th>
+      <th><a href="#">&nbsp;&nbsp;✓</a></th>
+      {% sorting_header "Project"     "project" order direction %}
+      {% sorting_header "Task"        "body" order direction %}
+      <th><a href="#">Context</a></th>
+      {% sorting_header "Due"         "due_date" order direction %}
+      {% sorting_header "Created At"  "created_at" order direction %}
     </tr>
     {% for task in tasks %}
       {% include "tasks/task.html" %}
     {% endfor %}
   </table>
+  
+  <p id="add">
+    <a href="#">+ Add task</a>
+  </p>
 {% endblock %}

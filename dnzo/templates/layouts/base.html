@@ -11,9 +11,9 @@
     <h1>Dnzo</h1>
     
     {% if user %}
-    <p>
+    <p id="logout">
       Hi, <strong>{{ user.user.nickname|escape }}</strong>.
-      Do you want to <a href="{% logout_url %}">log out</a>?
+      Do you want to <a href="{{ logout_url }}">log out</a>?
     </p>
     {% endif %}
     
