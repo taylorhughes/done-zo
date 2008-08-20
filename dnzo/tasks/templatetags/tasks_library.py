@@ -44,9 +44,9 @@ class SortingHeader(Node):
     if im_sorted:
       class_names = 'sorted'
       if ascending:
-        self.my_name += " ^"
+        self.my_name += " &uarr;"
       else:
-        self.my_name += " V"
+        self.my_name += " &darr;"
         class_names += ' descending'
       class_names = ' class="%s"' % class_names
 
