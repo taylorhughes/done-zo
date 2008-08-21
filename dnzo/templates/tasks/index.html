@@ -14,6 +14,7 @@
     &larr; Return to <a href="{% url tasks.views.lists_index user.short_name %}">my task lists</a>
   </p>
   
+  <form action="." method="POST">
   <table cellspacing="0" cellpadding="0" id="tasks_list">
     <tr>
       <th><a href="#">&nbsp;&nbsp;✓</a></th>
@@ -27,6 +28,7 @@
       {% include "tasks/task.html" %}
     {% endfor %}
   </table>
+  </form>
   
   <p id="add_holder">
     <a href="{{ request_uri }}" id="add">+ Add task</a>

@@ -94,7 +94,7 @@ tr.editable.task-row td.context,
 tr.editable.task-row td.due {
   padding-left: 0.5em;
 }
-tr.editable.task-row td.task
+tr.task-row td.task
 {
   width: 50%;
 }

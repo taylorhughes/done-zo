@@ -20,6 +20,16 @@ var Tasks = {
     temp.innerHTML = xhr.responseText;
     var tbody = $('tasks_list').select('tbody')[0];
     tbody.appendChild(temp.select('tr')[0]);
+    
+    var project = tbody.select('input.task-project')[0];
+    if (project.getValue().blank())
+    {
+      project.activate();
+    }
+    else
+    {
+      tbody.select('input.task-body')[0].activate();
+    }
   }
 }
 

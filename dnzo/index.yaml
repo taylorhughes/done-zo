@@ -31,7 +31,7 @@ indexes:
   - name: created_at
     direction: desc
 
-# Used 2 times in query history.
+# Used 19 times in query history.
 - kind: Task
   properties:
   - name: complete
@@ -141,7 +141,7 @@ indexes:
   - name: task_list
   - name: body
 
-# Used 2 times in query history.
+# Used 12 times in query history.
 - kind: Task
   properties:
   - name: complete
@@ -188,7 +188,7 @@ indexes:
   - name: context
     direction: desc
 
-# Used 50 times in query history.
+# Used 56 times in query history.
 - kind: Task
   properties:
   - name: complete
@@ -256,7 +256,7 @@ indexes:
   - name: created_at
     direction: desc
 
-# Used 2 times in query history.
+# Used 4 times in query history.
 - kind: TaskList
   properties:
   - name: owner
