@@ -8,8 +8,8 @@ handlers:
   static_dir: stylesheets
   expiration: 7d
   
-- url: /scripts
-  static_dir: scripts
+- url: /javascripts
+  static_dir: javascripts
   expiration: 7d
   
 - url: /images

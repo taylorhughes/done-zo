@@ -7,13 +7,13 @@
       <!-- no completing a task while editing. nope. -->
     </td>
     <td class="project">
-      <input type="text" value="" class="text-input" name="project">
+      <input type="text" value="{{ task.project.name|escape }}" class="text-input" name="project">
     </td>
     <td class="task">
-      <input type="text" value="" class="text-input" name="body">
+      <input type="text" value="{{ task.body|escape }}" class="text-input" name="body">
     </td>
     <td class="context">
-      <input type="text" value="" class="text-input" name="contexts">
+      <input type="text" value="{% for context in task.contexts %}@{{ context|escape }} {% endfor %}" class="text-input" name="contexts">
     </td>
     <td class="due">
       <a href="#">

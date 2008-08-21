@@ -14,7 +14,7 @@
     &larr; Return to <a href="{% url tasks.views.lists_index user.short_name %}">my task lists</a>
   </p>
   
-  <table cellspacing="0" cellpadding="0">
+  <table cellspacing="0" cellpadding="0" id="tasks_list">
     <tr>
       <th><a href="#">&nbsp;&nbsp;✓</a></th>
       {% sorting_header "Project"     "project"    order direction %}
@@ -28,7 +28,7 @@
     {% endfor %}
   </table>
   
-  <p id="add">
-    <a href="#">+ Add task</a>
+  <p id="add_holder">
+    <a href="{{ request_uri }}" id="add">+ Add task</a>
   </p>
 {% endblock %}

@@ -103,8 +103,16 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
     new_task.put()
 
     if is_ajax(request):
-      # return new task template
-      pass
+      return render_to_response('tasks/task.html', { 'task': new_task })
+    else:
+      return HttpResponseRedirect(request.get_full_path())
+      
+  elif is_ajax(request):
+    if view_context: 
+      new_task.contexts = [view_context.name]
+    if view_project:
+      new_task.project = view_project
+    return render_to_response('tasks/task.html', { 'task': new_task })
 
   wheres = ['task_list=:task_list'] 
   params = { 'task_list': task_list }
@@ -129,7 +137,7 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
   gql = 'WHERE %s ORDER BY %s %s' % (' AND '.join(wheres), order, direction)
 
   tasks = Task.gql(gql, **params).fetch(50)
-  tasks.insert(0, new_task)
+  #tasks.insert(0, new_task)
   
   return render_to_response('tasks/index.html', always_includes({
     'tasks': tasks,
@@ -138,6 +146,7 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
     'filter_title': filter_title,
     'order': order,
     'direction': direction,
+    'request_uri': request.get_full_path()
   }))
 
 def task(request, username, task_key):
