@@ -66,9 +66,20 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
     filter_title = "@%s" % view_context.name
   show_completed = 'show_completed' in request.GET and request.GET['show_completed'] == 'true'
   
-  new_task = Task(body='')
-  new_task.editing = True
-  new_task.owner = user
+  edit_task = None
+  if 'edit_task' in request.GET:
+    try:
+      edit_task = int(request.GET['edit_task'])
+    except:
+      pass
+  
+  if edit_task:
+    new_task = db.get(db.Key.from_path('Task', edit_task))
+    new_task.contexts = []
+  else:
+    new_task = Task(body='')
+    new_task.editing = True
+    new_task.owner = user
   
   if request.method == "POST":
     body = request.POST['body']
@@ -105,7 +116,7 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
     if is_ajax(request):
       return render_to_response('tasks/task.html', { 'task': new_task })
     else:
-      return HttpResponseRedirect(request.get_full_path())
+      return HttpResponseRedirect(re.sub(r'\?.+$','',request.get_full_path()))
       
   elif is_ajax(request):
     if view_context: 
@@ -137,7 +148,11 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
   gql = 'WHERE %s ORDER BY %s %s' % (' AND '.join(wheres), order, direction)
 
   tasks = Task.gql(gql, **params).fetch(50)
-  #tasks.insert(0, new_task)
+  if edit_task:
+    for task in tasks:
+      if task.key().id() == edit_task:
+        task.editing = True
+        break
   
   return render_to_response('tasks/index.html', always_includes({
     'tasks': tasks,

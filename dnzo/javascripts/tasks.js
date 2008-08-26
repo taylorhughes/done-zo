@@ -9,9 +9,15 @@ var Tasks = {
   {
     new Ajax.Request(Tasks.addLink.href, {
       method: 'get',
-      onComplete: Tasks.doAdd
+      onFailure: Tasks.doFail,
+      onSuccess: Tasks.doAdd
     })
     event.stop();
+  },
+  
+  doFail: function(xhr)
+  {
+    alert("Ruh roh! Something went wrong. Please let us know what happened!");
   },
   
   doAdd: function(xhr)
@@ -19,6 +25,9 @@ var Tasks = {
     var temp = new Element('table');
     temp.innerHTML = xhr.responseText;
     var tbody = $('tasks_list').select('tbody')[0];
+    
+    $('add_row').hide();
+    
     tbody.appendChild(temp.select('tr')[0]);
     
     var project = tbody.select('input.task-project')[0];

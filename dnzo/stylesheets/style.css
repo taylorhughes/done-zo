@@ -94,10 +94,8 @@ tr.editable.task-row td.context,
 tr.editable.task-row td.due {
   padding-left: 0.5em;
 }
-tr.task-row td.task
-{
-  width: 50%;
-}
+td.task, th.task { width: 50%; }
+td.edit, th.edit { width: 5%; }
 
 tr.editable.task-row td.edit {
   padding-left: 0;
@@ -132,3 +130,5 @@ tr.editable td.message {
 tr.error td {
   background: #c00;
 }
+
+a#add { color: #369; }

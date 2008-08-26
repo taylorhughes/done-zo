@@ -50,6 +50,8 @@
     <td class="created">
       {{ task.created_at|short_date }}
     </td>
-    <td class="edit"><a href="#">edit</a></td>
+    <td class="edit">
+      <a href="{{ request_uri }}?edit_task={{ task.key.id }}">edit</a>
+    </td>
   </tr>
 {% endif %}

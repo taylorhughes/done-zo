@@ -14,23 +14,33 @@
     &larr; Return to <a href="{% url tasks.views.lists_index user.short_name %}">my task lists</a>
   </p>
   
-  <form action="." method="POST">
-  <table cellspacing="0" cellpadding="0" id="tasks_list">
-    <tr>
-      <th><a href="#">&nbsp;&nbsp;✓</a></th>
-      {% sorting_header "Project"     "project"    order direction %}
-      {% sorting_header "Task"        "body"       order direction %}
-      <th><a href="#">Context</a></th>
-      {% sorting_header "Due"         "due_date"   order direction %}
-      {% sorting_header "Created At"  "created_at" order direction %}
-    </tr>
-    {% for task in tasks %}
-      {% include "tasks/task.html" %}
-    {% endfor %}
-  </table>
-  </form>
-  
-  <p id="add_holder">
-    <a href="{{ request_uri }}" id="add">+ Add task</a>
-  </p>
+  <div id="tasks_holder">
+    <form action="{{ request_uri }}" method="POST" id="tasks_form">
+    <table cellspacing="0" cellpadding="0" id="tasks_list">
+      <tr>
+        <th><a href="#">&nbsp;&nbsp;✓</a></th>
+        {% sorting_header "Project"     "project"    order direction "project" %}
+        {% sorting_header "Task"        "body"       order direction "body" %}
+        <th class="context"><a href="#">Context</a></th>
+        {% sorting_header "Due"         "due_date"   order direction "due" %}
+        {% sorting_header "Created At"  "created_at" order direction "created" %}
+        <th class="edit"></th>
+      </tr>
+      {% if tasks %}
+        {% for task in tasks %}
+          {% include "tasks/task.html" %}
+        {% endfor %}
+      <tr id="add_row">
+        <td></td>
+        <td colspan="6"><a id="add" href="{{ request_uri }}">+ Add task</a></td>
+      </tr>
+      {% else %}
+      <tr id="add_row">
+        <td></td>
+        <td colspan="6">You don&rsquo;t have a thing to do! Why not <a id="add" href="{{ request_uri }}">add a task</a>?</td>
+      </tr>
+      {% endif %}
+    </table>
+    </form>
+  </div>
 {% endblock %}
