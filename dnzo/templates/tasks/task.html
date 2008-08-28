@@ -3,7 +3,9 @@
 {% if task.editing %}
   <tr class="editable task-row">
     <td class="done">
-      <!-- no completing a task while editing. nope. -->
+      {% if task.is_saved %}
+      <input type="checkbox"{% if task.complete %} checked{% endif %} name="complete" value="true">
+      {% endif %}
     </td>
     <td class="project">
       <input type="text" value="{{ task.project.name|escape }}" class="text-input task-project" name="project">
@@ -16,7 +18,7 @@
     </td>
     <td class="due">
       <a href="#">
-        <input type="text" value="" class="text-input" name="due_date">
+        <input type="text" value="{{ task.due_date|date:"n/j/y" }}" class="text-input" name="due_date">
       </a>
     </td>
     <td class="created">
@@ -32,7 +34,7 @@
   </tr>
 {% else %}
   <tr class="task-row">
-    <td class="done"><input type="checkbox"></td>
+    <td class="done"><input type="checkbox"{% if task.complete %} checked{% endif %} name="complete"></td>
     <td class="project">
       <a href="{% url tasks.views.tasks_index user.short_name,task_list.short_name,project_name=task.project.short_name %}">{{ task.project.name|escape }}</a>
     </td>

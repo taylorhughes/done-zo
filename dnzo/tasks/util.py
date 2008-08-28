@@ -38,6 +38,11 @@ def verify_current_user(short_name):
     raise AccessError, 'Attempting to access wrong username'
   return user
 
+def param(name, collection, default=None):
+  if name in collection:
+    return collection[name].strip()
+  return default
+
 RE_TODAY    = re.compile(r'^today$', re.I)
 RE_TOMORROW = re.compile(r'^tom{1,2}or{1,2}ow$', re.I)
 RE_DAY      = re.compile(r'^(mon|tue|wed|thu|fri|sat|sun)\w*$', re.I)

@@ -82,20 +82,24 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
     new_task.owner = user
   
   if request.method == "POST":
-    body = request.POST['body']
-    new_task.body = body    
+    new_task.complete = False
+    if param('complete',request.POST) == "true":
+      new_task.complete = True
     
-    raw_project = request.POST['project'].strip()
+    new_task.body = param('body',request.POST)
+    
+    raw_project = param('project',request.POST,'')
     if len(raw_project) > 0:
       raw_project_short = urlize(raw_project)
       project = Project.gql('WHERE owner=:user AND short_name=:name', 
                             user=user, name=raw_project_short).get()
+      # Create the project if it doesn't exist
       if not project:
         project = Project(name=raw_project, short_name=raw_project_short, owner=user)
         project.put()
       new_task.project = project
     
-    raw_contexts = request.POST['contexts']
+    raw_contexts = param('contexts',request.POST,'')
     raw_contexts = re.findall(r'[A-Za-z_-]+', raw_contexts)
     for raw_context in raw_contexts:
       raw_context = raw_context.lower()
@@ -105,19 +109,16 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
         context.put()
       new_task.contexts.append(context.name)
     
-    if 'due_date' in request.POST:
-      due_date = parse_date(request.POST['due_date'])
-      new_task.due_date = due_date
-      
+    new_task.due_date = parse_date(param('due_date', request.POST))
+    
     new_task.task_list = task_list
-      
     new_task.put()
-
+    
     if is_ajax(request):
       return render_to_response('tasks/task.html', { 'task': new_task })
     else:
       return HttpResponseRedirect(re.sub(r'\?.+$','',request.get_full_path()))
-      
+    
   elif is_ajax(request):
     if view_context: 
       new_task.contexts = [view_context.name]
@@ -140,13 +141,13 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
 
   sortable_columns = ('project', 'body', 'due_date', 'created_at', 'context')
   order, direction = 'created_at', 'ASC'
-  if 'order' in request.GET and request.GET['order'] in sortable_columns:
-    order = request.GET['order']
-  if 'descending' in request.GET and request.GET['descending'] == 'true':
+  if param('order', request.GET) in sortable_columns:
+    order = param('order', request.GET)
+  if param('descending', request.GET) == 'true':
     direction = 'DESC'
-
+  
   gql = 'WHERE %s ORDER BY %s %s' % (' AND '.join(wheres), order, direction)
-
+  
   tasks = Task.gql(gql, **params).fetch(50)
   if edit_task:
     for task in tasks:
