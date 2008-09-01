@@ -31,7 +31,7 @@ indexes:
   - name: created_at
     direction: desc
 
-# Used 19 times in query history.
+# Used 9 times in query history.
 - kind: Task
   properties:
   - name: complete
@@ -141,7 +141,7 @@ indexes:
   - name: task_list
   - name: body
 
-# Used 12 times in query history.
+# Used 7 times in query history.
 - kind: Task
   properties:
   - name: complete
@@ -157,13 +157,6 @@ indexes:
   - name: task_list
   - name: created_at
     direction: desc
-
-# Used 2 times in query history.
-- kind: Task
-  properties:
-  - name: complete
-  - name: task_list
-  - name: body
 
 # Used once in query history.
 - kind: Task
@@ -171,6 +164,13 @@ indexes:
   - name: complete
   - name: task_list
   - name: body
+
+# Unused in query history -- copied from input.
+- kind: Task
+  properties:
+  - name: complete
+  - name: task_list
+  - name: body
     direction: desc
 
 # Unused in query history -- copied from input.
@@ -188,14 +188,14 @@ indexes:
   - name: context
     direction: desc
 
-# Used 56 times in query history.
+# Used 142 times in query history.
 - kind: Task
   properties:
   - name: complete
   - name: task_list
   - name: created_at
 
-# Used 2 times in query history.
+# Used 3 times in query history.
 - kind: Task
   properties:
   - name: complete
@@ -203,14 +203,14 @@ indexes:
   - name: created_at
     direction: desc
 
-# Unused in query history -- copied from input.
+# Used once in query history.
 - kind: Task
   properties:
   - name: complete
   - name: task_list
   - name: due_date
 
-# Unused in query history -- copied from input.
+# Used once in query history.
 - kind: Task
   properties:
   - name: complete
@@ -218,7 +218,7 @@ indexes:
   - name: due_date
     direction: desc
 
-# Unused in query history -- copied from input.
+# Used once in query history.
 - kind: Task
   properties:
   - name: complete
@@ -255,6 +255,19 @@ indexes:
   - name: owner
   - name: created_at
     direction: desc
+
+# Unused in query history -- copied from input.
+- kind: Task
+  properties:
+  - name: project
+  - name: task_list
+  - name: created_at
+
+# Used 9 times in query history.
+- kind: Task
+  properties:
+  - name: task_list
+  - name: created_at
 
 # Used 4 times in query history.
 - kind: TaskList

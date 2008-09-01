@@ -32,6 +32,10 @@ def get_dnzo_user():
   # TODO: implement caching here
   return TasksUser.gql('WHERE user=:user', user=get_current_user()).get()
   
+def get_task_list(user, task_list):
+  return TaskList.gql('WHERE owner=:user AND short_name=:short_name', 
+                                      user=user, short_name=task_list).get()
+  
 def verify_current_user(short_name):
   user = get_dnzo_user()
   if not user or short_name != user.short_name:

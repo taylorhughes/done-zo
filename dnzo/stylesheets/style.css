@@ -72,6 +72,10 @@ td {
 	td.edit a {
 	  display: none;
 	}
+	td.edit a.cancel {
+	  display: inline;
+	  color: #369;
+	}
 	
 tr.task-row:hover td,
 tr.editable td {

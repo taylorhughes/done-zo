@@ -13,8 +13,10 @@ urlpatterns = patterns('',
   (list_pattern + r'context/(?P<context_name>[a-z_-]+)/$', 'tasks.views.tasks_index'),
   #  /username/list_name/by/{date}
   #(list_pattern + r'by/(?P<year>20\d{2})_(?P<month>\d{1,2})_(?P<day>\d{1,2})/$', 'tasks.views.date'),
-  #  /username/task/id
-  #(username_pattern + r'task/(?P<task_key>.+)$', 'tasks.views.task'),
+  #  /username/to_do/task/id
+  (list_pattern + r'task/(?P<task_key>\d+)/$', 'tasks.views.task'),
+  (list_pattern + r'task/$', 'tasks.views.task'),
+  #  /username/to_do
   (list_pattern, 'tasks.views.tasks_index'),
   #  /username/
   (username_pattern + r'$', 'tasks.views.lists_index'),

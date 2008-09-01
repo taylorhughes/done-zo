@@ -49,7 +49,7 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
   except AccessError:
     return access_error_redirect()
   
-  task_list = TaskList.gql('WHERE owner=:user AND short_name=:short_name', user=user, short_name=task_list).get()
+  task_list = get_task_list(user, task_list)
   
   filter_title = None
   view_project = None
@@ -65,67 +65,7 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
       raise Http404
     filter_title = "@%s" % view_context.name
   show_completed = 'show_completed' in request.GET and request.GET['show_completed'] == 'true'
-  
-  edit_task = None
-  if 'edit_task' in request.GET:
-    try:
-      edit_task = int(request.GET['edit_task'])
-    except:
-      pass
-  
-  if edit_task:
-    new_task = db.get(db.Key.from_path('Task', edit_task))
-    new_task.contexts = []
-  else:
-    new_task = Task(body='')
-    new_task.editing = True
-    new_task.owner = user
-  
-  if request.method == "POST":
-    new_task.complete = False
-    if param('complete',request.POST) == "true":
-      new_task.complete = True
-    
-    new_task.body = param('body',request.POST)
-    
-    raw_project = param('project',request.POST,'')
-    if len(raw_project) > 0:
-      raw_project_short = urlize(raw_project)
-      project = Project.gql('WHERE owner=:user AND short_name=:name', 
-                            user=user, name=raw_project_short).get()
-      # Create the project if it doesn't exist
-      if not project:
-        project = Project(name=raw_project, short_name=raw_project_short, owner=user)
-        project.put()
-      new_task.project = project
-    
-    raw_contexts = param('contexts',request.POST,'')
-    raw_contexts = re.findall(r'[A-Za-z_-]+', raw_contexts)
-    for raw_context in raw_contexts:
-      raw_context = raw_context.lower()
-      context = Context.gql('WHERE owner=:user AND name=:name', user=user, name=raw_context).get()
-      if not context:
-        context = Context(owner=user, name=raw_context)
-        context.put()
-      new_task.contexts.append(context.name)
-    
-    new_task.due_date = parse_date(param('due_date', request.POST))
-    
-    new_task.task_list = task_list
-    new_task.put()
-    
-    if is_ajax(request):
-      return render_to_response('tasks/task.html', { 'task': new_task })
-    else:
-      return HttpResponseRedirect(re.sub(r'\?.+$','',request.get_full_path()))
-    
-  elif is_ajax(request):
-    if view_context: 
-      new_task.contexts = [view_context.name]
-    if view_project:
-      new_task.project = view_project
-    return render_to_response('tasks/task.html', { 'task': new_task })
-
+      
   wheres = ['task_list=:task_list'] 
   params = { 'task_list': task_list }
   
@@ -149,11 +89,6 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
   gql = 'WHERE %s ORDER BY %s %s' % (' AND '.join(wheres), order, direction)
   
   tasks = Task.gql(gql, **params).fetch(50)
-  if edit_task:
-    for task in tasks:
-      if task.key().id() == edit_task:
-        task.editing = True
-        break
   
   return render_to_response('tasks/index.html', always_includes({
     'tasks': tasks,
@@ -165,13 +100,74 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
     'request_uri': request.get_full_path()
   }))
 
-def task(request, username, task_key):
+def task(request, username, task_list=None, task_key=None):
   try:
     user = verify_current_user(username)
   except AccessError:
     return access_error_redirect()
-
-  task = Task.get(task_key)
+  
+  task_list = get_task_list(user, task_list)
+  
+  # We can't change the URL for the enclosing form element. Ugh.
+  if not task_key and request.method == "POST":
+    task_key = param('task_key',request.POST)
+  
+  if task_key:
+    task = db.get(db.Key.from_path('Task', int(task_key)))
+    #if task.owner != user:
+    #  return access_error_redirect()
+  else:
+    task = Task(body='')
+    task.owner = user
+  
+  force_complete = param('force_complete', request.POST, None)
+  
+  if force_complete:
+    task.complete = True
+    task.put()
+    
+  elif request.method == "POST":
+    task.complete = False
+    if param('complete',request.POST) == "true":
+      task.complete = True
+    
+    task.body = param('body',request.POST)
+    
+    raw_project = param('project',request.POST,'')
+    if len(raw_project) > 0:
+      raw_project_short = urlize(raw_project)
+      project = Project.gql('WHERE owner=:user AND short_name=:name', 
+                            user=user, name=raw_project_short).get()
+      # Create the project if it doesn't exist
+      if not project:
+        project = Project(name=raw_project, short_name=raw_project_short, owner=user)
+        project.put()
+      task.project = project
+    
+    task.contexts = []
+    raw_contexts = param('contexts',request.POST,'')
+    raw_contexts = re.findall(r'[A-Za-z_-]+', raw_contexts)
+    for raw_context in raw_contexts:
+      raw_context = raw_context.lower()
+      context = Context.gql('WHERE owner=:user AND name=:name', user=user, name=raw_context).get()
+      if not context:
+        context = Context(owner=user, name=raw_context)
+        context.put()
+      task.contexts.append(context.name)
+    
+    task.due_date = parse_date(param('due_date', request.POST))
+    
+    task.task_list = task_list
+    task.put()
+    
+    if not is_ajax(request):
+      # TODO: Return to referrer.
+      return HttpResponseRedirect(
+        reverse_url('tasks.views.tasks_index',args=[user.short_name,task_list.short_name])
+      )
+  
+  elif request.method == "GET":
+    task.editing = True
 
   return render_to_response('tasks/task.html', {
     'task': task

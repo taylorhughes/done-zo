@@ -4,7 +4,7 @@
   <tr class="editable task-row">
     <td class="done">
       {% if task.is_saved %}
-      <input type="checkbox"{% if task.complete %} checked{% endif %} name="complete" value="true">
+      <input type="checkbox"{% if task.complete %} checked{% endif %} name="complete" value="true" class="complete editing">
       {% endif %}
     </td>
     <td class="project">
@@ -17,33 +17,35 @@
       <input type="text" value="{% for context in task.contexts %}@{{ context|escape }} {% endfor %}" class="text-input" name="contexts">
     </td>
     <td class="due">
-      <a href="#">
-        <input type="text" value="{{ task.due_date|date:"n/j/y" }}" class="text-input" name="due_date">
-      </a>
+      <input type="text" value="{{ task.due_date|date:"n/j/y" }}" class="text-input" name="due_date">
     </td>
     <td class="created">
       now
     </td>
     <td class="edit">
-      {% if task.is_saved %}
-      <input type="submit" value="Save">
-      {% else %}
+    {% if task.is_saved %}
+      <input type="hidden" name="task_key" value="{{ task.key.id }}">
+      <input type="submit" value="Save"> 
+    {% else %}
       <input type="submit" value="Add">
-      {% endif %}
+    {% endif %}
+    or <a href="{{ request_uri }}" class="cancel">cancel</a>
     </td>
   </tr>
 {% else %}
   <tr class="task-row">
-    <td class="done"><input type="checkbox"{% if task.complete %} checked{% endif %} name="complete"></td>
+    <td class="done">
+      <input type="checkbox"{% if task.complete %} checked{% endif %} class="complete">
+    </td>
     <td class="project">
-      <a href="{% url tasks.views.tasks_index user.short_name,task_list.short_name,project_name=task.project.short_name %}">{{ task.project.name|escape }}</a>
+      <a href="{% url tasks.views.tasks_index task.owner.short_name,task.task_list.short_name,project_name=task.project.short_name %}">{{ task.project.name|escape }}</a>
     </td>
     <td class="task">
       {{ task.body|escape }}
     </td>
     <td class="context">
       {% for context in task.contexts %}
-      <a href="{% url tasks.views.tasks_index user.short_name,task_list.short_name,context_name=context %}">@{{ context|escape }}</a>
+      <a href="{% url tasks.views.tasks_index task.owner.short_name,task.task_list.short_name,context_name=context %}">@{{ context|escape }}</a>
       {% endfor %}
     </td>
     <td class="due">
@@ -53,7 +55,7 @@
       {{ task.created_at|short_date }}
     </td>
     <td class="edit">
-      <a href="{{ request_uri }}?edit_task={{ task.key.id }}">edit</a>
+      <a href="{% url tasks.views.task task.owner.short_name,task.task_list.short_name,task.key.id %}" class="edit">edit</a>
     </td>
   </tr>
 {% endif %}
