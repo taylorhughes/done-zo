@@ -31,7 +31,7 @@
       {% endfor %}
       <tr id="add_row">
         <td></td>
-        <td colspan="6"><a id="add" href="{% url tasks.views.task user.short_name,task_list.short_name %}">+ Add task</a></td>
+        <td colspan="6"><a id="add" href="{{ add_url }}">+ Add task</a></td>
       </tr>
     </table>
     </form>

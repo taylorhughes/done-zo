@@ -8,9 +8,9 @@ urlpatterns = patterns('',
   (r'^signup/$', 'tasks.views.signup'),
   (r'^$', 'tasks.views.welcome'),
   #  /username/list_name/in/{project}
-  (list_pattern + r'in/(?P<project_name>[a-z_-]+)/$', 'tasks.views.tasks_index'),
+  (list_pattern + r'for/(?P<project_name>[a-z_-]+)/$', 'tasks.views.tasks_index'),
   #  /username/list_name/near/{context}
-  (list_pattern + r'context/(?P<context_name>[a-z_-]+)/$', 'tasks.views.tasks_index'),
+  (list_pattern + r'at/(?P<context_name>[a-z_-]+)/$', 'tasks.views.tasks_index'),
   #  /username/list_name/by/{date}
   #(list_pattern + r'by/(?P<year>20\d{2})_(?P<month>\d{1,2})_(?P<day>\d{1,2})/$', 'tasks.views.date'),
   #  /username/to_do/task/id

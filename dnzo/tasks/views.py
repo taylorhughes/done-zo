@@ -68,13 +68,17 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
       
   wheres = ['task_list=:task_list'] 
   params = { 'task_list': task_list }
+  add_url = reverse_url('tasks.views.task',args=[user.short_name,task_list.short_name])
   
   if view_context:
     wheres.append('contexts=:context')
     params['context'] = view_context.name
+    add_url += "?context=%s" % view_context.name
   elif view_project:
     wheres.append('project=:project')
     params['project'] = view_project
+    add_url += "?project=%s" % view_project.short_name
+  
   if not show_completed:
     wheres.append('complete=:complete')
     params['complete'] = False
@@ -95,6 +99,7 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
     'user': user,
     'task_list': task_list,
     'filter_title': filter_title,
+    'add_url': add_url,
     'order': order,
     'direction': direction,
     'request_uri': request.get_full_path()
@@ -167,6 +172,17 @@ def task(request, username, task_list=None, task_key=None):
       )
   
   elif request.method == "GET":
+    raw_project = param('project', request.GET, None)
+    if raw_project:
+      task.project = Project.gql('WHERE owner=:user AND short_name=:project',
+                                 user=user, project=raw_project).get()
+    raw_context = param('context', request.GET, None)
+    if raw_context:
+      context = Context.gql('WHERE owner=:user AND name=:context',
+                             user=user, context=raw_context).get()
+      if context:
+        task.contexts = [context.name]
+        
     task.editing = True
 
   return render_to_response('tasks/task.html', {
