@@ -46,11 +46,12 @@ th {
   }	  
   th:hover,	  
   th.sorted {
-    background: #eee url(/images/graphics.gif) -28px right no-repeat;
+    background: #eee url(/images/graphics.gif) 4px right no-repeat;
+    padding-right: 8px;
   }
   th.sorted.descending
   {
-    background-position: -46px right;
+    background-position: -85px right;
   }
     th.sorted a {
       text-decoration: none;

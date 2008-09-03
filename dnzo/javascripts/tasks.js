@@ -175,8 +175,9 @@ var TaskRow = Class.create({
   {
     if (this.isEditing()) return;
     
+    var checked = event.element().checked;
     var params = { 'force_complete': true };
-    if (!event.element().checked)
+    if (!checked)
     {
       params = { 'force_uncomplete': true };
     }
@@ -187,7 +188,7 @@ var TaskRow = Class.create({
       onSuccess: this.doLoad.bind(this),
       onFailure: (function(xhr){
         this.doFail();
-        event.element().checked = false;
+        event.element().checked = !checked;
       }).bind(this)
     });
   },
