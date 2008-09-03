@@ -33,7 +33,7 @@
     </td>
   </tr>
 {% else %}
-  <tr class="task-row">
+  <tr class="task-row{% if task.complete %} completed{% endif %}">
     <td class="done">
       <input type="checkbox"{% if task.complete %} checked{% endif %} class="complete">
     </td>
@@ -55,7 +55,9 @@
       {{ task.created_at|short_date }}
     </td>
     <td class="edit">
+      {% if not task.purged %}
       <a href="{% url tasks.views.task task.owner.short_name,task.task_list.short_name,task.key.id %}" class="edit">edit</a>
+      {% endif %}
     </td>
   </tr>
 {% endif %}

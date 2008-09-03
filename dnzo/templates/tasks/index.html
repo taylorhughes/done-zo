@@ -35,5 +35,10 @@
       </tr>
     </table>
     </form>
+    {% if not filter_title %}
+    <form action="{% url tasks.views.purge_tasks user.short_name,task_list.short_name %}" method="POST">
+      <input type="submit" value="Purge completed">
+    </form>
+    {% endif %}
   </div>
 {% endblock %}

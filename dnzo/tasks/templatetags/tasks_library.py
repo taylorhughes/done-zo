@@ -49,10 +49,7 @@ class SortingHeader(Node):
       
     if im_sorted:
       class_names.append('sorted')
-      if ascending:
-        self.my_name += " &uarr;"
-      else:
-        self.my_name += " &darr;"
+      if not ascending:
         class_names.append('descending')
     
     if len(class_names) > 0:

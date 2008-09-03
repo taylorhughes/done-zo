@@ -46,7 +46,11 @@ th {
   }	  
   th:hover,	  
   th.sorted {
-    background: #eee;
+    background: #eee url(/images/graphics.gif) -28px right no-repeat;
+  }
+  th.sorted.descending
+  {
+    background-position: -46px right;
   }
     th.sorted a {
       text-decoration: none;
@@ -76,11 +80,16 @@ td {
 	  display: inline;
 	  color: #369;
 	}
-	
-tr.task-row:hover td,
-tr.editable td {
-  background: #ff9;
+
+tr.completed {
+  text-decoration: line-through;
+  color: #888;
+}	
+tr.task-row:hover,
+tr.editable {
+  background-color: #ff9;
 }
+
   tr.task-row:hover td a {
     text-decoration: underline;
     color: #369;

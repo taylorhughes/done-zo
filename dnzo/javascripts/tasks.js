@@ -175,19 +175,21 @@ var TaskRow = Class.create({
   {
     if (this.isEditing()) return;
     
+    var params = { 'force_complete': true };
+    if (!event.element().checked)
+    {
+      params = { 'force_uncomplete': true };
+    }
+    
     new Ajax.Request(this.edit.href, {
       method: 'post',
-      parameters: { 'force_complete': true },
-      onSuccess: this.doComplete.bind(this),
-      onFailure: this.doFail.bind(this)
-    })
-    
-    event.stop();
-  },
-  
-  doComplete: function(xhr)
-  {
-    this.row.hide();
+      parameters: params,
+      onSuccess: this.doLoad.bind(this),
+      onFailure: (function(xhr){
+        this.doFail();
+        event.element().checked = false;
+      }).bind(this)
+    });
   },
   
   saveRestore: function()

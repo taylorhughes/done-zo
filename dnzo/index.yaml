@@ -31,7 +31,7 @@ indexes:
   - name: created_at
     direction: desc
 
-# Used 9 times in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   properties:
   - name: complete
@@ -141,7 +141,7 @@ indexes:
   - name: task_list
   - name: body
 
-# Used 7 times in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   properties:
   - name: complete
@@ -158,7 +158,7 @@ indexes:
   - name: created_at
     direction: desc
 
-# Used once in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   properties:
   - name: complete
@@ -188,14 +188,14 @@ indexes:
   - name: context
     direction: desc
 
-# Used 142 times in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   properties:
   - name: complete
   - name: task_list
   - name: created_at
 
-# Used 3 times in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   properties:
   - name: complete
@@ -203,14 +203,14 @@ indexes:
   - name: created_at
     direction: desc
 
-# Used once in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   properties:
   - name: complete
   - name: task_list
   - name: due_date
 
-# Used once in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   properties:
   - name: complete
@@ -218,7 +218,7 @@ indexes:
   - name: due_date
     direction: desc
 
-# Used once in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   properties:
   - name: complete
@@ -256,6 +256,14 @@ indexes:
   - name: created_at
     direction: desc
 
+# Used once in query history.
+- kind: Task
+  properties:
+  - name: project
+  - name: purged
+  - name: task_list
+  - name: created_at
+
 # Unused in query history -- copied from input.
 - kind: Task
   properties:
@@ -263,13 +271,58 @@ indexes:
   - name: task_list
   - name: created_at
 
-# Used 9 times in query history.
+# Used 5 times in query history.
+- kind: Task
+  properties:
+  - name: purged
+  - name: task_list
+  - name: created_at
+
+# Used once in query history.
+- kind: Task
+  properties:
+  - name: purged
+  - name: task_list
+  - name: due_date
+
+# Unused in query history -- copied from input.
+- kind: Task
+  properties:
+  - name: task_list
+  - name: body
+    direction: desc
+
+# Unused in query history -- copied from input.
+- kind: Task
+  properties:
+  - name: task_list
+  - name: complete
+  - name: created_at
+    direction: desc
+
+# Unused in query history -- copied from input.
+- kind: Task
+  properties:
+  - name: task_list
+  - name: complete
+    direction: desc
+  - name: created_at
+    direction: desc
+
+# Used 8 times in query history.
 - kind: Task
   properties:
   - name: task_list
   - name: created_at
 
-# Used 4 times in query history.
+# Unused in query history -- copied from input.
+- kind: Task
+  properties:
+  - name: task_list
+  - name: created_at
+    direction: desc
+
+# Used 2 times in query history.
 - kind: TaskList
   properties:
   - name: owner

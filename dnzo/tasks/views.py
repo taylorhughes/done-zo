@@ -42,7 +42,6 @@ def lists_index(request, username):
     'task_lists': lists
   }))
   
-  
 def tasks_index(request, username, task_list=None, context_name=None, project_name=None):
   try:
     user = verify_current_user(username)
@@ -64,10 +63,9 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
     if not view_context:
       raise Http404
     filter_title = "@%s" % view_context.name
-  show_completed = 'show_completed' in request.GET and request.GET['show_completed'] == 'true'
       
-  wheres = ['task_list=:task_list'] 
-  params = { 'task_list': task_list }
+  wheres = ['task_list=:task_list AND purged=:purged'] 
+  params = { 'task_list': task_list, 'purged': False }
   add_url = reverse_url('tasks.views.task',args=[user.short_name,task_list.short_name])
   
   if view_context:
@@ -78,10 +76,6 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
     wheres.append('project=:project')
     params['project'] = view_project
     add_url += "?project=%s" % view_project.short_name
-  
-  if not show_completed:
-    wheres.append('complete=:complete')
-    params['complete'] = False
 
   sortable_columns = ('project', 'body', 'due_date', 'created_at', 'context')
   order, direction = 'created_at', 'ASC'
@@ -105,6 +99,23 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
     'request_uri': request.get_full_path()
   }))
 
+def purge_tasks(request, username, task_list):
+  try:
+    user = verify_current_user(username)
+  except AccessError:
+    return access_error_redirect()
+  
+  task_list = get_task_list(user, task_list)
+  
+  if request.method == "POST":
+    logging.info("Here")
+    for task in Task.gql('WHERE task_list=:list AND purged=:purged AND complete=:complete', 
+                         list=task_list, purged=False, complete=True).fetch(50):
+      task.purged = True
+      task.put()
+  
+  return HttpResponseRedirect(reverse_url('tasks.views.tasks_index', args=[username, task_list.short_name]))
+
 def task(request, username, task_list=None, task_key=None):
   try:
     user = verify_current_user(username)
@@ -124,11 +135,15 @@ def task(request, username, task_list=None, task_key=None):
   else:
     task = Task(body='')
     task.owner = user
-  
+    
   force_complete = param('force_complete', request.POST, None)
+  force_uncomplete = param('force_uncomplete', request.POST, None)
   
-  if force_complete:
-    task.complete = True
+  if force_complete or force_uncomplete:
+    if force_complete:
+      task.complete = True
+    else:
+      task.complete = False
     task.put()
     
   elif request.method == "POST":

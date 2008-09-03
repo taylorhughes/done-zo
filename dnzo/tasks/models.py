@@ -46,6 +46,7 @@ class Task(db.Model):
   created_at = db.DateTimeProperty(auto_now_add=True)
   body = db.StringProperty()
   complete = db.BooleanProperty(default=False)
+  purged = db.BooleanProperty(default=False)
   due_date = db.DateTimeProperty()
   contexts = db.StringListProperty()
   project = db.ReferenceProperty(Project, collection_name='tasks')
