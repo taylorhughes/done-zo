@@ -90,6 +90,7 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
   
   return render_to_response('tasks/index.html', always_includes({
     'tasks': tasks,
+    'task_lists': get_task_lists(user),
     'user': user,
     'task_list': task_list,
     'filter_title': filter_title,
@@ -219,11 +220,11 @@ def welcome(request):
 def signup(request):
   current_user = get_dnzo_user()
   if current_user:
-    return HttpResponseRedirect('/tasks/')
+    return default_list_redirect(current_user)
   
   current_user = get_current_user()
   if not current_user:
-    raise RuntimeException, "User must be logged in."
+    raise RuntimeException, "User must be logged in; this should never happen."
 
   if request.method == 'POST':
     short_name = request.POST['short_name']
@@ -233,9 +234,13 @@ def signup(request):
       valid = False
 
     if valid:
-      new_user = TasksUser(short_name = short_name, user = current_user)
+      new_user = TasksUser(short_name=short_name, user=current_user)
       new_user.put()
-      return HttpResponseRedirect('/tasks/')
+      
+      tasks_list = TaskList(name='Tasks', short_name='tasks', owner=new_user)
+      tasks_list.put()
+      
+      return default_list_redirect(new_user)
 
   else:
     short_name = urlize(current_user.nickname())

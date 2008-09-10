@@ -1,6 +1,7 @@
 from google.appengine.api.users import get_current_user
 
 from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect
+from django.core.urlresolvers import reverse as reverse_url
 
 from tasks.errors import *
 from tasks.models import *
@@ -14,7 +15,15 @@ import re
 def access_error_redirect():
   logging.error("Shit! Access error.")
   return HttpResponseRedirect('/')
-  
+
+def default_list_redirect(user):
+  default_list = get_task_lists(user,1)
+  if default_list and len(default_list) > 0:
+    return HttpResponseRedirect(reverse_url('tasks.views.tasks_index',args=[user.short_name,default_list[0].short_name]))
+  else:
+    logging.error("Shit! Somehow the user does not have any task lists.")
+    return HttpResponseRedirect(reverse_url('tasks.views.lists_index'))
+    
 def is_ajax(request):
   ajax_header = 'HTTP_X_REQUESTED_WITH'
   return ajax_header in request.META and request.META[ajax_header] == 'XMLHttpRequest'
@@ -35,6 +44,9 @@ def get_dnzo_user():
 def get_task_list(user, task_list):
   return TaskList.gql('WHERE owner=:user AND short_name=:short_name', 
                                       user=user, short_name=task_list).get()
+                                      
+def get_task_lists(user, limit=10):
+  return TaskList.gql('WHERE owner=:user ORDER BY short_name ASC', user=user).fetch(limit)
   
 def verify_current_user(short_name):
   user = get_dnzo_user()

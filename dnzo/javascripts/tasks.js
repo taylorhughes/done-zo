@@ -14,6 +14,8 @@ var Tasks = {
     Tasks.table.select('tr.task-row').each(function(row) {
       new TaskRow(row);
     });
+    
+    Event.observe('switcher', 'change', Tasks.onSwitchList);
   },
   
   onClickAdd: function(event)
@@ -24,8 +26,13 @@ var Tasks = {
       onSuccess: Tasks.doAdd
     });
     event.stop();
-    
+  
     Tasks.cancelAll();
+  },
+  
+  onSwitchList: function(event)
+  {
+    document.location.href = $F(event.element());
   },
   
   cancelAll: function()
@@ -38,16 +45,11 @@ var Tasks = {
     alert("Ruh roh! Something went wrong. Please let us know what happened!");
   },
   
-  cancelAdd: function(event)
-  {
-    Tasks.addRow.show();
-    event.stop();
-  },
-  
   doAdd: function(xhr)
   {
-    var temp = new Element('table');
-    temp.innerHTML = xhr.responseText;
+    var temp = new Element('div');
+    // This a hack because table.innerHTML is readonly in IE.
+    temp.innerHTML = '<table>' + xhr.responseText + '</table>';
     
     var tbody = Tasks.table.select('tbody')[0];
     var row = temp.select('tr')[0];
@@ -56,11 +58,22 @@ var Tasks = {
     tbody.appendChild(Tasks.addRow);
 
     var task = new TaskRow(row);
-    Event.observe(task.row, Tasks.TASK_SAVED_EVENT, Tasks.cancelAdd.bind(this));
-    Event.observe(task.row, Tasks.TASK_CANCEL_EDITING_EVENT, Tasks.cancelAdd.bind(this));
+    Event.observe(task.row, Tasks.TASK_SAVED_EVENT, Tasks.addSaved.bind(this));
+    Event.observe(task.row, Tasks.TASK_CANCEL_EDITING_EVENT, Tasks.addCanceled.bind(this));
     
     Tasks.addRow.hide();
     task.activate();
+  },
+  
+  addCanceled: function(event)
+  {
+    Tasks.addRow.show();
+    event.stop();
+  },
+  
+  addSaved: function(event)
+  {
+    Tasks.onClickAdd(event);
   }
 };
 
@@ -70,6 +83,7 @@ var TaskRow = Class.create({
     this.row = row;
     this.setupEvents();
     
+    // Need to keep this around so we can unobserve it later in destroy()
     this.boundOnOtherTaskEditing = this.onOtherTaskEditing.bind(this);
     Event.observe(document, Tasks.TASK_EDITING_EVENT, this.boundOnOtherTaskEditing);
   },
@@ -162,13 +176,12 @@ var TaskRow = Class.create({
       onSuccess: (function(xhr) {
         this.doLoad(xhr);
         this.restore = null;
+        this.fire(Tasks.TASK_SAVED_EVENT);
       }).bind(this),
       onFailure: this.doFail.bind(this)
     });
     
     event.stop();
-    
-    this.fire(Tasks.TASK_SAVED_EVENT);
   },
   
   onClickComplete: function(event)
@@ -227,6 +240,7 @@ var TaskRow = Class.create({
     Event.fire(this.row,eventName);
   },
   
+  // Find the first empty field in the row and activate it.
   activate: function()
   {
     this.row.select('input[type=text]').each(function(input) {

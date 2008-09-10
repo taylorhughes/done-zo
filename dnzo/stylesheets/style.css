@@ -6,22 +6,24 @@ p { font-size: 10px; }
 #body {
 }
 h1 {
-  margin-left: 50px;
+  float: left;
+  margin: 8px 0 0 10px;
   font-size: 10pt;
   line-height: 12pt;
   text-transform: uppercase;
 }
+#switcher_holder {
+  float: left;
+  line-height: 12pt;
+  margin: 5px 0 0 10px;
+}
 #logout {
-  float: right;
-  margin-top: -12pt;
+  text-align: right;
 }
 h2 {
-  margin-left: 50px;
+  clear: both;
+  margin: 40px 0 0 10px;
   font-size: 16pt;
-}
-#return
-{
-  margin-left: 50px;
 }
 
 a {
@@ -30,6 +32,7 @@ a {
 table
 {
   width: 100%;
+  margin-bottom: 10px;
 }
 td, th {
   text-align: left;
@@ -109,7 +112,7 @@ tr.editable.task-row td.due {
   padding-left: 0.5em;
 }
 td.task, th.task { width: 50%; }
-td.edit, th.edit { width: 5%; }
+td.edit, th.edit { width: 10%; }
 
 tr.editable.task-row td.edit {
   padding-left: 0;
