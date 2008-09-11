@@ -2,18 +2,17 @@
 
 {% load tasks_library %}
 
-{% block page_title %}Dnzo: {{ task_list.name|escape }}{% if filter_title %} / {{ filter_title|escape }}{% endif %}{% endblock %}
+{% block page_title %}DNZO / {{ task_list.name|escape }}{% if filter_title %} / {{ filter_title|escape }}{% endif %}{% endblock %}
 
 {% block switcher %}
-<div id="switcher_holder">
-  / <select id="switcher">
-    {% for list in task_lists %}
-      <option value="{% url tasks.views.tasks_index user.short_name,list.short_name %}"
-              {% ifequal list.key.id task_list.key.id %} selected{% endifequal %}>{{ list.name|escape }}</option>
-    {% endfor %}
-    </select>
-    <a href="{% url tasks.views.lists_index user.short_name %}">Manage task lists</a>
-</div>
+&nbsp;<span>/&nbsp;</span>&nbsp;
+<select id="switcher">
+{% for list in task_lists %}
+  <option value="{% url tasks.views.tasks_index user.short_name,list.short_name %}"
+          {% ifequal list.key.id task_list.key.id %} selected{% endifequal %}>{{ list.name|escape }}</option>
+{% endfor %}
+</select>&nbsp;
+<a href="{% url tasks.views.lists_index user.short_name %}">Manage lists</a>
 {% endblock %}
 
 {% block header %}
@@ -22,30 +21,33 @@
 {% endblock %}
 
 {% block content %}
-  <div id="tasks_holder">
-    <form action="{% url tasks.views.task user.short_name,task_list.short_name %}" method="POST" id="tasks_form">
-    <table cellspacing="0" cellpadding="0" id="tasks_list">
-      <tr>
-        <th><a href="#">&nbsp;&nbsp;✓</a></th>
-        {% sorting_header "Project"     "project"    order direction "project" %}
-        {% sorting_header "Task"        "body"       order direction "body" %}
-        <th class="context"><a href="#">Context</a></th>
-        {% sorting_header "Due"         "due_date"   order direction "due" %}
-        {% sorting_header "Created On"  "created_at" order direction "created" %}
-        <th class="edit"></th>
-      </tr>
-      {% for task in tasks %}
-        {% include "tasks/task.html" %}
-      {% endfor %}
-      <tr id="add_row">
-        <td></td>
-        <td colspan="6"><a id="add" href="{{ add_url }}">Add task</a></td>
-      </tr>
-    </table>
-    </form>
+<form action="{% url tasks.views.task user.short_name,task_list.short_name %}" method="POST" id="tasks_form">
+<table cellspacing="0" cellpadding="0" id="tasks_list">
+  <tr>
+    <th class="done"><a href="#">&nbsp;&nbsp;✓</a></th>
+    {% sorting_header "Project"     "project"    order direction "project" %}
+    {% sorting_header "Task"        "body"       order direction "body" %}
+    <th><a href="#">Context</a></th>
+    {% sorting_header "Due"         "due_date"   order direction "due" %}
+  </tr>
+  {% for task in tasks %}
+    {% include "tasks/task.html" %}
+  {% endfor %}
+  <tr id="add_row">
+    <td></td>
+    <td colspan="6"><a id="add" href="{{ add_url }}" style="text-decoration:underline; color:#369">Add task</a></td>
+  </tr>
+</table>
+</form>
+{% endblock %}
 
-    <form action="{% url tasks.views.purge_tasks user.short_name,task_list.short_name %}" method="POST">
-      <input type="submit" value="Archive complete tasks">
-    </form>
-  </div>
+{% block footer %}
+<form action="{% url tasks.views.purge_tasks user.short_name,task_list.short_name %}" method="POST">
+<p id="archive">
+    <input type="submit" value="Archive completed tasks">
+    <a href="">View archived tasks</a>
+</p>
+</form>
+
+<p id="new-delete"><input type="submit" value="New list"> <input type="submit" value="Delete list"></p>
 {% endblock %}

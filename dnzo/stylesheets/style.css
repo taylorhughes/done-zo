@@ -1,38 +1,77 @@
+body {
+  background: #eee;
+  margin: 0;
+  padding: 0;
+}
 body,
 .text-input {
   font: 10px Helvetica;
 }
-p { font-size: 10px; }
+
+#header {
+  font-size: 1.1em;
+  margin: 1em 6.4em 1.7em 2em;
+  margin-right: 8.2%;
+}
+  #header p {
+    margin: 0;
+  }
+  #branding {
+    float: left;
+  }
+    #branding span {
+      vertical-align: -3px;
+	    font-weight: bold;
+	    font-size: 1.7em;
+	    letter-spacing: -2px;
+	    color: gray;	      
+    }
+  #user-lists {
+    padding-top: 0.7em;
+    text-align: right;
+  }
+  
+#status {
+  position: absolute;
+  width: 24em;
+  height: 2.1em;
+  top: 50px;
+  left: 50%;
+  margin-left: -12em;
+  background: red;
+  color: white;
+}
+  #status a {
+    color: white;
+  }
+  #status p {
+    margin: 0.3em 1em 0 1em;
+    padding: 0;
+	  font-size: 1.3em;
+	  text-align: center;
+  }
+  
 #body {
+  margin: 1em 0;
+  padding: 1em;
+  background: white;
+  border: 1px solid #ccc;	 
+  border-right: 0;
+  border-left: 0; 
 }
 h1 {
-  float: left;
-  margin: 8px 0 0 10px;
-  font-size: 10pt;
-  line-height: 12pt;
-  text-transform: uppercase;
+  margin-left: 2.4em;
+  margin-left: 0.6em;
+  font-size: 2.2em;
 }
-#switcher_holder {
-  float: left;
-  line-height: 12pt;
-  margin: 5px 0 0 10px;
-}
-#logout {
-  text-align: right;
-}
-h2 {
-  clear: both;
-  margin: 40px 0 0 10px;
-  font-size: 16pt;
+a {
+  text-decoration: underline;
+  color: #369;
 }
 
-a {
-  text-decoration: none;
-}
-table
-{
+#tasks_list {
   width: 100%;
-  margin-bottom: 10px;
+  margin-bottom: 1em;
 }
 td, th {
   text-align: left;
@@ -41,32 +80,33 @@ th {
   font-weight: normal;
   font-size: 1.2em;
   border-bottom: 1px solid #ccc;
+  white-space: nowrap;
+  background: url(/images/graphics.gif) no-repeat 100000px 8px;
 }
   th a {
     display: block;
     padding: 0.4em 0.8em 0.3em 0.8em;
+    text-decoration: none;
     color: #999;
   }	  
   th:hover,	  
   th.sorted {
-    background: #eee url(/images/graphics.gif) 4px right no-repeat;
-    padding-right: 8px;
+    background-color: #eee;
   }
-  th.sorted.descending
-  {
-    background-position: -85px right;
-  }
-    th.sorted a {
-      text-decoration: none;
-      color: #666;
+    th.sorted {
+      background-position: right 8px;
     }
-    th.sorted a:hover {
-      cursor: default;
+    th.sorted.descending {
+      background-position: right -85px;
+    }
+    th.sorted a {
+      color: #666;
     }
 
     
 td {
-  padding: 0.3em 0.8em;	  
+  padding: 0.6em;
+  padding-bottom: 0.5em;	  
   font-size: 1.3em;
 }
 	td a {
@@ -74,36 +114,46 @@ td {
 	  color: inherit;
 	}
 	td.project {
-	  text-transform: uppercase;
-	  font-size: 1.2em;
+
+	}
+	td.edit {
+	  text-align: right;
 	}
 	td.edit a {
-	  display: none;
+	  visibility: hidden;
 	}
-	td.edit a.cancel {
-	  display: inline;
-	  color: #369;
+	  td.edit a img {
+	    margin-bottom: -1px;
+	    border: 0;
+	  }
+	td.done,
+	th.done {
+	  width: 1em;
+	  background-image: none;
 	}
-
-tr.completed {
-  text-decoration: line-through;
-  color: #888;
-}	
-tr.task-row:hover,
-tr.editable {
-  background-color: #ff9;
+	  td.done input {
+	    margin-top: -2px;
+	  }
+	
+tr.task-row:hover td,
+tr.editable td {
+  background: #ff9;
 }
-
   tr.task-row:hover td a {
     text-decoration: underline;
     color: #369;
   }
   tr.task-row:hover td.edit a {
-    display: inline;
+    visibility: visible;
   }
   tr.task-row td {
     white-space: nowrap;
+    vertical-align: top;
   }
+    tr.task-row td.task {
+      white-space: normal;
+    }
+    
 
 tr.editable.task-row td.project,
 tr.editable.task-row td.task,
@@ -111,9 +161,6 @@ tr.editable.task-row td.context,
 tr.editable.task-row td.due {
   padding-left: 0.5em;
 }
-td.task, th.task { width: 50%; }
-td.edit, th.edit { width: 10%; }
-
 tr.editable.task-row td.edit {
   padding-left: 0;
 }
@@ -148,4 +195,18 @@ tr.error td {
   background: #c00;
 }
 
-a#add { color: #369; }
+#footer {
+  font-size: 1.1em;
+  margin: 1em 6.4em 1.2em 2em;
+  margin-right: 8.2%;    
+}
+  #footer p {
+   
+  }
+  #archive {
+    float: left;
+  }
+  #new-delete {
+    padding-top: 1em;
+    text-align: right;
+  }

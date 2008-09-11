@@ -10,22 +10,31 @@
   <script type="text/javascript" src="/javascripts/tasks.js"></script>
 </head>
 <body>
-  <div id="body">
-    <h1>
-      Dnzo
-    </h1>
-    {% block switcher %}{% endblock %}
-    
+  
+  <div id="header">
+    <p id="branding">
+      <span>DNZO</span>&nbsp;
+      {% block switcher %}{% endblock %}
+    </p>
     {% if user %}
-    <p id="logout">
-      Hi, <strong>{{ user.user.nickname|escape }}</strong>.
-      Do you want to <a href="{{ logout_url }}">log out</a>?
+    <p id="user-lists">
+      <strong>{{ user.user.nickname|escape }}</strong> -
+      <a href="{{ logout_url }}">Sign out</a>
     </p>
     {% endif %}
+  </div>  <!-- end DIV header -->
+  
+  <div id="body">
     
-    <h2>{% block header %}{% endblock %}</h2>
+    <h1>{% block header %}{% endblock %}</h1>
     
     {% block content %}{% endblock %}
+    
   </div>
+  
+  <div id="footer">
+  {% block footer %}<p>Foo bar</p>{% endblock %}
+  </div>  <!-- end DIV footer -->
+  
 </body>
 </html>

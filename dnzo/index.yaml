@@ -241,7 +241,7 @@ indexes:
   - name: created_at
     direction: desc
 
-# Used 4 times in query history.
+# Used 2 times in query history.
 - kind: Task
   properties:
   - name: contexts
@@ -264,7 +264,7 @@ indexes:
   - name: created_at
     direction: desc
 
-# Used 8 times in query history.
+# Used once in query history.
 - kind: Task
   properties:
   - name: project
@@ -279,14 +279,14 @@ indexes:
   - name: task_list
   - name: created_at
 
-# Unused in query history -- copied from input.
+# Used 4 times in query history.
 - kind: Task
   properties:
   - name: purged
   - name: task_list
   - name: body
 
-# Unused in query history -- copied from input.
+# Used 12 times in query history.
 - kind: Task
   properties:
   - name: purged
@@ -294,7 +294,7 @@ indexes:
   - name: body
     direction: desc
 
-# Used 66 times in query history.
+# Used 58 times in query history.
 - kind: Task
   properties:
   - name: purged
@@ -316,6 +316,21 @@ indexes:
   - name: task_list
   - name: due_date
 
+# Used 11 times in query history.
+- kind: Task
+  properties:
+  - name: purged
+  - name: task_list
+  - name: project
+
+# Used 2 times in query history.
+- kind: Task
+  properties:
+  - name: purged
+  - name: task_list
+  - name: project
+    direction: desc
+
 # Unused in query history -- copied from input.
 - kind: Task
   properties:
@@ -353,13 +368,13 @@ indexes:
   - name: created_at
     direction: desc
 
-# Used 3 times in query history.
+# Used 4 times in query history.
 - kind: TaskList
   properties:
   - name: owner
   - name: name
 
-# Used 75 times in query history.
+# Used 91 times in query history.
 - kind: TaskList
   properties:
   - name: owner

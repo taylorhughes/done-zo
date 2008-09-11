@@ -19,9 +19,6 @@
     <td class="due">
       <input type="text" value="{{ task.due_date|date:"n/j/y" }}" class="text-input" name="due_date">
     </td>
-    <td class="created">
-      now
-    </td>
     <td class="edit">
     {% if task.is_saved %}
       <input type="hidden" name="task_key" value="{{ task.key.id }}">
@@ -51,12 +48,10 @@
     <td class="due">
       {{ task.due_date|short_date }}
     </td>
-    <td class="created">
-      {{ task.created_at|short_date }}
-    </td>
     <td class="edit">
       {% if not task.purged %}
-      <a href="{% url tasks.views.task task.owner.short_name,task.task_list.short_name,task.key.id %}" class="edit">edit</a>
+      <a href="{% url tasks.views.task task.owner.short_name,task.task_list.short_name,task.key.id %}" class="edit">edit</a>&nbsp;&nbsp;
+      <a href=""><img src="/images/trash.gif" alt="delete task"></a>
       {% endif %}
     </td>
   </tr>
