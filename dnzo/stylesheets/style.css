@@ -122,6 +122,7 @@ td {
 	td.edit a {
 	  visibility: hidden;
 	}
+	td.edit a.cancel { visibility: visible; }
 	  td.edit a img {
 	    margin-bottom: -1px;
 	    border: 0;

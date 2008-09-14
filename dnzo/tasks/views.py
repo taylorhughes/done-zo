@@ -13,11 +13,18 @@ from datetime import datetime
 from time import strptime
 import logging
 
-
-def always_includes(params=None):
+def always_includes(params=None, request=None, user=None):
   if not params:
     params = {}
+    
+  if request:
+    params['request_uri'] = request.get_full_path()
+  if user:
+    params['task_lists'] = get_task_lists(user)
+    params['user'] = user
+    
   params['logout_url'] = create_logout_url('/')
+  
   return params
 
 def lists_index(request, username):
@@ -90,15 +97,12 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
   
   return render_to_response('tasks/index.html', always_includes({
     'tasks': tasks,
-    'task_lists': get_task_lists(user),
-    'user': user,
     'task_list': task_list,
     'filter_title': filter_title,
     'add_url': add_url,
     'order': order,
-    'direction': direction,
-    'request_uri': request.get_full_path()
-  }))
+    'direction': direction
+  }, request, user))
 
 def purge_tasks(request, username, task_list):
   try:
@@ -139,12 +143,15 @@ def task(request, username, task_list=None, task_key=None):
     
   force_complete = param('force_complete', request.POST, None)
   force_uncomplete = param('force_uncomplete', request.POST, None)
+  force_delete = param('force_delete', request.POST, None)
   
-  if force_complete or force_uncomplete:
+  if force_complete or force_uncomplete or force_delete:
     if force_complete:
       task.complete = True
-    else:
+    elif force_uncomplete:
       task.complete = False
+    elif force_delete:
+      task.deleted = True
     task.put()
     
   elif request.method == "POST":
@@ -200,8 +207,8 @@ def task(request, username, task_list=None, task_key=None):
         task.contexts = [context.name]
         
     task.editing = True
-
-  return render_to_response('tasks/task.html', {
+  
+  return render_to_response('tasks/ajax_task.html', {
     'task': task
   })
 

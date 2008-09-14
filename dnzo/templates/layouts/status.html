@@ -1,0 +1,8 @@
+{% if status %}
+  <div id="status">
+    <p>
+      {{ status|escape }} 
+      {% if undo %}<a href="{{ undo }}">Undo</a>{% endif %}
+    </p>
+  </div>  <!-- end DIV status -->
+{% endif %}

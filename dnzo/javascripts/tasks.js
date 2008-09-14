@@ -49,7 +49,7 @@ var Tasks = {
   {
     var temp = new Element('div');
     // This a hack because table.innerHTML is readonly in IE.
-    temp.innerHTML = '<table>' + xhr.responseText + '</table>';
+    temp.innerHTML = xhr.responseText;
     
     var tbody = Tasks.table.select('tbody')[0];
     var row = temp.select('tr')[0];
@@ -219,11 +219,28 @@ var TaskRow = Class.create({
   
   doLoad: function(xhr)
   {
-    var temp = new Element('table');
+    var temp = new Element('div');
     temp.innerHTML = xhr.responseText;
-    temp = temp.select('tr')[0];
     
-    TaskRow.restoreFields(temp, this.row);
+    var status = temp.select("#status")
+    if (status.length > 0)
+    {
+      status = status[0];
+      
+      var existingStatus = $("status");
+      if (existingStatus)
+      {
+        existingStatus.innerHTML = status.innerHTML;
+        existingStatus.show();
+      }
+      else
+      {
+        Tasks.table.up('div').appendChild(status);
+      }
+    }
+    
+    var row = temp.select('tr')[0];
+    TaskRow.restoreFields(row, this.row);
     
     this.setupEvents();
     this.activate();
