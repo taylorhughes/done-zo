@@ -70,6 +70,17 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
     if not view_context:
       raise Http404
     filter_title = "@%s" % view_context.name
+    
+  status = None
+  if param('purged', request.GET, '') == 'true':
+    status = "Completed tasks have been archived."
+    
+  undo = param('undo', request.GET, None)
+  if undo:
+    try:
+      undo = int(undo)
+    except:
+      undo = None
       
   wheres = ['task_list=:task_list AND purged=:purged'] 
   params = { 'task_list': task_list, 'purged': False }
@@ -101,7 +112,9 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
     'filter_title': filter_title,
     'add_url': add_url,
     'order': order,
-    'direction': direction
+    'direction': direction,
+    'status': status,
+    'undo': undo
   }, request, user))
 
 def purge_tasks(request, username, task_list):
@@ -113,14 +126,34 @@ def purge_tasks(request, username, task_list):
   task_list = get_task_list(user, task_list)
   
   if request.method == "POST":
-    logging.info("Here")
+    undo = Undo(task_list=task_list)
     for task in Task.gql('WHERE task_list=:list AND purged=:purged AND complete=:complete', 
                          list=task_list, purged=False, complete=True).fetch(50):
       task.purged = True
       task.put()
+      undo.purged_tasks.append(str(task.key()))
+    undo.put()
+  
+  task_list_url = reverse_url('tasks.views.tasks_index', args=[username, task_list.short_name])
+  return HttpResponseRedirect("%s?purged=true&undo=%s" % (task_list_url, undo.key().id()))
+
+def undo(request, username, task_list, undo_key):
+  try:
+    user = verify_current_user(username)
+  except AccessError:
+    return access_error_redirect()
+
+  task_list = get_task_list(user, task_list)
+
+  try:
+    undo = db.get(db.Key.from_path('Undo', int(undo_key)))
+    if undo:
+      undo.undo()
+  except RuntimeError, (errno, strerror):
+    logger.error(strerror)
   
   return HttpResponseRedirect(reverse_url('tasks.views.tasks_index', args=[username, task_list.short_name]))
-
+  
 def task(request, username, task_list=None, task_key=None):
   try:
     user = verify_current_user(username)

@@ -33,7 +33,7 @@ body,
   
 #status {
   position: absolute;
-  width: 24em;
+  width: 36em;
   height: 2.1em;
   top: 50px;
   left: 50%;
@@ -147,6 +147,7 @@ tr.editable td {
   tr.task-row:hover td.edit a {
     visibility: visible;
   }
+  tr.task-row.completed { color: #666; }
   tr.task-row td {
     white-space: nowrap;
     vertical-align: top;

@@ -2,7 +2,7 @@
   <div id="status">
     <p>
       {{ status|escape }} 
-      {% if undo %}<a href="{{ undo }}">Undo</a>{% endif %}
+      {% if undo %}<a href="{% url tasks.views.undo user.short_name,task_list.short_name,undo %}">Undo</a>{% endif %}
     </p>
   </div>  <!-- end DIV status -->
 {% endif %}
