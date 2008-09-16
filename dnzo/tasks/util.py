@@ -12,6 +12,9 @@ from time import strptime
 import logging
 import re
 
+COOKIE_STATUS = 'dnzo-status'
+COOKIE_UNDO   = 'dnzo-undo'
+
 def access_error_redirect():
   logging.error("Shit! Access error.")
   return HttpResponseRedirect('/')
@@ -23,7 +26,7 @@ def default_list_redirect(user):
   else:
     logging.error("Shit! Somehow the user does not have any task lists.")
     return HttpResponseRedirect(reverse_url('tasks.views.lists_index'))
-    
+
 def is_ajax(request):
   ajax_header = 'HTTP_X_REQUESTED_WITH'
   return ajax_header in request.META and request.META[ajax_header] == 'XMLHttpRequest'

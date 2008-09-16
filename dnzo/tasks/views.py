@@ -72,10 +72,10 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
     filter_title = "@%s" % view_context.name
     
   status = None
-  if param('purged', request.GET, '') == 'true':
+  if param(COOKIE_STATUS, request.COOKIES, '') == 'purged':
     status = "Completed tasks have been archived."
     
-  undo = param('undo', request.GET, None)
+  undo = param(COOKIE_UNDO, request.COOKIES, None)
   if undo:
     try:
       undo = int(undo)
@@ -84,7 +84,7 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
       
   wheres = ['task_list=:task_list AND purged=:purged'] 
   params = { 'task_list': task_list, 'purged': False }
-  add_url = reverse_url('tasks.views.task',args=[user.short_name,task_list.short_name])
+  add_url = reverse_url('tasks.views.task',args=[user.short_name])
   
   if view_context:
     wheres.append('contexts=:context')
@@ -106,7 +106,7 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
   
   tasks = Task.gql(gql, **params).fetch(50)
   
-  return render_to_response('tasks/index.html', always_includes({
+  response = render_to_response('tasks/index.html', always_includes({
     'tasks': tasks,
     'task_list': task_list,
     'filter_title': filter_title,
@@ -116,6 +116,14 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
     'status': status,
     'undo': undo
   }, request, user))
+  
+  # TODO: Normalize this
+  if status:
+    response.set_cookie(COOKIE_STATUS, '', max_age=-1)
+  if undo:
+    response.set_cookie(COOKIE_UNDO, '', max_age=-1)
+  
+  return response
 
 def purge_tasks(request, username, task_list):
   try:
@@ -134,40 +142,45 @@ def purge_tasks(request, username, task_list):
       undo.purged_tasks.append(str(task.key()))
     undo.put()
   
-  task_list_url = reverse_url('tasks.views.tasks_index', args=[username, task_list.short_name])
-  return HttpResponseRedirect("%s?purged=true&undo=%s" % (task_list_url, undo.key().id()))
+  redirect = HttpResponseRedirect(request.META['HTTP_REFERER'])
+  
+  if undo and undo.is_saved():
+    redirect.set_cookie(COOKIE_STATUS, 'purged', max_age=60)
+    redirect.set_cookie(COOKIE_UNDO, str(undo.key().id()), max_age=60)
+  
+  return redirect
 
-def undo(request, username, task_list, undo_key):
+def undo(request, username, undo_id):
   try:
     user = verify_current_user(username)
   except AccessError:
     return access_error_redirect()
 
-  task_list = get_task_list(user, task_list)
-
   try:
-    undo = db.get(db.Key.from_path('Undo', int(undo_key)))
+    undo = db.get(db.Key.from_path('Undo', int(undo_id)))
     if undo:
       undo.undo()
   except RuntimeError, (errno, strerror):
     logger.error(strerror)
   
-  return HttpResponseRedirect(reverse_url('tasks.views.tasks_index', args=[username, task_list.short_name]))
+  # TODO: check for if referer does not exist
+  return HttpResponseRedirect(request.META['HTTP_REFERER'])
   
-def task(request, username, task_list=None, task_key=None):
+def task(request, username, task_id=None):
   try:
     user = verify_current_user(username)
   except AccessError:
     return access_error_redirect()
   
+  task_list = param('task_list',request.GET,None)
   task_list = get_task_list(user, task_list)
   
   # We can't change the URL for the enclosing form element. Ugh.
-  if not task_key and request.method == "POST":
-    task_key = param('task_key',request.POST)
+  if not task_id and request.method == "POST":
+    task_id = param('task_id',request.POST)
   
-  if task_key:
-    task = db.get(db.Key.from_path('Task', int(task_key)))
+  if task_id:
+    task = db.get(db.Key.from_path('Task', int(task_id)))
     #if task.owner != user:
     #  return access_error_redirect()
   else:
@@ -176,7 +189,10 @@ def task(request, username, task_list=None, task_key=None):
     
   force_complete = param('force_complete', request.POST, None)
   force_uncomplete = param('force_uncomplete', request.POST, None)
-  force_delete = param('force_delete', request.POST, None)
+  force_delete = param('delete', request.GET, None)
+  
+  status = None
+  undo = None
   
   if force_complete or force_uncomplete or force_delete:
     if force_complete:
@@ -184,7 +200,12 @@ def task(request, username, task_list=None, task_key=None):
     elif force_uncomplete:
       task.complete = False
     elif force_delete:
-      task.deleted = True
+      # TODO: create a transaction
+      status = "Task deleted successfully."
+      undo = Undo(task_list=task.task_list)
+      undo.deleted_tasks.append(str(task.key()))
+      undo.put()
+      task.task_list = None
     task.put()
     
   elif request.method == "POST":
@@ -221,12 +242,6 @@ def task(request, username, task_list=None, task_key=None):
     task.task_list = task_list
     task.put()
     
-    if not is_ajax(request):
-      # TODO: Return to referrer.
-      return HttpResponseRedirect(
-        reverse_url('tasks.views.tasks_index',args=[user.short_name,task_list.short_name])
-      )
-  
   elif request.method == "GET":
     raw_project = param('project', request.GET, None)
     if raw_project:
@@ -241,9 +256,19 @@ def task(request, username, task_list=None, task_key=None):
         
     task.editing = True
   
-  return render_to_response('tasks/ajax_task.html', {
-    'task': task
-  })
+  if undo:
+    undo = undo.key().id()
+
+  if not is_ajax(request):
+    # TODO: Something useful.
+    return default_list_redirect(user)
+  else:
+    return render_to_response('tasks/ajax_task.html', {
+      'user': user,
+      'task': task,
+      'status': status,
+      'undo': undo
+    })
 
 def redirect(request):
   user = get_dnzo_user()

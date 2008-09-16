@@ -40,6 +40,49 @@ var Tasks = {
     Event.fire(Tasks.table, Tasks.TASK_EDITING_EVENT);
   },
   
+  loadStatus: function(container)
+  {
+    var status = container.select("#status");
+    if (status.length > 0)
+    {
+      status = status[0];
+      
+      var existingStatus = $("status");
+      if (existingStatus)
+      {
+        existingStatus.innerHTML = status.innerHTML;
+        existingStatus.show();
+      }
+      else
+      {
+        Tasks.table.up('div').appendChild(status);
+      }
+    }
+  },
+  
+  updateStatusFromResponse: function(xhr)
+  {
+    Tasks.loadStatus(Tasks.containerFromResponse(xhr));
+  },
+  
+  containerFromResponse: function(xhr)
+  {
+    var temp = new Element('div');
+    temp.innerHTML = xhr.responseText;
+    return temp;
+  },
+  
+  rowFromResponse: function(xhr)
+  {
+    var temp = Tasks.containerFromResponse(xhr);
+    var row = temp.select('tr');
+    if (row.length > 0) 
+    {
+      return row[0];
+    }
+    return null;
+  },
+  
   doFail: function(xhr)
   {
     alert("Ruh roh! Something went wrong. Please let us know what happened!");
@@ -47,12 +90,9 @@ var Tasks = {
   
   doAdd: function(xhr)
   {
-    var temp = new Element('div');
-    // This a hack because table.innerHTML is readonly in IE.
-    temp.innerHTML = xhr.responseText;
+    var row = Tasks.rowFromResponse(xhr);
     
     var tbody = Tasks.table.select('tbody')[0];
-    var row = temp.select('tr')[0];
     tbody.removeChild(Tasks.addRow);
     tbody.appendChild(row);
     tbody.appendChild(Tasks.addRow);
@@ -103,6 +143,13 @@ var TaskRow = Class.create({
       Event.observe(this.edit, 'click', this.onClickEdit.bind(this));
     }
     
+    var trash = this.row.select('.edit>a.delete');
+    if (trash.length > 0)
+    {
+      this.trash = trash[0];
+      Event.observe(this.trash, 'click', this.onClickTrash.bind(this));
+    }
+    
     var save = this.row.select('.edit>input[type=submit]');
     if (save.length > 0)
     {
@@ -147,24 +194,24 @@ var TaskRow = Class.create({
     event.stop();
   },
   
-  onOtherTaskEditing: function(event)
-  {
-    if (this.isEditing())
-    {
-      this.cancel();
-    }
-  },
-  
   onClickEdit: function(event)
   {
     this.saveRestore();
     
     new Ajax.Request(this.edit.href, {
       method: 'get',
-      onSuccess: (function(xhr){
-        this.fire(Tasks.TASK_EDITING_EVENT);
-        this.doLoad(xhr);
-      }).bind(this),
+      onSuccess: this.doEdit.bind(this),
+      onFailure: this.doFail.bind(this)
+    });
+    event.stop();
+  },
+  
+  onClickTrash: function(event)
+  {
+    var row = event.element().up('tr');
+    new Ajax.Request(this.trash.href, {
+      method: 'get',
+      onSuccess: (function(xhr){ this.doTrash(xhr, row); }).bind(this),
       onFailure: this.doFail.bind(this)
     });
     event.stop();
@@ -173,11 +220,7 @@ var TaskRow = Class.create({
   onClickSave: function(event)
   {
     this.row.up('form').request({
-      onSuccess: (function(xhr) {
-        this.doLoad(xhr);
-        this.restore = null;
-        this.fire(Tasks.TASK_SAVED_EVENT);
-      }).bind(this),
+      onSuccess: this.doSave.bind(this),
       onFailure: this.doFail.bind(this)
     });
     
@@ -205,41 +248,38 @@ var TaskRow = Class.create({
       }).bind(this)
     });
   },
-  
-  saveRestore: function()
+
+  onOtherTaskEditing: function(event)
   {
-    this.restore = {};
-    TaskRow.restoreFields(this.row, this.restore);
+    if (this.isEditing())
+    {
+      this.cancel();
+    }
   },
   
-  loadRestore: function()
+  doEdit: function(xhr)
   {
-    TaskRow.restoreFields(this.restore, this.row);
+    this.fire(Tasks.TASK_EDITING_EVENT);
+    this.doLoad(xhr);
+  },
+  
+  doTrash: function(xhr, row)
+  {
+    row.hide();
+    Tasks.updateStatusFromResponse(xhr);
+  },
+  
+  doSave: function(xhr)
+  {
+    this.doLoad(xhr);
+    this.restore = null;
+    
+    this.fire(Tasks.TASK_SAVED_EVENT);
   },
   
   doLoad: function(xhr)
   {
-    var temp = new Element('div');
-    temp.innerHTML = xhr.responseText;
-    
-    var status = temp.select("#status")
-    if (status.length > 0)
-    {
-      status = status[0];
-      
-      var existingStatus = $("status");
-      if (existingStatus)
-      {
-        existingStatus.innerHTML = status.innerHTML;
-        existingStatus.show();
-      }
-      else
-      {
-        Tasks.table.up('div').appendChild(status);
-      }
-    }
-    
-    var row = temp.select('tr')[0];
+    var row = Tasks.rowFromResponse(xhr);
     TaskRow.restoreFields(row, this.row);
     
     this.setupEvents();
@@ -250,6 +290,17 @@ var TaskRow = Class.create({
   {
     // TODO: Do something useful when this fails.
     Tasks.doFail(xhr);
+  },
+  
+  saveRestore: function()
+  {
+    this.restore = {};
+    TaskRow.restoreFields(this.row, this.restore);
+  },
+  
+  loadRestore: function()
+  {
+    TaskRow.restoreFields(this.restore, this.row);
   },
   
   fire: function(eventName)

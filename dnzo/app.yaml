@@ -24,13 +24,9 @@ handlers:
   script: main.py
   login: admin
   
-- url: /tasks/.*
+- url: /
   script: main.py
-  login: required
   
-- url: /signup/.*
+- url: /.+
   script: main.py
   login: required
-
-- url: /.*
-  script: main.py

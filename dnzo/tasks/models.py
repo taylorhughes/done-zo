@@ -5,14 +5,12 @@ from google.appengine.api import users
 class TasksUser(db.Model):  
   short_name = db.StringProperty(required=True)
   user       = db.UserProperty()
-  @property
-  def tasks_url(self):
-    return "/%s/" % self.short_name
     
 class TaskList(db.Model):
   short_name = db.StringProperty()
   name       = db.StringProperty()
   owner      = db.ReferenceProperty(TasksUser, collection_name='task_lists')
+  deleted    = db.BooleanProperty(default=False)
   
   def editing():
     def fset(self, value):
@@ -21,10 +19,6 @@ class TaskList(db.Model):
       return self.__editing
     return locals()
   editing = property(**editing())
-  
-  @property
-  def url(self):
-    return "/%s/%s/" % (self.owner.short_name, self.short_name)
 
 class Project(db.Model):
   name       = db.StringProperty(required=True)
@@ -54,13 +48,6 @@ class Task(db.Model):
   project    = db.ReferenceProperty(Project, collection_name='tasks')
   owner      = db.ReferenceProperty(TasksUser, collection_name='tasks')
   task_list  = db.ReferenceProperty(TaskList, collection_name='tasks')
-
-  @property
-  def url(self):
-    tasks_url = "/%s/%s/" % (self.owner.short_name, self.task_list.short_name)
-    if self.is_saved():
-      return tasks_url + self.key()
-    return tasks_url
 
   def editing():
     def fset(self, value):
@@ -100,10 +87,12 @@ class Undo(db.Model):
     for task in self.find_purged():
       task.purged = False
       task.put()
+    self.delete()
 
   def finish(self):
     for task in self.find_deleted():
       task.delete()
+    self.delete()
 
 
 

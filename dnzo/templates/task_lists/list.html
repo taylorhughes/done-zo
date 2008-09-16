@@ -6,7 +6,7 @@
   </form>
   {% else %}
   <h3 class="list_title">
-    <a href="{{ list.url|escape }}">{{ list.name|escape }}</a>
+    <a href="{% url tasks.views.tasks_index user.short_name,list.short_name %}">{{ list.name|escape }}</a>
   </h3>
   &rarr; 
   <a href="#">delete</a>

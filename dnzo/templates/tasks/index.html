@@ -21,7 +21,7 @@
 {% endblock %}
 
 {% block content %}
-<form action="{% url tasks.views.task user.short_name,task_list.short_name %}" method="POST" id="tasks_form">
+<form action="{% url tasks.views.task user.short_name %}?task_list={{task_list.short_name|escape}}" method="POST" id="tasks_form">
 <table cellspacing="0" cellpadding="0" id="tasks_list">
   <tr>
     <th class="done"><a href="#">&nbsp;&nbsp;✓</a></th>

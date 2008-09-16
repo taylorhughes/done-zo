@@ -21,7 +21,7 @@
     </td>
     <td class="edit">
     {% if task.is_saved %}
-      <input type="hidden" name="task_key" value="{{ task.key.id }}">
+      <input type="hidden" name="task_id" value="{{ task.key.id }}">
       <input type="submit" value="Save"> 
     {% else %}
       <input type="submit" value="Add">
@@ -50,8 +50,8 @@
     </td>
     <td class="edit">
       {% if not task.purged %}
-      <a href="{% url tasks.views.task task.owner.short_name,task.task_list.short_name,task.key.id %}" class="edit">edit</a>&nbsp;&nbsp;
-      <a href="{% url tasks.views.task task.owner.short_name,task.task_list.short_name,task.key.id %}?delete=true" class="delete"><img src="/images/trash.gif" alt="delete task"></a>
+      <a href="{% url tasks.views.task task.owner.short_name,task.key.id %}" class="edit">edit</a>&nbsp;&nbsp;
+      <a href="{% url tasks.views.task task.owner.short_name,task.key.id %}?delete=true" class="delete"><img src="/images/trash.gif" alt="delete task"></a>
       {% endif %}
     </td>
   </tr>
