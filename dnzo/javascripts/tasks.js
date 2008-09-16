@@ -167,7 +167,7 @@ var TaskRow = Class.create({
   
   isEditing: function()
   {
-    return this.editRow && this.editRow.visible();
+    return this.editRow && this.editRow.parentNode;
   },
   
   cancel: function()
