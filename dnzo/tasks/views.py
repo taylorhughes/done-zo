@@ -132,9 +132,11 @@ def purge_tasks(request, username, task_list):
     return access_error_redirect()
   
   task_list = get_task_list(user, task_list)
+  if not task_list or not users_equal(task_list.owner, user):
+    return access_error_redirect()
   
   if request.method == "POST":
-    undo = Undo(task_list=task_list)
+    undo = Undo(task_list=task_list, owner=user)
     for task in Task.gql('WHERE task_list=:list AND purged=:purged AND complete=:complete', 
                          list=task_list, purged=False, complete=True).fetch(50):
       task.purged = True
@@ -158,8 +160,12 @@ def undo(request, username, undo_id):
 
   try:
     undo = db.get(db.Key.from_path('Undo', int(undo_id)))
+    if not users_equal(undo.owner, user):
+      return access_error_redirect()
+      
     if undo:
       undo.undo()
+      
   except RuntimeError, (errno, strerror):
     logger.error(strerror)
   
@@ -181,8 +187,8 @@ def task(request, username, task_id=None):
   
   if task_id:
     task = db.get(db.Key.from_path('Task', int(task_id)))
-    #if task.owner != user:
-    #  return access_error_redirect()
+    if not users_equal(task.owner, user):
+      return access_error_redirect()
   else:
     task = Task(body='')
     task.owner = user
@@ -202,7 +208,7 @@ def task(request, username, task_id=None):
     elif force_delete:
       # TODO: create a transaction
       status = "Task deleted successfully."
-      undo = Undo(task_list=task.task_list)
+      undo = Undo(task_list=task.task_list, owner=user)
       undo.deleted_tasks.append(str(task.key()))
       undo.put()
       task.task_list = None

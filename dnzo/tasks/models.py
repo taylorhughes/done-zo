@@ -63,6 +63,7 @@ class Task(db.Model):
 
 class Undo(db.Model):
   task_list     = db.ReferenceProperty(TaskList, collection_name='undos')
+  owner         = db.ReferenceProperty(TasksUser, collection_name='undos')
   created_at    = db.DateTimeProperty(auto_now_add=True)
 
   deleted_tasks = db.StringListProperty()

@@ -15,6 +15,13 @@ import re
 COOKIE_STATUS = 'dnzo-status'
 COOKIE_UNDO   = 'dnzo-undo'
 
+def users_equal(a,b):
+  if a is None and b is None:
+    return true
+  if a is None or b is None:
+    return false
+  return a.key().id() == b.key().id()
+
 def access_error_redirect():
   logging.error("Shit! Access error.")
   return HttpResponseRedirect('/')
@@ -45,11 +52,18 @@ def get_dnzo_user():
   return TasksUser.gql('WHERE user=:user', user=get_current_user()).get()
   
 def get_task_list(user, task_list):
-  return TaskList.gql('WHERE owner=:user AND short_name=:short_name', 
-                                      user=user, short_name=task_list).get()
+  query = TaskList.gql(
+    'WHERE owner=:user AND short_name=:short_name', 
+    user=user, short_name=task_list
+  )
+  return query.get()
                                       
 def get_task_lists(user, limit=10):
-  return TaskList.gql('WHERE owner=:user ORDER BY short_name ASC', user=user).fetch(limit)
+  query = TaskList.gql(
+    'WHERE owner=:user AND deleted=:deleted ORDER BY short_name ASC', 
+    user=user, deleted=False
+  )
+  return query.fetch(limit)
   
 def verify_current_user(short_name):
   user = get_dnzo_user()
