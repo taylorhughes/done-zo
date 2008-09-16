@@ -12,7 +12,7 @@ var Tasks = {
     Event.observe(Tasks.addLink, 'click', Tasks.onClickAdd);
     
     Tasks.table.select('tr.task-row').each(function(row) {
-      new TaskRow(row);
+      new TaskRow(row, null);
     });
     
     Event.observe('switcher', 'change', Tasks.onSwitchList);
@@ -26,8 +26,37 @@ var Tasks = {
       onSuccess: Tasks.doAdd
     });
     event.stop();
+  },
   
+  doAdd: function(xhr)
+  {
     Tasks.cancelAll();
+    
+    var row = Tasks.rowFromResponse(xhr);
+    
+    var tbody = Tasks.table.select('tbody')[0];
+
+    tbody.removeChild(Tasks.addRow);
+    tbody.appendChild(row);
+    tbody.appendChild(Tasks.addRow);
+
+    var task = new TaskRow(null, row);
+    Event.observe(Tasks.table, Tasks.TASK_SAVED_EVENT, Tasks.addSaved);
+    Event.observe(Tasks.table, Tasks.TASK_CANCEL_EDITING_EVENT, Tasks.addCanceled);
+    
+    Tasks.addRow.hide();
+    task.activate();
+  },
+  
+  addCanceled: function(event)
+  {
+    Tasks.addRow.show();
+    event.stop();
+  },
+  
+  addSaved: function(event)
+  {
+    Tasks.onClickAdd(event);
   },
   
   onSwitchList: function(event)
@@ -86,106 +115,75 @@ var Tasks = {
   doFail: function(xhr)
   {
     alert("Ruh roh! Something went wrong. Please let us know what happened!");
-  },
-  
-  doAdd: function(xhr)
-  {
-    var row = Tasks.rowFromResponse(xhr);
-    
-    var tbody = Tasks.table.select('tbody')[0];
-    tbody.removeChild(Tasks.addRow);
-    tbody.appendChild(row);
-    tbody.appendChild(Tasks.addRow);
-
-    var task = new TaskRow(row);
-    Event.observe(task.row, Tasks.TASK_SAVED_EVENT, Tasks.addSaved.bind(this));
-    Event.observe(task.row, Tasks.TASK_CANCEL_EDITING_EVENT, Tasks.addCanceled.bind(this));
-    
-    Tasks.addRow.hide();
-    task.activate();
-  },
-  
-  addCanceled: function(event)
-  {
-    Tasks.addRow.show();
-    event.stop();
-  },
-  
-  addSaved: function(event)
-  {
-    Tasks.onClickAdd(event);
   }
 };
 
 var TaskRow = Class.create({
-  initialize: function(row)
+  initialize: function(viewRow, editRow)
   {
-    this.row = row;
-    this.setupEvents();
-    
+    if (viewRow)
+    {
+      this.viewRow = viewRow;
+      this.wireViewingEvents(this.viewRow);
+    }
+    if (editRow)
+    {
+      this.editRow = editRow;
+      this.wireEditingEvents(this.editRow);
+    }
+
     // Need to keep this around so we can unobserve it later in destroy()
     this.boundOnOtherTaskEditing = this.onOtherTaskEditing.bind(this);
-    Event.observe(document, Tasks.TASK_EDITING_EVENT, this.boundOnOtherTaskEditing);
+    Event.observe(Tasks.table, Tasks.TASK_EDITING_EVENT, this.boundOnOtherTaskEditing);
   },
   
   destroy: function()
   {
-    this.row.parentNode.removeChild(this.row);
-    Event.stopObserving(document, Tasks.TASK_EDITING_EVENT, this.boundOnOtherTaskEditing);
+    if (this.viewRow) this.viewRow.parentNode.removeChild(this.viewRow);
+    if (this.editRow) this.editRow.parentNode.removeChild(this.editRow);
+    Event.stopObserving(Tasks.table, Tasks.TASK_EDITING_EVENT, this.boundOnOtherTaskEditing);
   },
   
-  setupEvents: function()
+  wireViewingEvents: function(row)
   {
-    var edit = this.row.select('.edit>a.edit');
-    if (edit.length > 0)
-    {
-      this.edit = edit[0];
-      Event.observe(this.edit, 'click', this.onClickEdit.bind(this));
-    }
+    this.edit = row.select('.edit>a.edit')[0];
+    Event.observe(this.edit, 'click', this.onClickEdit.bind(this));
     
-    var trash = this.row.select('.edit>a.delete');
-    if (trash.length > 0)
-    {
-      this.trash = trash[0];
-      Event.observe(this.trash, 'click', this.onClickTrash.bind(this));
-    }
-    
-    var save = this.row.select('.edit>input[type=submit]');
-    if (save.length > 0)
-    {
-      this.save = save[0];
-      Event.observe(this.save, 'click', this.onClickSave.bind(this));
-      this.cancelLink = this.row.select('.edit>a.cancel')[0];
-      Event.observe(this.cancelLink, 'click', this.onClickCancel.bind(this));
-    }
-    
-    var complete = this.row.select('.complete');
-    if (complete.length > 0 && !complete[0].hasClassName('editing'))
-    {
-      this.complete = complete[0];
-      Event.observe(this.complete, 'click', this.onClickComplete.bind(this));
-    }
+    this.trash = row.select('.edit>a.delete')[0];
+    Event.observe(this.trash, 'click', this.onClickTrash.bind(this));
+
+    var finish = row.select('.complete')[0];
+    Event.observe(finish, 'click', this.onClickComplete.bind(this));
+  },
+  
+  wireEditingEvents: function(row)
+  {
+    var save = row.select('.edit>input[type=submit]')[0];
+    Event.observe(save, 'click', this.onClickSave.bind(this));
+
+    var cancelLink = row.select('.edit>a.cancel')[0];
+    Event.observe(cancelLink, 'click', this.onClickCancel.bind(this));
   },
   
   isEditing: function()
   {
-    return this.row.hasClassName('editable');
+    return this.editRow && this.editRow.visible();
   },
   
   cancel: function()
   {
-    if (this.restore)
+    this.fire(Tasks.TASK_CANCEL_EDITING_EVENT);
+    
+    if (this.viewRow)
     {
-      this.loadRestore();
-      this.setupEvents();
+      this.viewRow.show();
+      this.viewRow.parentNode.removeChild(this.editRow);
     }
     else
     {
-      // New task.
+      // New task; can't toggle
       this.destroy();
     }
-    
-    this.fire(Tasks.TASK_CANCEL_EDITING_EVENT);
   },
   
   onClickCancel: function(event)
@@ -196,44 +194,81 @@ var TaskRow = Class.create({
   
   onClickEdit: function(event)
   {
-    this.saveRestore();
-    
-    new Ajax.Request(this.edit.href, {
-      method: 'get',
-      onSuccess: this.doEdit.bind(this),
-      onFailure: this.doFail.bind(this)
-    });
+    this.fire(Tasks.TASK_EDITING_EVENT);
+    if (this.editRow)
+    {
+      this.viewRow.hide();
+      this.viewRow.parentNode.insertBefore(this.editRow, this.viewRow);
+    }
+    else
+    {
+      new Ajax.Request(this.edit.href, {
+        method: 'get',
+        onSuccess: this.doEdit.bind(this),
+        onFailure: this.doFail.bind(this)
+      }); 
+    }
     event.stop();
+  },
+  doEdit: function(xhr)
+  {    
+    this.editRow = Tasks.rowFromResponse(xhr);
+    this.viewRow.parentNode.insertBefore(this.editRow, this.viewRow);
+    this.viewRow.hide();
+
+    this.wireEditingEvents(this.editRow);
+    this.activate();
   },
   
   onClickTrash: function(event)
   {
-    var row = event.element().up('tr');
     new Ajax.Request(this.trash.href, {
       method: 'get',
-      onSuccess: (function(xhr){ this.doTrash(xhr, row); }).bind(this),
+      onSuccess: this.doTrash.bind(this),
       onFailure: this.doFail.bind(this)
     });
     event.stop();
   },
+  doTrash: function(xhr)
+  {
+    this.destroy();
+    Tasks.updateStatusFromResponse(xhr);
+  },
   
   onClickSave: function(event)
   {
-    this.row.up('form').request({
+    this.editRow.up('form').request({
       onSuccess: this.doSave.bind(this),
       onFailure: this.doFail.bind(this)
     });
     
     event.stop();
   },
+  doSave: function(xhr)
+  {
+    var tbody = this.editRow.parentNode;
+    // May be adding a new task
+    if (this.viewRow)
+    {
+      tbody.removeChild(this.viewRow);
+    }
+    this.viewRow = Tasks.rowFromResponse(xhr);
+    this.wireViewingEvents(this.viewRow);
+    
+    tbody.insertBefore(this.viewRow, this.editRow);
+    tbody.removeChild(this.editRow);
+    this.editRow = null;
+    
+    this.fire(Tasks.TASK_SAVED_EVENT);
+  },
   
   onClickComplete: function(event)
   {
     if (this.isEditing()) return;
     
-    var checked = event.element().checked;
+    var check = event.element();
     var params = { 'force_complete': true };
-    if (!checked)
+    if (!check.checked)
     {
       params = { 'force_uncomplete': true };
     }
@@ -241,12 +276,17 @@ var TaskRow = Class.create({
     new Ajax.Request(this.edit.href, {
       method: 'post',
       parameters: params,
-      onSuccess: this.doLoad.bind(this),
+      onSuccess: this.doComplete.bind(this),
       onFailure: (function(xhr){
         this.doFail();
-        event.element().checked = !checked;
+        check.checked = !checked;
       }).bind(this)
     });
+  },
+  doComplete: function(xhr)
+  {
+    var newRow = Tasks.rowFromResponse(xhr);
+    this.viewRow.className = newRow.className;
   },
 
   onOtherTaskEditing: function(event)
@@ -257,61 +297,23 @@ var TaskRow = Class.create({
     }
   },
   
-  doEdit: function(xhr)
-  {
-    this.fire(Tasks.TASK_EDITING_EVENT);
-    this.doLoad(xhr);
-  },
-  
-  doTrash: function(xhr, row)
-  {
-    row.hide();
-    Tasks.updateStatusFromResponse(xhr);
-  },
-  
-  doSave: function(xhr)
-  {
-    this.doLoad(xhr);
-    this.restore = null;
-    
-    this.fire(Tasks.TASK_SAVED_EVENT);
-  },
-  
-  doLoad: function(xhr)
-  {
-    var row = Tasks.rowFromResponse(xhr);
-    TaskRow.restoreFields(row, this.row);
-    
-    this.setupEvents();
-    this.activate();
-  },
-  
   doFail: function(xhr)
   {
     // TODO: Do something useful when this fails.
     Tasks.doFail(xhr);
   },
   
-  saveRestore: function()
-  {
-    this.restore = {};
-    TaskRow.restoreFields(this.row, this.restore);
-  },
-  
-  loadRestore: function()
-  {
-    TaskRow.restoreFields(this.restore, this.row);
-  },
-  
   fire: function(eventName)
   {
-    Event.fire(this.row,eventName);
+    Event.fire((this.viewRow || this.editRow), eventName);
   },
   
   // Find the first empty field in the row and activate it.
   activate: function()
   {
-    this.row.select('input[type=text]').each(function(input) {
+    if (!this.editRow) return;
+    
+    this.editRow.select('input[type=text]').each(function(input) {
       if (input.getValue().blank())
       {
         input.activate();
@@ -320,11 +322,5 @@ var TaskRow = Class.create({
     });
   }
 });
-TaskRow.restoreFields = function(from, to)
-{
-  ['className', 'innerHTML'].each(function(field){
-    to[field] = from[field];
-  });
-}
 
 Event.observe(window,'load',Tasks.load);

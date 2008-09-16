@@ -11,7 +11,7 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
-# Used 2 times in query history.
+# Used 5 times in query history.
 - kind: Task
   properties:
   - name: contexts
@@ -19,7 +19,7 @@ indexes:
   - name: task_list
   - name: created_at
 
-# Used 10 times in query history.
+# Used 5 times in query history.
 - kind: Task
   properties:
   - name: project
@@ -27,48 +27,48 @@ indexes:
   - name: task_list
   - name: created_at
 
-# Used 5 times in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   properties:
   - name: purged
   - name: task_list
   - name: body
 
-# Used 75 times in query history.
+# Used 203 times in query history.
 - kind: Task
   properties:
   - name: purged
   - name: task_list
   - name: created_at
 
-# Used 4 times in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   properties:
   - name: purged
   - name: task_list
   - name: due_date
 
-# Used once in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   properties:
   - name: purged
   - name: task_list
   - name: project
 
-# Used 7 times in query history.
+# Used 247 times in query history.
 - kind: TaskList
   properties:
   - name: deleted
   - name: owner
   - name: short_name
 
-# Used 4 times in query history.
+# Used 2 times in query history.
 - kind: TaskList
   properties:
   - name: owner
   - name: name
 
-# Used 97 times in query history.
+# Unused in query history -- copied from input.
 - kind: TaskList
   properties:
   - name: owner
