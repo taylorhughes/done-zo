@@ -49,5 +49,10 @@
 </p>
 </form>
 
-<p id="new-delete"><input type="submit" value="New list"> <input type="submit" value="Delete list"></p>
+<form action="{% url tasks.views.tasks_index user.short_name,task_list.short_name %}?delete=true" method="POST">
+<p id="new-delete">
+  <a href="#">New list</a>
+  <input type="submit" value="Delete list"{% if task_lists|length_is:1 %} disabled{% endif %}>
+</p>
+</form>
 {% endblock %}

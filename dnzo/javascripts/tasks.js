@@ -140,7 +140,7 @@ var TaskRow = Class.create({
   destroy: function()
   {
     if (this.viewRow) this.viewRow.parentNode.removeChild(this.viewRow);
-    if (this.editRow) this.editRow.parentNode.removeChild(this.editRow);
+    if (this.editRow && this.editRow.parentNode) this.editRow.parentNode.removeChild(this.editRow);
     Event.stopObserving(Tasks.table, Tasks.TASK_EDITING_EVENT, this.boundOnOtherTaskEditing);
   },
   
