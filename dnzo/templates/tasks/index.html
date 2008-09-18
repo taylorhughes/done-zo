@@ -44,14 +44,14 @@
 {% block footer %}
 <form action="{% url tasks.views.purge_tasks user.short_name,task_list.short_name %}" method="POST">
 <p id="archive">
-    <input type="submit" value="Archive completed tasks">
+    <input type="submit" value="Archive completed tasks">&nbsp;
     <a href="">View archived tasks</a>
 </p>
 </form>
 
 <form action="{% url tasks.views.tasks_index user.short_name,task_list.short_name %}?delete=true" method="POST">
 <p id="new-delete">
-  <a href="#">New list</a>
+  <a href="#">Add list</a>&nbsp;
   <input type="submit" value="Delete list"{% if task_lists|length_is:1 %} disabled{% endif %}>
 </p>
 </form>

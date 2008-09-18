@@ -59,6 +59,10 @@ body,
   border-right: 0;
   border-left: 0; 
 }
+  #body p {
+    margin-left: 1em;
+    font-size: 1.3em;
+  }
 h1 {
   margin-left: 2.4em;
   margin-left: 0.6em;
@@ -71,7 +75,7 @@ a {
 
 #tasks_list {
   width: 100%;
-  margin-bottom: 1em;
+  margin-bottom: 0.5em;
 }
 td, th {
   text-align: left;
@@ -114,9 +118,10 @@ td {
 	  color: inherit;
 	}
 	td.project {
-
+    width: 8em;
 	}
 	td.edit {
+	  width: 4em;
 	  text-align: right;
 	}
 	td.edit a {
