@@ -11,6 +11,7 @@
   <option value="{% url tasks.views.tasks_index user.short_name,list.short_name %}"
           {% ifequal list.key.id task_list.key.id %} selected{% endifequal %}>{{ list.name|escape }}</option>
 {% endfor %}
+  <option value="{% url tasks.views.tasks_index user.short_name,"_archived" %}"{% if not task_list %} selected{% endif %}>Archived tasks</option>
 </select>&nbsp;
 <a href="{% url tasks.views.lists_index user.short_name %}">Manage lists</a>
 {% endblock %}
@@ -24,10 +25,10 @@
 <form action="{% url tasks.views.task user.short_name %}?task_list={{task_list.short_name|escape}}" method="POST" id="tasks_form">
 <table cellspacing="0" cellpadding="0" id="tasks_list">
   <tr>
-    <th class="done"><a href="#">&nbsp;&nbsp;✓</a></th>
+    <th class="done"><span>&nbsp;&nbsp;✓</span></th>
     {% sorting_header "Project"     "project"    order direction "project" %}
     {% sorting_header "Task"        "body"       order direction "body" %}
-    <th><a href="#">Context</a></th>
+    <th><span>Context</span></th>
     {% sorting_header "Due"         "due_date"   order direction "due" %}
   </tr>
   {% for task in tasks %}
@@ -45,7 +46,6 @@
 <form action="{% url tasks.views.purge_tasks user.short_name,task_list.short_name %}" method="POST">
 <p id="archive">
     <input type="submit" value="Archive completed tasks">&nbsp;
-    <a href="">View archived tasks</a>
 </p>
 </form>
 

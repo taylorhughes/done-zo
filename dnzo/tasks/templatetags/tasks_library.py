@@ -57,4 +57,4 @@ class SortingHeader(Node):
     else:
       class_names = ''
 
-    return '<th%s><a href="%s">%s</a></th>' % (class_names, url, self.my_name)
+    return '<th><a href="%s"%s>%s</a></th>' % (url, class_names, self.my_name)

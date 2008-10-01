@@ -85,25 +85,24 @@ th {
   font-size: 1.2em;
   border-bottom: 1px solid #ccc;
   white-space: nowrap;
-  background: url(/images/graphics.gif) no-repeat 100000px 8px;
 }
-  th a {
+  th a, th span {
     display: block;
     padding: 0.4em 0.8em 0.3em 0.8em;
     text-decoration: none;
     color: #999;
   }	  
-  th:hover,	  
-  th.sorted {
-    background-color: #eee;
+  th a:hover,	  
+  th a.sorted {
+    background: #eee url(/images/graphics.gif) no-repeat 100000px 8px;
   }
-    th.sorted {
+    th a.sorted {
       background-position: right 8px;
     }
-    th.sorted.descending {
+    th a.sorted.descending {
       background-position: right -85px;
     }
-    th.sorted a {
+    th a.sorted {
       color: #666;
     }
 

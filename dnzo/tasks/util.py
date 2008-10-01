@@ -39,7 +39,7 @@ def is_ajax(request):
   return ajax_header in request.META and request.META[ajax_header] == 'XMLHttpRequest'
   
 def urlize(title):
-  title = title.lower()
+  title = title.lower().strip()
   title = re.sub(r'[^a-z0-9\s]', '', title)
   title = re.sub(r'\s+', '_',  title)
   return title
@@ -79,7 +79,7 @@ def param(name, collection, default=None):
 RE_TODAY    = re.compile(r'^today$', re.I)
 RE_TOMORROW = re.compile(r'^tom{1,2}or{1,2}ow$', re.I)
 RE_DAY      = re.compile(r'^(mon|tue|wed|thu|fri|sat|sun)\w*$', re.I)
-RE_DATE     = re.compile(r'^(\d{1,2})\D+(\d{1,2})(\D+(\d{1,4}))?$')
+RE_DATE     = re.compile(r'^(\d{1,2})\D+(\d{1,2})(?:\D+(\d{1,4}))?$')
 
 def parse_date(date_string):
   if not date_string:
@@ -91,7 +91,7 @@ def parse_date(date_string):
   
   match = RE_DATE.match(date_string)
   if match:
-    m, d, z, y = match.groups()
+    m, d, y = match.groups()
     m = int(m)
     d = int(d)
     if y:
