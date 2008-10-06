@@ -86,10 +86,12 @@ def tasks_index(request, username, task_list_name=None, context_name=None, proje
   
   archived = (task_list_name == ARCHIVED_LIST_NAME)
   if not archived:
+    template = 'tasks/index.html'
     task_list = get_task_list(user, task_list_name)
     wheres = ['task_list=:task_list AND purged=:purged'] 
     params = { 'task_list': task_list, 'purged': False }
   else:
+    template = 'archived_tasks/index.html'
     task_list = None
     wheres = ['owner=:owner AND purged=:purged AND deleted=:deleted'] 
     params = { 'owner': user, 'purged': True, 'deleted': False }
@@ -113,7 +115,7 @@ def tasks_index(request, username, task_list_name=None, context_name=None, proje
   gql = 'WHERE %s ORDER BY %s %s' % (' AND '.join(wheres), order, direction)
   tasks = Task.gql(gql, **params).fetch(50)
   
-  response = render_to_response('tasks/index.html', always_includes({
+  response = render_to_response(template, always_includes({
     'tasks': tasks,
     'task_list': task_list,
     'filter_title': filter_title,

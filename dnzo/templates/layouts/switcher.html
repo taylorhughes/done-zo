@@ -1,0 +1,9 @@
+&nbsp;<span>/&nbsp;</span>&nbsp;
+<select id="switcher">
+{% for list in task_lists %}
+  <option value="{% url tasks.views.tasks_index user.short_name,list.short_name %}"
+          {% ifequal list.key.id task_list.key.id %} selected{% endifequal %}>{{ list.name|escape }}</option>
+{% endfor %}
+  <option value="{% url tasks.views.tasks_index user.short_name,"_archived" %}"{% if not task_list %} selected{% endif %}>Archived tasks</option>
+</select>&nbsp;
+<a href="{% url tasks.views.lists_index user.short_name %}">Manage lists</a>

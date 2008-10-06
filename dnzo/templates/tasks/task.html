@@ -30,12 +30,10 @@
     </td>
   </tr>
 {% else %}
-  <tr class="task-row{% if task.complete and not task.purged %} completed{% endif %}">
-    {% if not task.purged %}
+  <tr class="task-row{% if task.complete %} completed{% endif %}">
     <td class="done">
       <input type="checkbox"{% if task.complete %} checked{% endif %} class="complete">
     </td>
-    {% endif %}
     <td class="project">
       <a href="{% url tasks.views.tasks_index task.owner.short_name,task.task_list.short_name,project_name=task.project.short_name %}">{{ task.project.name|escape }}</a>
     </td>
@@ -51,10 +49,8 @@
       {{ task.due_date|short_date }}
     </td>
     <td class="edit">
-      {% if not task.purged %}
       <a href="{% url tasks.views.task task.owner.short_name,task.key.id %}" class="edit">edit</a>&nbsp;&nbsp;
       <a href="{% url tasks.views.task task.owner.short_name,task.key.id %}?delete=true" class="delete"><img src="/images/trash.gif" alt="delete task"></a>
-      {% endif %}
     </td>
   </tr>
 {% endif %}
