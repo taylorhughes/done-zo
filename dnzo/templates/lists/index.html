@@ -7,9 +7,5 @@
 {% block header %}Task Lists{% endblock %}
 
 {% block content %}
-  <ul>
-    {% for list in task_lists %}
-      {% include "task_lists/list.html" %}
-    {% endfor %}
-  </ul>
+  {% include "lists/add.html" %}
 {% endblock %}
