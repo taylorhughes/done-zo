@@ -13,6 +13,9 @@ from datetime import datetime
 from time import strptime
 import logging
 
+ARCHIVED_LIST_NAME = '_archived'
+SORTABLE_LIST_COLUMNS = ('project', 'body', 'due_date', 'created_at', 'context')
+
 def always_includes(params=None, request=None, user=None):
   if not params:
     params = {}
@@ -49,14 +52,13 @@ def lists_index(request, username):
     'task_lists': lists
   }))
   
-def tasks_index(request, username, task_list=None, context_name=None, project_name=None):
+def tasks_index(request, username, task_list_name=None, context_name=None, project_name=None):
   try:
     user = verify_current_user(username)
   except AccessError:
     return access_error_redirect()
   
-  task_list = get_task_list(user, task_list)
-  
+  # FILTER 
   filter_title = None
   view_project = None
   if project_name:
@@ -70,22 +72,29 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
     if not view_context:
       raise Http404
     filter_title = "@%s" % view_context.name
-    
+  
+  # SHOW STATUS MESSAGE
   status = None
   if param(COOKIE_STATUS, request.COOKIES, '') == 'purged':
     status = "Completed tasks have been archived."
-    
-  undo = param(COOKIE_UNDO, request.COOKIES, None)
-  if undo:
-    try:
-      undo = int(undo)
-    except:
-      undo = None
-      
-  wheres = ['task_list=:task_list AND purged=:purged'] 
-  params = { 'task_list': task_list, 'purged': False }
-  add_url = reverse_url('tasks.views.task',args=[user.short_name])
   
+  # SHOW UNDO
+  try:
+    undo = int(param(COOKIE_UNDO, request.COOKIES, None))
+  except:
+    undo = None
+  
+  archived = (task_list_name == ARCHIVED_LIST_NAME)
+  if not archived:
+    task_list = get_task_list(user, task_list_name)
+    wheres = ['task_list=:task_list AND purged=:purged'] 
+    params = { 'task_list': task_list, 'purged': False }
+  else:
+    task_list = None
+    wheres = ['owner=:owner AND purged=:purged AND deleted=:deleted'] 
+    params = { 'owner': user, 'purged': True, 'deleted': False }
+  
+  add_url = reverse_url('tasks.views.task',args=[user.short_name])
   if view_context:
     wheres.append('contexts=:context')
     params['context'] = view_context.name
@@ -95,15 +104,13 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
     params['project'] = view_project
     add_url += "?project=%s" % view_project.short_name
 
-  sortable_columns = ('project', 'body', 'due_date', 'created_at', 'context')
   order, direction = 'created_at', 'ASC'
-  if param('order', request.GET) in sortable_columns:
+  if param('order', request.GET) in SORTABLE_LIST_COLUMNS:
     order = param('order', request.GET)
   if param('descending', request.GET) == 'true':
     direction = 'DESC'
   
   gql = 'WHERE %s ORDER BY %s %s' % (' AND '.join(wheres), order, direction)
-  
   tasks = Task.gql(gql, **params).fetch(50)
   
   response = render_to_response('tasks/index.html', always_includes({
@@ -114,10 +121,11 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
     'order': order,
     'direction': direction,
     'status': status,
-    'undo': undo
+    'undo': undo,
+    'archived': archived,
   }, request, user))
   
-  # TODO: Normalize this
+  # TODO: Make this not suck
   if status:
     response.set_cookie(COOKIE_STATUS, '', max_age=-1)
   if undo:
@@ -125,13 +133,13 @@ def tasks_index(request, username, task_list=None, context_name=None, project_na
   
   return response
 
-def purge_tasks(request, username, task_list):
+def purge_tasks(request, username, task_list_name):
   try:
     user = verify_current_user(username)
   except AccessError:
     return access_error_redirect()
   
-  task_list = get_task_list(user, task_list)
+  task_list = get_task_list(user, task_list_name)
   if not task_list or not users_equal(task_list.owner, user):
     return access_error_redirect()
   
@@ -141,11 +149,12 @@ def purge_tasks(request, username, task_list):
                          list=task_list, purged=False, complete=True).fetch(50):
       task.purged = True
       task.put()
-      undo.purged_tasks.append(str(task.key()))
+      undo.purged_tasks.append(task.key())
     undo.put()
   
   redirect = HttpResponseRedirect(request.META['HTTP_REFERER'])
   
+  # TODO: Make this not suck
   if undo and undo.is_saved():
     redirect.set_cookie(COOKIE_STATUS, 'purged', max_age=60)
     redirect.set_cookie(COOKIE_UNDO, str(undo.key().id()), max_age=60)
@@ -209,9 +218,10 @@ def task(request, username, task_id=None):
       # TODO: create a transaction
       status = "Task deleted successfully."
       undo = Undo(task_list=task.task_list, owner=user)
-      undo.deleted_tasks.append(str(task.key()))
+      undo.deleted_tasks.append(task.key())
       undo.put()
       task.task_list = None
+      task.deleted = True
     task.put()
     
   elif request.method == "POST":

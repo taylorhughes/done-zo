@@ -5,17 +5,25 @@ var Tasks = {
   
   load: function(event)
   {
-    Tasks.table = $('tasks_list');
-    Tasks.addRow = Tasks.table.select('#add_row')[0];
-    Tasks.addLink = Tasks.addRow.select('#add')[0];
-    
-    Event.observe(Tasks.addLink, 'click', Tasks.onClickAdd);
-    
-    Tasks.table.select('tr.task-row').each(function(row) {
-      new TaskRow(row, null);
-    });
-    
+    // Setup dropdown switcher
     Event.observe('switcher', 'change', Tasks.onSwitchList);
+    
+    Tasks.table = $('tasks_list');
+    if (! Tasks.table.hasClassName('archived'))
+    {
+      Tasks.addRow = Tasks.table.select('#add_row')[0];
+      Tasks.addLink = Tasks.addRow.select('#add')[0];
+    
+      Event.observe(Tasks.addLink, 'click', Tasks.onClickAdd);
+    
+      Tasks.table.select('tr.task-row').each(function(row) {
+        new TaskRow(row, null);
+      });
+    }
+    else
+    {
+      // Archived list; no touchy
+    }
   },
   
   onClickAdd: function(event)

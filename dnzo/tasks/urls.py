@@ -1,7 +1,7 @@
 from django.conf.urls.defaults import *
 
 username_pattern = r'^(?P<username>[a-z_-]+)/'
-list_pattern = username_pattern + r'l/(?P<task_list>[a-z_-]+)/'
+list_pattern = username_pattern + r'l/(?P<task_list_name>[a-z_-]+)/'
 
 urlpatterns = patterns('',
   (r'^$', 'tasks.views.welcome'),

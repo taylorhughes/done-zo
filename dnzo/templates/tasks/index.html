@@ -23,9 +23,11 @@
 
 {% block content %}
 <form action="{% url tasks.views.task user.short_name %}?task_list={{task_list.short_name|escape}}" method="POST" id="tasks_form">
-<table cellspacing="0" cellpadding="0" id="tasks_list">
+<table cellspacing="0" cellpadding="0" id="tasks_list"{% if archived %} class="archived"{% endif %}>
   <tr>
+    {% if not archived %}
     <th class="done"><span>&nbsp;&nbsp;✓</span></th>
+    {% endif %}
     {% sorting_header "Project"     "project"    order direction "project" %}
     {% sorting_header "Task"        "body"       order direction "body" %}
     <th><span>Context</span></th>
@@ -34,15 +36,18 @@
   {% for task in tasks %}
     {% include "tasks/task.html" %}
   {% endfor %}
+  {% if not archived %}
   <tr id="add_row">
     <td></td>
     <td colspan="6"><a id="add" href="{{ add_url }}" style="text-decoration:underline; color:#369">Add task</a></td>
   </tr>
+  {% endif %}
 </table>
 </form>
 {% endblock %}
 
 {% block footer %}
+{% if not archived %}
 <form action="{% url tasks.views.purge_tasks user.short_name,task_list.short_name %}" method="POST">
 <p id="archive">
     <input type="submit" value="Archive completed tasks">&nbsp;
@@ -55,4 +60,5 @@
   <input type="submit" value="Delete list"{% if task_lists|length_is:1 %} disabled{% endif %}>
 </p>
 </form>
+{% endif %}
 {% endblock %}
