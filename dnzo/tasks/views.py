@@ -30,28 +30,6 @@ def always_includes(params=None, request=None, user=None):
   
   return params
 
-def lists_index(request, username):
-  try:
-    user = verify_current_user(username)
-  except AccessError:
-    return access_error_redirect()
-  
-  new_list = TaskList(owner=user)
-  new_list.editing = True
-    
-  if request.method == "POST":
-    new_list.name = request.POST['name']
-    new_list.short_name = urlize(new_list.name)
-    new_list.put()
-    
-  lists = TaskList.gql('WHERE owner=:owner ORDER BY name ASC', owner=user).fetch(50)
-  lists.insert(0, new_list)
-  
-  return render_to_response('task_lists/index.html', always_includes({
-    'user': user,
-    'task_lists': lists
-  }))
-  
 def tasks_index(request, username, task_list_name=None, context_name=None, project_name=None):
   try:
     user = verify_current_user(username)
@@ -288,12 +266,31 @@ def task(request, username, task_id=None):
       'undo': undo
     })
 
-def redirect(request):
+def add_list(request, username):
+  try:
+    user = verify_current_user(username)
+  except AccessError:
+    return access_error_redirect()
+  
+  new_list = None
+  if request.method == "POST":
+    new_list = TaskList(owner=user)
+    new_list.editing = True
+    new_list.name = request.POST['name']
+    new_list.short_name = urlize(new_list.name)
+    new_list.put()
+    return HttpResponseRedirect(reverse_url('tasks.views.tasks_index', args=[user.short_name,new_list.short_name]))
+  else:
+    return render_to_response('lists/index.html', {
+      'user': user
+    })
+    
+def redirect(request, username=None):
   user = get_dnzo_user()
   if user:
-    return HttpResponseRedirect(reverse_url('tasks.views.lists_index',args=[user.short_name]))
+    return default_list_redirect(user)
   else:
-    return HttpResponseRedirect('/')
+    return HttpResponseRedirect(reverse_url('tasks.views.signup'))
 
 def welcome(request):
   return render_to_response("index.html", {

@@ -13,6 +13,9 @@ urlpatterns = patterns('',
   (username_pattern + r't/$', 'tasks.views.task'),
   (username_pattern + r'u/(?P<undo_id>\d+)/$', 'tasks.views.undo'),
 
+  #  /username/l/_add/
+  (username_pattern + r'l/_add/$', 'tasks.views.add_list'),
+
   # /username/list_name/purge
   (list_pattern + r'purge/$', 'tasks.views.purge_tasks'),
   #  /username/list_name/in/{project}
@@ -22,6 +25,5 @@ urlpatterns = patterns('',
   #  /username/to_do
   (list_pattern, 'tasks.views.tasks_index'),
   
-  #  /username/
-  (username_pattern + r'$', 'tasks.views.lists_index'),
+  (username_pattern, 'tasks.views.redirect'),
 )

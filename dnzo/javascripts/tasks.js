@@ -6,10 +6,14 @@ var Tasks = {
   load: function(event)
   {
     // Setup dropdown switcher
-    Event.observe('switcher', 'change', Tasks.onSwitchList);
+    var switcher = $('switcher');
+    if (switcher) Event.observe(switcher, 'change', Tasks.onSwitchList);
+    
+    var addList = $('add_list_link');
+    if (addList) Event.observe(addList, 'click', Tasks.onClickAddList);
     
     Tasks.table = $('tasks_list');
-    if (! Tasks.table.hasClassName('archived'))
+    if (Tasks.table && !Tasks.table.hasClassName('archived'))
     {
       Tasks.addRow = Tasks.table.select('#add_row')[0];
       Tasks.addLink = Tasks.addRow.select('#add')[0];
@@ -24,6 +28,21 @@ var Tasks = {
     {
       // Archived list; no touchy
     }
+  },
+  
+  // Add new list
+  onClickAddList: function(event)
+  {
+    event.stop();
+    
+    var form = $$("form#add_list");
+    if (form.length == 0) return;
+    form = form[0];
+    
+    var name = prompt("Enter a name for your new list:");
+    
+    form.select('input[type=text]')[0].setValue(name);
+    form.submit();
   },
   
   onClickAdd: function(event)
