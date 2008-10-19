@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block header %}
-  {% if filter_title %}<a href="{% url tasks.views.tasks_index user.short_name,"_archived" %}">{% endif %}
+  {% if filter_title %}<a href="{% url tasks.views.list_index user.short_name,"_archived" %}">{% endif %}
   Archived Tasks{% if filter_title %}</a> / {{ filter_title|escape }}{% endif %}
 {% endblock %}
 

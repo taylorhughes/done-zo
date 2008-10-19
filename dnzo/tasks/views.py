@@ -7,10 +7,11 @@ from django.core.urlresolvers import reverse as reverse_url
 
 from tasks.models import *
 from tasks.errors import *
-from tasks.util import *
+from tasks.data   import *
+from tasks.statusing import *
+from util.misc    import *
+from util.parsing import parse_date
 
-from datetime import datetime
-from time import strptime
 import logging
 
 ARCHIVED_LIST_NAME = '_archived'
@@ -30,7 +31,7 @@ def always_includes(params=None, request=None, user=None):
   
   return params
 
-def tasks_index(request, username, task_list_name=None, context_name=None, project_name=None):
+def list_index(request, username, task_list_name=None, context_name=None, project_name=None):
   try:
     user = verify_current_user(username)
   except AccessError:
@@ -40,27 +41,20 @@ def tasks_index(request, username, task_list_name=None, context_name=None, proje
   filter_title = None
   view_project = None
   if project_name:
-    view_project = Project.gql('WHERE short_name=:1 AND owner=:2', project_name, user).get()
+    view_project = get_project_by_name(user, project_name)
     if not view_project:
       raise Http404
     filter_title = view_project.name
   view_context = None
   if context_name:
-    view_context = Context.gql('WHERE name=:1 AND owner=:2', context_name, user).get()
+    view_context = get_context_by_name(user, context_name)
     if not view_context:
       raise Http404
     filter_title = "@%s" % view_context.name
   
-  # SHOW STATUS MESSAGE
-  status = None
-  if param(COOKIE_STATUS, request.COOKIES, '') == 'purged':
-    status = "Completed tasks have been archived."
-  
-  # SHOW UNDO
-  try:
-    undo = int(param(COOKIE_UNDO, request.COOKIES, None))
-  except:
-    undo = None
+  # SHOW STATUS MESSAGE AND UNDO
+  status = get_status(request)
+  undo = get_undo(request)
   
   archived = (task_list_name == ARCHIVED_LIST_NAME)
   if not archived:
@@ -106,14 +100,12 @@ def tasks_index(request, username, task_list_name=None, context_name=None, proje
   }, request, user))
   
   # TODO: Make this not suck
-  if status:
-    response.set_cookie(COOKIE_STATUS, '', max_age=-1)
-  if undo:
-    response.set_cookie(COOKIE_UNDO, '', max_age=-1)
+  reset_status(response,status)
+  reset_undo(response,undo)
   
   return response
 
-def purge_tasks(request, username, task_list_name):
+def purge_list(request, username, task_list_name):
   try:
     user = verify_current_user(username)
   except AccessError:
@@ -123,23 +115,70 @@ def purge_tasks(request, username, task_list_name):
   if not task_list or not users_equal(task_list.owner, user):
     return access_error_redirect()
   
+  undo = None
   if request.method == "POST":
     undo = Undo(task_list=task_list, owner=user)
-    for task in Task.gql('WHERE task_list=:list AND purged=:purged AND complete=:complete', 
-                         list=task_list, purged=False, complete=True).fetch(50):
+    for task in get_completed_tasks(task_list):
       task.purged = True
       task.put()
       undo.purged_tasks.append(task.key())
     undo.put()
   
-  redirect = HttpResponseRedirect(request.META['HTTP_REFERER'])
+  redirect = referer_redirect(user,request)
   
-  # TODO: Make this not suck
   if undo and undo.is_saved():
-    redirect.set_cookie(COOKIE_STATUS, 'purged', max_age=60)
-    redirect.set_cookie(COOKIE_UNDO, str(undo.key().id()), max_age=60)
+    set_status(redirect,Statuses.TASKS_PURGED)
+    set_undo(redirect,undo)
   
   return redirect
+
+def delete_list(request, username, task_list_name):
+  try:
+    user = verify_current_user(username)
+  except AccessError:
+    return access_error_redirect()
+  
+  task_list = get_task_list(user, task_list_name)
+  if not task_list or not users_equal(task_list.owner, user):
+    return access_error_redirect()
+  
+  undo = None
+  if request.method == "POST" and len(get_task_lists(user)) > 1:
+    task_list.deleted = True
+    task_list.put()
+    undo = Undo(task_list=task_list, owner=user)
+    undo.list_deleted = True
+    undo.put()
+  
+  redirect = default_list_redirect(user)
+  
+  if undo and undo.is_saved():
+    set_status(redirect,Statuses.LIST_DELETED)
+    set_undo(redirect,undo)
+  
+  return redirect
+
+def add_list(request, username):
+  try:
+    user = verify_current_user(username)
+  except AccessError:
+    return access_error_redirect()
+  
+  new_name = param('name', request.POST, '')
+  new_list = None
+  if request.method == "POST" and len(new_name.strip()) > 0:
+    new_list = TaskList(owner=user)
+    new_list.editing = True
+    new_list.name = new_name
+    new_list.short_name = get_new_list_name(user, new_name)
+    new_list.put()
+    return HttpResponseRedirect(
+      reverse_url('tasks.views.list_index', args=[user.short_name,new_list.short_name])
+    )
+  else:
+    return render_to_response('lists/index.html', {
+      'user': user
+    })
 
 def undo(request, username, undo_id):
   try:
@@ -159,7 +198,7 @@ def undo(request, username, undo_id):
     logger.error(strerror)
   
   # TODO: check for if referer does not exist
-  return HttpResponseRedirect(request.META['HTTP_REFERER'])
+  return referer_redirect(user,request)
   
 def task(request, username, task_id=None):
   try:
@@ -214,8 +253,7 @@ def task(request, username, task_id=None):
     raw_project = param('project',request.POST,'')
     if len(raw_project) > 0:
       raw_project_short = urlize(raw_project)
-      project = Project.gql('WHERE owner=:user AND short_name=:name', 
-                            user=user, name=raw_project_short).get()
+      project = get_project_by_name(user, raw_project_short)
       # Create the project if it doesn't exist
       if not project:
         project = Project(name=raw_project, short_name=raw_project_short, owner=user)
@@ -227,7 +265,7 @@ def task(request, username, task_id=None):
     raw_contexts = re.findall(r'[A-Za-z_-]+', raw_contexts)
     for raw_context in raw_contexts:
       raw_context = raw_context.lower()
-      context = Context.gql('WHERE owner=:user AND name=:name', user=user, name=raw_context).get()
+      context = get_context_by_name(user, raw_context)
       if not context:
         context = Context(owner=user, name=raw_context)
         context.put()
@@ -241,12 +279,11 @@ def task(request, username, task_id=None):
   elif request.method == "GET":
     raw_project = param('project', request.GET, None)
     if raw_project:
-      task.project = Project.gql('WHERE owner=:user AND short_name=:project',
-                                 user=user, project=raw_project).get()
+      task.project = get_project_by_name(user, raw_project)
+      
     raw_context = param('context', request.GET, None)
     if raw_context:
-      context = Context.gql('WHERE owner=:user AND name=:context',
-                             user=user, context=raw_context).get()
+      context = get_context_by_name(user, raw_context)
       if context:
         task.contexts = [context.name]
         
@@ -264,25 +301,6 @@ def task(request, username, task_id=None):
       'task': task,
       'status': status,
       'undo': undo
-    })
-
-def add_list(request, username):
-  try:
-    user = verify_current_user(username)
-  except AccessError:
-    return access_error_redirect()
-  
-  new_list = None
-  if request.method == "POST":
-    new_list = TaskList(owner=user)
-    new_list.editing = True
-    new_list.name = request.POST['name']
-    new_list.short_name = urlize(new_list.name)
-    new_list.put()
-    return HttpResponseRedirect(reverse_url('tasks.views.tasks_index', args=[user.short_name,new_list.short_name]))
-  else:
-    return render_to_response('lists/index.html', {
-      'user': user
     })
     
 def redirect(request, username=None):

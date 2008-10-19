@@ -68,6 +68,7 @@ class Undo(db.Model):
   owner         = db.ReferenceProperty(TasksUser, collection_name='undos')
   created_at    = db.DateTimeProperty(auto_now_add=True)
 
+  list_deleted  = db.BooleanProperty(default=False)
   deleted_tasks = db.ListProperty(db.Key)
   purged_tasks  = db.ListProperty(db.Key)
 
@@ -91,6 +92,10 @@ class Undo(db.Model):
     for task in self.find_purged():
       task.purged = False
       task.put()
+    if self.list_deleted:
+      self.task_list.deleted = False
+      self.task_list.put()
+      
     self.delete()
 
   def finish(self):

@@ -9,8 +9,11 @@ var Tasks = {
     var switcher = $('switcher');
     if (switcher) Event.observe(switcher, 'change', Tasks.onSwitchList);
     
-    var addList = $('add_list_link');
-    if (addList) Event.observe(addList, 'click', Tasks.onClickAddList);
+    if (!Prototype.Browser.IE)
+    {
+      var addList = $('add_list_link');
+      if (addList) Event.observe(addList, 'click', Tasks.onClickAddList);
+    }
     
     Tasks.table = $('tasks_list');
     if (Tasks.table && !Tasks.table.hasClassName('archived'))

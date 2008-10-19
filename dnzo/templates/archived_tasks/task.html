@@ -5,14 +5,14 @@
     {{ task.task_list.name|escape }}
   </td>
   <td class="project">
-    <a href="{% url tasks.views.tasks_index task.owner.short_name,"_archived",project_name=task.project.short_name %}">{{ task.project.name|escape }}</a>
+    <a href="{% url tasks.views.list_index task.owner.short_name,"_archived",project_name=task.project.short_name %}">{{ task.project.name|escape }}</a>
   </td>
   <td class="task">
     {{ task.body|escape }}
   </td>
   <td class="context">
     {% for context in task.contexts %}
-    <a href="{% url tasks.views.tasks_index task.owner.short_name,"_archived",context_name=context %}">@{{ context|escape }}</a>
+    <a href="{% url tasks.views.list_index task.owner.short_name,"_archived",context_name=context %}">@{{ context|escape }}</a>
     {% endfor %}
   </td>
   <td class="due">
