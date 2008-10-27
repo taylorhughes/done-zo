@@ -1,18 +1,32 @@
 {% extends "layouts/base.html" %}
 
-{% block page_title %}Sign up for Dnzo{% endblock %}
+{% block page_title %}Sign up for DNZO!{% endblock %}
+
+{% block javascripts %}
+<script type="text/javascript" src="/javascripts/signup.js"></script>
+{% endblock %}
 
 {% block content %}
 <h1>Sign up for Dnzo</h1>
 <form action="/signup/" method="POST">
-  <ul>
-    <li>
-      <label for="">Short name:</label>
-      <input type="text" name="short_name" value="{{ short_name|escape }}" />
-    </li>
-    <li>
-      <input type="submit" value="Sign up!" />
-    </li>
-  </ul>
+
+  <div id="signup">
+    <p>
+      <label for="name">
+        Choose a <strong>URL</strong> for your account: 
+      </label>
+    
+      <span id="url">http://dnzo.appspot.com/</span>
+      <input type="text" name="name" id="name" value="{{ short_name|escape }}">
+      <span id="availability_holder">
+        {% include "signup/availability.html" %} 
+      </span>
+    </p>
+    
+    <p id="buttons">
+      <a href="/">cancel</a>
+      <input type="submit" value="Sign up">
+    </p>
+  </div>
 </form>
 {% endblock %}

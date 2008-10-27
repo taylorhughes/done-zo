@@ -46,8 +46,11 @@ def referer_redirect(user, request):
     return HttpResponseRedirect(request.META['HTTP_REFERER'])
   return default_list_redirect(user)
   
-def get_dnzo_user():
-  return TasksUser.gql('WHERE user=:user', user=get_current_user()).get()
+def get_dnzo_user(short_name=None):
+  if short_name:
+    return TasksUser.gql('WHERE short_name=:name', name=short_name).get()
+  else:
+    return TasksUser.gql('WHERE user=:user', user=get_current_user()).get()
   
 def get_task_list(user, task_list_name):
   query = TaskList.gql(

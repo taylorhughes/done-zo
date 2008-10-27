@@ -27,10 +27,6 @@ var Tasks = {
         new TaskRow(row, null);
       });
     }
-    else
-    {
-      // Archived list; no touchy
-    }
   },
   
   // Add new list

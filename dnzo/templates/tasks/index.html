@@ -4,6 +4,10 @@
 
 {% block page_title %}DNZO / {{ task_list.name|escape }}{% if filter_title %} / {{ filter_title|escape }}{% endif %}{% endblock %}
 
+{% block javascripts %}
+<script type="text/javascript" src="/javascripts/tasks.js"></script>
+{% endblock %}
+
 {% block switcher %}
   {% include "layouts/switcher.html" %}
 {% endblock %}

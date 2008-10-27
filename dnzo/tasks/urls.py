@@ -7,6 +7,7 @@ urlpatterns = patterns('',
   (r'^$', 'tasks.views.welcome'),
   (r'^tasks/$', 'tasks.views.redirect'),
   (r'^signup/$', 'tasks.views.signup'),
+  (r'^signup/availability/$', 'tasks.views.availability'),
   
   #  /username/t/id => specific task
   (username_pattern + r't/(?P<task_id>\d+)/$', 'tasks.views.task'),

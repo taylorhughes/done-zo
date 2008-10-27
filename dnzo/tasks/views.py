@@ -315,6 +315,17 @@ def welcome(request):
     'user': get_dnzo_user()
   })
 
+def availability(request):
+  name = param('name', request.GET, '')
+  available = len(name) > 5 and is_urlized(name) and not get_dnzo_user(short_name=name)
+  
+  if is_ajax(request):
+    return render_to_response('signup/availability.html', {
+      'unavailable': not available
+    })
+  else:
+    return HttpResponseRedirect(reverse_url('tasks.views.signup'))
+
 def signup(request):
   current_user = get_dnzo_user()
   if current_user:
@@ -325,7 +336,7 @@ def signup(request):
     raise RuntimeException, "User must be logged in; this should never happen."
 
   if request.method == 'POST':
-    short_name = request.POST['short_name']
+    short_name = param('name',request.POST)
 
     valid = True
     if not is_urlized(short_name):

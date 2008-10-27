@@ -216,3 +216,50 @@ tr.error td {
     padding-top: 1em;
     text-align: right;
   }
+
+#signup {
+  text-align: center;
+}  
+  #signup label {
+    display: block;
+    margin-bottom: 1em;
+  }
+  #url { 
+    color: #666; 
+    line-height: 15pt;
+  }
+  #name {
+    font-size: 15pt;
+  }
+  #availability img { 
+    vertical-align: top; 
+    margin-top: 3px;
+    border: 0;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
