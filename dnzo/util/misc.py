@@ -20,4 +20,4 @@ def urlize(title):
   return title
   
 def is_urlized(string):
-  return re.search(r'^[A-Za-z0-9_-]+$', string)
+  return re.search(r'^[a-z0-9_-]+$', string)
