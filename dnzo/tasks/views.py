@@ -158,16 +158,20 @@ def add_list(request, username):
   
   new_name = param('name', request.POST, '')
   new_list = None
-  if request.method == "POST" and len(new_name.strip()) > 0:
-    new_list = TaskList(owner=user)
-    new_list.editing = True
-    new_list.name = new_name
-    new_list.short_name = get_new_list_name(user, new_name)
-    new_list.put()
-    return HttpResponseRedirect(
-      reverse_url('tasks.views.list_index', args=[user.short_name,new_list.short_name])
-    )
-  else:
+  if request.method == "POST":
+    if len(urlize(new_name)) > 0:
+      new_list = TaskList(owner=user)
+      new_list.editing = True
+      new_list.name = new_name
+      new_list.short_name = get_new_list_name(user, new_name)
+      new_list.put()
+      return HttpResponseRedirect(
+        reverse_url('tasks.views.list_index', args=[user.short_name,new_list.short_name])
+      )
+    else:
+      return referer_redirect(user,request)
+      
+  else: # GET
     return render_to_response('lists/index.html', {
       'user': user
     })
@@ -187,7 +191,7 @@ def undo(request, username, undo_id):
       undo.undo()
       
   except RuntimeError, (errno, strerror):
-    logger.error(strerror)
+    logger.error("Error undoing: " + strerror)
   
   return referer_redirect(user,request)
   
@@ -212,9 +216,9 @@ def task(request, username, task_id=None):
     task = Task(body='')
     task.owner = user
     
-  force_complete = param('force_complete', request.POST, None)
+  force_complete   = param('force_complete', request.POST, None)
   force_uncomplete = param('force_uncomplete', request.POST, None)
-  force_delete = param('delete', request.GET, None)
+  force_delete     = param('delete', request.GET, None)
   
   status = None
   undo = None
@@ -241,6 +245,7 @@ def task(request, username, task_id=None):
     
     task.body = param('body',request.POST)
     
+    task.project = None
     raw_project = param('project',request.POST,'')
     if len(raw_project) > 0:
       raw_project_short = urlize(raw_project)

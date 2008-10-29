@@ -28,14 +28,47 @@ var Signup = {
   
   doCheck: function(xhr)
   {
-    Signup.availabilityHolder.innerHTML = xhr.responseText;
+    var avail = $('availability');
+    var parent = avail.parentNode;
+    var temp = new Element('div');
+    temp.innerHTML = xhr.responseText;
+
+    Signup.replaceElement(parent,temp,'availability');
+    Signup.replaceElement(parent,temp,'unavailable_message');
+  },
+  
+  // Replaces an element in parent with an element in temp
+  // with a certain ID.
+  replaceElement: function(parent, temp, id)
+  {
+    var elementById = function(p,cid)
+    {
+      var r = p.select("#" + cid);
+      if (r.length > 0) return r[0];
+      return null;
+    }
+    var newElement = elementById(temp,id);
+    var existingElement = elementById(parent,id);
+  
+    if (newElement && existingElement)
+    {
+      parent.insertBefore(newElement,existingElement);
+      parent.removeChild(existingElement);
+    }
+    else if (newElement)
+    {
+      parent.appendChild(newElement);
+    }
+    else if (existingElement)
+    {
+      parent.removeChild(existingElement);
+    }
   },
   
   load: function(event)
   {
     Signup.nameField = $('name');
     Signup.availabilityURL = $('availability').href;
-    Signup.availabilityHolder = $('availability_holder');
     Event.observe(Signup.nameField,'keydown',Signup.onKeyDown);
   }
 }
