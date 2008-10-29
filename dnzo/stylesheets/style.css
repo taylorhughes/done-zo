@@ -235,6 +235,8 @@ tr.error td {
     vertical-align: top; 
     margin-top: 3px;
     border: 0;
+    width: 26px;
+    height: 26px;
   }
 
 

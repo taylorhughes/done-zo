@@ -15,7 +15,7 @@ def is_ajax(request):
   
 def urlize(title):
   title = title.lower().strip()
-  title = re.sub(r'[^a-z0-9\s]', '', title)
+  title = re.sub(r'[^a-z0-9\s_-]', '', title)
   title = re.sub(r'\s+', '_',  title)
   return title
   

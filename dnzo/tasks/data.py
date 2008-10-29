@@ -89,6 +89,9 @@ def get_new_list_name(user, new_name):
     
   return new_name + appendage
   
+def username_available(name):
+  return not get_dnzo_user(short_name=name)         
+  
 def verify_current_user(short_name):
   user = get_dnzo_user()
   if not user or short_name != user.short_name:

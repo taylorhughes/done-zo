@@ -14,22 +14,14 @@ from util.parsing import parse_date
 
 import logging
 
+DEFAULT_LIST_NAME = 'Tasks'
 ARCHIVED_LIST_NAME = '_archived'
+
 SORTABLE_LIST_COLUMNS = ('project', 'body', 'due_date', 'created_at', 'context')
 
-def always_includes(params=None, request=None, user=None):
-  if not params:
-    params = {}
-    
-  if request:
-    params['request_uri'] = request.get_full_path()
-  if user:
-    params['task_lists'] = get_task_lists(user)
-    params['user'] = user
-    
-  params['logout_url'] = create_logout_url('/')
-  
-  return params
+MINIMUM_USER_URL_LENGTH = 5
+
+#### VIEWS ####
 
 def list_index(request, username, task_list_name=None, context_name=None, project_name=None):
   try:
@@ -197,7 +189,6 @@ def undo(request, username, undo_id):
   except RuntimeError, (errno, strerror):
     logger.error(strerror)
   
-  # TODO: check for if referer does not exist
   return referer_redirect(user,request)
   
 def task(request, username, task_id=None):
@@ -317,11 +308,12 @@ def welcome(request):
 
 def availability(request):
   name = param('name', request.GET, '')
-  available = len(name) > 5 and is_urlized(name) and not get_dnzo_user(short_name=name)
+  message = username_invalid(name)
   
   if is_ajax(request):
     return render_to_response('signup/availability.html', {
-      'unavailable': not available
+      'unavailable': message is not None,
+      'message':     message
     })
   else:
     return HttpResponseRedirect(reverse_url('tasks.views.signup'))
@@ -336,24 +328,63 @@ def signup(request):
     raise RuntimeException, "User must be logged in; this should never happen."
 
   if request.method == 'POST':
-    short_name = param('name',request.POST)
+    name = param('name',request.POST)
+    message = username_invalid(name)
 
-    valid = True
-    if not is_urlized(short_name):
-      valid = False
-
-    if valid:
-      new_user = TasksUser(short_name=short_name, user=current_user)
+    if not message:
+      new_user = TasksUser(short_name=name, user=current_user)
       new_user.put()
       
-      tasks_list = TaskList(name='Tasks', short_name='tasks', owner=new_user)
+      # Create a default new list for this user
+      tasks_list = TaskList(
+        name=DEFAULT_LIST_NAME,
+        short_name=urlize(DEFAULT_LIST_NAME),
+        owner=new_user
+      )
       tasks_list.put()
       
       return default_list_redirect(new_user)
 
   else:
-    short_name = urlize(current_user.nickname())
+    name = urlize(current_user.nickname())
+    message = None
 
   return render_to_response('signup/index.html', {
-    'short_name': short_name
+    'short_name':  name,
+    'unavailable': message is not None,
+    'message':     message
   })
+
+#### UTILITY METHODS ####
+
+def always_includes(params=None, request=None, user=None):
+  if not params:
+    params = {}
+    
+  if request:
+    params['request_uri'] = request.get_full_path()
+  if user:
+    params['task_lists']  = get_task_lists(user)
+    params['user']        = user
+    
+  params['logout_url'] = create_logout_url('/')
+  
+  return params
+  
+def username_invalid(new_name):
+  message = None
+    
+  if not is_urlized(new_name):
+    message = 'URLs can only contain lowercase letters, numbers, underscores and hyphens.'
+    urlized = urlize(new_name)
+    if len(urlized) >= MINIMUM_USER_URL_LENGTH:
+      message += " How about &ldquo;%s&rdquo;?" % urlized
+    
+  elif not len(new_name) >= MINIMUM_USER_URL_LENGTH:
+    message = 'URLs mst be at least %s characters long.' % MINIMUM_USER_URL_LENGTH
+    
+  elif not username_available(new_name):
+    message = 'Unfortunately, that URL has been taken.'
+    
+  return message
+  

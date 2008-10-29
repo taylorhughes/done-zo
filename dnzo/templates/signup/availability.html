@@ -1,9 +1,12 @@
 {% if unavailable %}
   <a id="availability" title="This URL is unavailable." href="{% url tasks.views.availability %}">
-    <img src="/images/unavailable.gif" alt="Unavailable">
+    <img src="/images/unavailable.gif" alt="Unavailable" class="availability-image">
   </a>
+  {% if message %}
+  <p id="unavailable_message">{{ message }}</p>
+  {% endif %}
 {% else %}
   <a id="availability" title="This URL is available!" href="{% url tasks.views.availability %}">
-    <img src="/images/available.gif" alt="Available">
+    <img src="/images/available.gif" alt="Available" class="availability-image">
   </a>
 {% endif %}
