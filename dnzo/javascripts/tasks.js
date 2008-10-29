@@ -226,8 +226,9 @@ var TaskRow = Class.create({
       this.viewRow.hide();
       this.viewRow.parentNode.insertBefore(this.editRow, this.viewRow);
     }
-    else
+    else if (! this.requestedEditRow)
     {
+      this.requestedEditRow = true;
       new Ajax.Request(this.edit.href, {
         method: 'get',
         onSuccess: this.doEdit.bind(this),
@@ -244,15 +245,21 @@ var TaskRow = Class.create({
 
     this.wireEditingEvents(this.editRow);
     this.activate();
+    
+    this.requestedEditRow = false;
   },
   
   onClickTrash: function(event)
   {
-    new Ajax.Request(this.trash.href, {
-      method: 'get',
-      onSuccess: this.doTrash.bind(this),
-      onFailure: this.doFail.bind(this)
-    });
+    if (! this.requestedTrash)
+    {
+      this.requestedTrash = true;
+      new Ajax.Request(this.trash.href, {
+        method: 'get',
+        onSuccess: this.doTrash.bind(this),
+        onFailure: this.doFail.bind(this)
+      });
+    }
     event.stop();
   },
   doTrash: function(xhr)
@@ -263,6 +270,8 @@ var TaskRow = Class.create({
   
   onClickSave: function(event)
   {
+    event.element().disable();
+    
     this.editRow.up('form').request({
       onSuccess: this.doSave.bind(this),
       onFailure: this.doFail.bind(this)
@@ -293,11 +302,11 @@ var TaskRow = Class.create({
     if (this.isEditing()) return;
     
     var check = event.element();
-    var params = { 'force_complete': true };
-    if (!check.checked)
-    {
-      params = { 'force_uncomplete': true };
-    }
+    var params = {}
+    if (check.checked) 
+      params['force_complete'] = true;
+    else
+      params['force_uncomplete'] = true;
     
     new Ajax.Request(this.edit.href, {
       method: 'post',

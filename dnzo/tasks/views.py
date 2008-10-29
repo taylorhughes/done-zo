@@ -324,8 +324,6 @@ def signup(request):
     return default_list_redirect(current_user)
   
   current_user = get_current_user()
-  if not current_user:
-    raise RuntimeException, "User must be logged in; this should never happen."
 
   if request.method == 'POST':
     name = param('name',request.POST)
