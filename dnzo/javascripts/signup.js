@@ -29,15 +29,15 @@ var Signup = {
   doCheck: function(xhr)
   {
     // Replace the image
-    var newAvail = Signup.elementFromText(xhr,'availability');
+    var newAvail = Signup.elementFromText(xhr,'a');
     var avail = $('availability');
     var parent = avail.parentNode;
-    
+
     parent.insertBefore(newAvail,avail);
     parent.removeChild(avail);
     
     // Replace or insert the message
-    var newMessage = Signup.elementFromText(xhr,'unavailable_message');
+    var newMessage = Signup.elementFromText(xhr,'p');
     var message = $('unavailable_message');
     // The message goes above buttons
     var buttons = $('buttons');
@@ -49,12 +49,15 @@ var Signup = {
 
   // Given an XHR, creates a temp element from the response and  
   // extracts an element with a given id from within it.
-  elementFromText: function(xhr,id)
+  elementFromText: function(xhr,selector)
   {
     var temp = new Element('div');
     temp.innerHTML = xhr.responseText;
-    var r = temp.select("#" + id);
-    if (r.length > 0) return r[0];
+    var r = temp.select(selector);
+    if (r.length > 0) 
+    {
+      return r[0];
+    }
     return null;
   },
   
