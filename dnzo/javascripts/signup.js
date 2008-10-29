@@ -28,41 +28,34 @@ var Signup = {
   
   doCheck: function(xhr)
   {
+    // Replace the image
+    var newAvail = Signup.elementFromText(xhr,'availability');
     var avail = $('availability');
     var parent = avail.parentNode;
+    
+    parent.insertBefore(newAvail,avail);
+    parent.removeChild(avail);
+    
+    // Replace or insert the message
+    var newMessage = Signup.elementFromText(xhr,'unavailable_message');
+    var message = $('unavailable_message');
+    // The message goes above buttons
+    var buttons = $('buttons');
+    parent = buttons.parentNode;
+    
+    if (message) parent.removeChild(message);
+    parent.insertBefore(newMessage,buttons);
+  },
+
+  // Given an XHR, creates a temp element from the response and  
+  // extracts an element with a given id from within it.
+  elementFromText: function(xhr,id)
+  {
     var temp = new Element('div');
     temp.innerHTML = xhr.responseText;
-
-    Signup.replaceElement(parent,temp,'availability');
-    Signup.replaceElement(parent,temp,'unavailable_message');
-  },
-  
-  // Replaces an element in parent with an element in temp
-  // with a certain ID.
-  replaceElement: function(parent, temp, id)
-  {
-    var elementById = function(p,cid)
-    {
-      var r = p.select("#" + cid);
-      if (r.length > 0) return r[0];
-      return null;
-    }
-    var newElement = elementById(temp,id);
-    var existingElement = elementById(parent,id);
-  
-    if (newElement && existingElement)
-    {
-      parent.insertBefore(newElement,existingElement);
-      parent.removeChild(existingElement);
-    }
-    else if (newElement)
-    {
-      parent.appendChild(newElement);
-    }
-    else if (existingElement)
-    {
-      parent.removeChild(existingElement);
-    }
+    var r = temp.select("#" + id);
+    if (r.length > 0) return r[0];
+    return null;
   },
   
   load: function(event)

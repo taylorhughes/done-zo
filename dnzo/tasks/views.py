@@ -316,7 +316,7 @@ def availability(request):
   message = username_invalid(name)
   
   if is_ajax(request):
-    return render_to_response('signup/availability.html', {
+    return render_to_response('signup/availability_ajax.html', {
       'unavailable': message is not None,
       'message':     message
     })
@@ -384,7 +384,7 @@ def username_invalid(new_name):
       message += " How about &ldquo;%s&rdquo;?" % urlized
     
   elif not len(new_name) >= MINIMUM_USER_URL_LENGTH:
-    message = 'URLs mst be at least %s characters long.' % MINIMUM_USER_URL_LENGTH
+    message = 'URLs must be at least %s characters long.' % MINIMUM_USER_URL_LENGTH
     
   elif not username_available(new_name):
     message = 'Unfortunately, that URL has been taken.'
