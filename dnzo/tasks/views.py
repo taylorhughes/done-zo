@@ -91,7 +91,6 @@ def list_index(request, username, task_list_name=None, context_name=None, projec
     'archived': archived,
   }, request, user))
   
-  # TODO: Make this not suck
   reset_status(response,status)
   reset_undo(response,undo)
   
@@ -182,18 +181,26 @@ def undo(request, username, undo_id):
   except AccessError:
     return access_error_redirect()
 
+  task_list = None
   try:
     undo = db.get(db.Key.from_path('Undo', int(undo_id)))
-    if not users_equal(undo.owner, user):
-      return access_error_redirect()
       
     if undo:
+      if not users_equal(undo.owner, user):
+        return access_error_redirect()
       undo.undo()
+      task_list = undo.task_list
       
   except RuntimeError, (errno, strerror):
     logger.error("Error undoing: " + strerror)
   
-  return referer_redirect(user,request)
+  if task_list:
+    return HttpResponseRedirect(
+             reverse_url('tasks.views.list_index', 
+                         args=[user.short_name,task_list.short_name])
+           )
+  else:
+    return referer_redirect(user,request)
   
 def task(request, username, task_id=None):
   try:
@@ -349,8 +356,12 @@ def signup(request):
       return default_list_redirect(new_user)
 
   else:
-    name = urlize(current_user.nickname())
     message = None
+    original = urlize(current_user.nickname())
+    i, name = 1, original
+    while not username_available(name):
+      name = "%s_%s" % (original, i)
+      i += 1
 
   return render_to_response('signup/index.html', {
     'short_name':  name,

@@ -11,11 +11,11 @@ class Statuses:
 
 def get_status_message(status):
   if status == Statuses.TASKS_PURGED:
-    return "Completed tasks have been archived"
+    return "Completed tasks have been archived."
   if status == Statuses.TASK_DELETED:
-    return "Task has been deleted"
+    return "Task has been deleted."
   if status == Statuses.LIST_DELETED:
-    return "List has been deleted"
+    return "List has been deleted."
     
   return None
 

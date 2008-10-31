@@ -21,7 +21,7 @@ var Tasks = {
       Tasks.addRow = Tasks.table.select('#add_row')[0];
       Tasks.addLink = Tasks.addRow.select('#add')[0];
     
-      Event.observe(Tasks.addLink, 'click', Tasks.onClickAdd);
+      Event.observe(Tasks.addLink, 'click', Tasks.onClickAddTask);
     
       Tasks.table.select('tr.task-row').each(function(row) {
         new TaskRow(row, null);
@@ -44,17 +44,22 @@ var Tasks = {
     form.submit();
   },
   
-  onClickAdd: function(event)
+  onClickAddTask: function(event)
   {
-    new Ajax.Request(Tasks.addLink.href, {
-      method: 'get',
-      onFailure: Tasks.doFail,
-      onSuccess: Tasks.doAdd
-    });
+    if (! Tasks.newTaskRequested)
+    {
+      Tasks.newTaskRequested = true;
+      new Ajax.Request(Tasks.addLink.href, {
+        method: 'get',
+        onFailure: Tasks.doFail,
+        onSuccess: Tasks.doAddBlankTask,
+        onComplete: function(xhr) { Tasks.newTaskRequested = false; }
+      });
+    }
     event.stop();
   },
   
-  doAdd: function(xhr)
+  doAddBlankTask: function(xhr)
   {
     Tasks.cancelAll();
     
@@ -232,7 +237,8 @@ var TaskRow = Class.create({
       new Ajax.Request(this.edit.href, {
         method: 'get',
         onSuccess: this.doEdit.bind(this),
-        onFailure: this.doFail.bind(this)
+        onFailure: this.doFail.bind(this),
+        onComplete: (function(xhr){this.requestedEditRow = false;}).bind(this)
       }); 
     }
     event.stop();
@@ -245,8 +251,6 @@ var TaskRow = Class.create({
 
     this.wireEditingEvents(this.editRow);
     this.activate();
-    
-    this.requestedEditRow = false;
   },
   
   onClickTrash: function(event)
@@ -257,7 +261,8 @@ var TaskRow = Class.create({
       new Ajax.Request(this.trash.href, {
         method: 'get',
         onSuccess: this.doTrash.bind(this),
-        onFailure: this.doFail.bind(this)
+        onFailure: this.doFail.bind(this),
+        onComplete: (function(xhr){this.requestedTrash=false;}).bind(this)
       });
     }
     event.stop();
