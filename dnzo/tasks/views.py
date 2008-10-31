@@ -5,12 +5,12 @@ from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpRespons
 from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse as reverse_url
 
-from tasks.models import *
-from tasks.errors import *
-from tasks.data   import *
+from tasks.models    import *
+from tasks.errors    import *
+from tasks.data      import *
 from tasks.statusing import *
-from util.misc    import *
-from util.parsing import parse_date
+from util.misc       import *
+from util.parsing    import parse_date
 
 import logging
 
@@ -38,6 +38,7 @@ def list_index(request, username, task_list_name=None, context_name=None, projec
     task_list = None
       
   # FILTER 
+  import environment
   filter_title = None
   view_project = None
   if project_name:
