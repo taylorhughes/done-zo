@@ -28,7 +28,15 @@ def list_index(request, username, task_list_name=None, context_name=None, projec
     user = verify_current_user(username)
   except AccessError:
     return access_error_redirect()
-  
+    
+  archived = (task_list_name == ARCHIVED_LIST_NAME)
+  if not archived:
+    task_list = get_task_list(user, task_list_name)
+    if not task_list or task_list.deleted:
+      return default_list_redirect(user)
+  else:
+    task_list = None
+      
   # FILTER 
   filter_title = None
   view_project = None
@@ -43,23 +51,16 @@ def list_index(request, username, task_list_name=None, context_name=None, projec
     if not view_context:
       raise Http404
     filter_title = "@%s" % view_context.name
-  
-  # SHOW STATUS MESSAGE AND UNDO
-  status = get_status(request)
-  undo = get_undo(request)
-  
-  archived = (task_list_name == ARCHIVED_LIST_NAME)
+
   if not archived:
     template = 'tasks/index.html'
-    task_list = get_task_list(user, task_list_name)
     wheres = ['task_list=:task_list AND purged=:purged'] 
     params = { 'task_list': task_list, 'purged': False }
   else:
     template = 'archived_tasks/index.html'
-    task_list = None
     wheres = ['owner=:owner AND purged=:purged AND deleted=:deleted'] 
     params = { 'owner': user, 'purged': True, 'deleted': False }
-  
+
   add_url = reverse_url('tasks.views.task',args=[user.short_name])
   if view_context:
     wheres.append('contexts=:context')
@@ -78,6 +79,10 @@ def list_index(request, username, task_list_name=None, context_name=None, projec
   
   gql = 'WHERE %s ORDER BY %s %s' % (' AND '.join(wheres), order, direction)
   tasks = Task.gql(gql, **params).fetch(50)
+  
+  # SHOW STATUS MESSAGE AND UNDO
+  status = get_status(request)
+  undo = get_undo(request)
   
   response = render_to_response(template, always_includes({
     'tasks': tasks,
