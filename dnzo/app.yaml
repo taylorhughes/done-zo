@@ -1,16 +1,18 @@
 application: dnzo
-version: 1
+version: 43
 runtime: python
 api_version: 1
 
 handlers:  
-- url: /stylesheets
-  static_dir: stylesheets
-  expiration: 7d
+- url: /stylesheets/(r[0-9]+/)?([^/]+\.css)
+  static_files: stylesheets/\2
+  upload:       stylesheets/(.+\.css)
+  expiration:   365d
   
-- url: /javascripts
-  static_dir: javascripts
-  expiration: 7d
+- url: /javascripts/(r[0-9]+/)?([^/]+\.js)
+  static_files: javascripts/\2
+  upload:       javascripts/(.+\.js)
+  expiration:   365d
   
 - url: /images
   static_dir: images

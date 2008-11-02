@@ -42,7 +42,7 @@ indexes:
   - name: task_list
   - name: body
 
-# Used 7 times in query history.
+# Used 64 times in query history.
 - kind: Task
   properties:
   - name: purged
@@ -71,7 +71,7 @@ indexes:
   - name: task_list
   - name: project
 
-# Used 13 times in query history.
+# Used 95 times in query history.
 - kind: TaskList
   properties:
   - name: deleted

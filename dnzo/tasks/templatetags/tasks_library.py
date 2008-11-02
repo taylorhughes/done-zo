@@ -2,7 +2,10 @@ from django import template
 from django.template import Library, Node, Context, loader, resolve_variable
 from django.template.defaultfilters import date
 from datetime import datetime
+
 import logging
+
+import environment
 
 register = Library()
     
@@ -58,3 +61,43 @@ class SortingHeader(Node):
       class_names = ''
 
     return '<th><a href="%s"%s>%s</a></th>' % (url, class_names, self.my_name)
+    
+@register.tag
+def javascript_tag(parser, token):
+  try:
+    tag_name, filename = token.split_contents()
+  except ValueError:
+    raise template.TemplateSyntaxError, "%r requires exactly one argument." % token.contents.split()[0]
+  return JavaScriptTag(filename)
+  
+@register.tag
+def css_tag(parser, token):
+  try:
+    tag_name, filename = token.split_contents()
+  except ValueError:
+    raise template.TemplateSyntaxError, "%r requires exactly one argument." % token.contents.split()[0]
+  return CSSTag(filename)
+  
+class VersionedTag(Node):
+  def __init__(self, filename):
+    self.base_filename = filename
+  
+  @property
+  def filename(self):
+    if environment.IS_DEVELOPMENT:
+      return self.base_filename
+    return self.base_filename + "_compiled"
+    
+  @property
+  def version(self):
+    return "r%s" % environment.MAJOR_VERSION
+    
+class JavaScriptTag(VersionedTag):
+  def render(self, context):
+    filename = '/javascripts/%s/%s.js' % (self.version, self.filename)
+    return '<script type="text/javascript" src="%s"></script>' % filename
+    
+class CSSTag(VersionedTag):
+  def render(self, context):
+    filename = '/stylesheets/%s/%s.css' % (self.version, self.filename)
+    return '<link rel="stylesheet" href="%s" type="text/css" media="all" />' % filename
