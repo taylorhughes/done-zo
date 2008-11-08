@@ -141,11 +141,7 @@ def delete_list(request, username, task_list_name):
   
   undo = None
   if request.method == "POST" and len(get_task_lists(user)) > 1:
-    task_list.deleted = True
-    task_list.put()
-    undo = Undo(task_list=task_list, owner=user)
-    undo.list_deleted = True
-    undo.put()
+    undo = delete_task_list(task_list)
   
   redirect = default_list_redirect(user)
   
@@ -165,11 +161,8 @@ def add_list(request, username):
   new_list = None
   if request.method == "POST":
     if len(urlize(new_name)) > 0:
-      new_list = TaskList(owner=user)
-      new_list.editing = True
-      new_list.name = new_name
-      new_list.short_name = get_new_list_name(user, new_name)
-      new_list.put()
+      new_list = add_task_list(user, new_name)
+      
       return HttpResponseRedirect(
         reverse_url('tasks.views.list_index', args=[user.short_name,new_list.short_name])
       )
@@ -194,7 +187,7 @@ def undo(request, username, undo_id):
     if undo:
       if not users_equal(undo.owner, user):
         return access_error_redirect()
-      undo.undo()
+      do_undo(undo)
       task_list = undo.task_list
       
   except RuntimeError, (errno, strerror):
@@ -352,12 +345,7 @@ def signup(request):
       new_user.put()
       
       # Create a default new list for this user
-      tasks_list = TaskList(
-        name=DEFAULT_LIST_NAME,
-        short_name=urlize(DEFAULT_LIST_NAME),
-        owner=new_user
-      )
-      tasks_list.put()
+      tasks_list = add_task_list(new_user, DEFAULT_LIST_NAME)
       
       return default_list_redirect(new_user)
 

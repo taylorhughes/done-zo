@@ -3,22 +3,17 @@ from google.appengine.ext import db
 from google.appengine.api import users
 
 class TasksUser(db.Model):  
-  short_name = db.StringProperty(required=True)
-  user       = db.UserProperty()
+  short_name  = db.StringProperty(required=True)
+  user        = db.UserProperty()
+  
+  tasks_count = db.IntegerProperty(default=0)
+  lists_count = db.IntegerProperty(default=0)
     
 class TaskList(db.Model):
   short_name = db.StringProperty()
   name       = db.StringProperty()
   owner      = db.ReferenceProperty(TasksUser, collection_name='task_lists')
   deleted    = db.BooleanProperty(default=False)
-  
-  def editing():
-    def fset(self, value):
-      self.__editing = value
-    def fget(self):
-      return self.__editing
-    return locals()
-  editing = property(**editing())
 
 class Project(db.Model):
   name       = db.StringProperty(required=True)
@@ -83,37 +78,6 @@ class Undo(db.Model):
     for key in self.purged_tasks:
       purged.append(db.get(key))
     return purged
-    
-  def undo(self):
-    for task in self.find_deleted():
-      task.task_list = self.task_list
-      task.deleted = False
-      task.put()
-    for task in self.find_purged():
-      task.purged = False
-      task.put()
-    if self.list_deleted:
-      self.task_list.deleted = False
-      self.task_list.put()
-      
-    self.delete()
-
-  def finish(self):
-    for task in self.find_deleted():
-      task.delete()
-    self.delete()
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

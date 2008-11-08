@@ -59,6 +59,49 @@ def get_task_list(user, task_list_name):
   )
   return query.get()
 
+def add_task_list(user, list_name):
+  def txn(list_name, short_name):
+    new_list = TaskList(parent=user, 
+      owner=user,
+      name=list_name,
+      short_name=short_name)
+    new_list.put()
+    user.lists_count += 1
+    user.put()
+    
+  short_name = get_new_list_name(user, list_name)
+  db.run_in_transaction(txn, list_name, short_name)
+  
+  return get_task_list(user, short_name)
+
+def delete_task_list(task_list):
+  def txn(task_list):
+    task_list.deleted = True
+    task_list.put()
+    
+    user = task_list.owner
+    user.lists_count -= 1
+    user.put()
+    
+  db.run_in_transaction(txn, task_list)
+    
+  undo = Undo(task_list=task_list, owner=task_list.owner)
+  undo.list_deleted = True
+  undo.put()
+  
+  return undo
+  
+def undelete_task_list(task_list):
+  def txn(task_list):
+    task_list.deleted = False
+    task_list.put()
+    
+    user = task_list.owner
+    user.lists_count += 1
+    user.put()
+
+  db.run_in_transaction(txn, task_list)
+  
 def get_task_lists(user, limit=10):
   query = TaskList.gql(
     'WHERE owner=:user AND deleted=:deleted ORDER BY short_name ASC', 
@@ -98,7 +141,17 @@ def verify_current_user(short_name):
     raise AccessError, 'Attempting to access wrong username'
   return user
 
-
-
-
+def do_undo(undo):
+  for task in undo.find_deleted():
+    task.task_list = self.task_list
+    task.deleted = False
+    task.put()
+  for task in undo.find_purged():
+    task.purged = False
+    task.put()
+  if undo.list_deleted:
+    undelete_task_list(undo.task_list)
     
+  undo.delete()
+
+  
