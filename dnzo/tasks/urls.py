@@ -4,10 +4,6 @@ username_pattern = r'^(?P<username>[a-z0-9_-]+)/'
 list_pattern = username_pattern + r'l/(?P<task_list_name>[a-z0-9_-]+)/'
 
 urlpatterns = patterns('',
-  (r'^$', 'tasks.views.welcome'),
-  (r'^tasks/$', 'tasks.views.redirect'),
-  (r'^signup/$', 'tasks.views.signup'),
-  (r'^signup/availability/$', 'tasks.views.availability'),
   
   #  /username/t/id => specific task
   (username_pattern + r't/(?P<task_id>\d+)/$', 'tasks.views.task'),

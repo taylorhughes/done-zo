@@ -13,6 +13,8 @@ from util.misc import urlize
 import logging
 import re
 
+### USERS ###
+
 def users_equal(a,b):
   if a is None and b is None:
     return True
@@ -28,6 +30,18 @@ def get_dnzo_user(name=None):
   else:
     return TasksUser.gql('WHERE user=:user', user=get_current_user()).get()
   
+def username_available(name):
+  return not get_dnzo_user(name=name)         
+  
+def verify_current_user(short_name):
+  user = get_dnzo_user()
+  if not user or short_name != user.short_name:
+    raise AccessError, 'Attempting to access wrong username'
+  return user
+
+
+### TASK LISTS ###
+
 def get_task_list(user, name):
   return TaskList.get_by_key_name(TaskList.name_to_key_name(name), parent=user)
 
@@ -102,6 +116,16 @@ def get_task_lists(user, limit=10):
   )
   return query.fetch(limit)
   
+def get_new_list_name(user, new_name):
+  new_name = urlize(new_name)
+  appendage = ''
+  i = 1
+  while get_task_list(user, new_name + appendage) is not None:
+    appendage = "_%s" % i
+    i += 1
+    
+  return new_name + appendage
+  
 def get_completed_tasks(task_list, limit=100):
   tasks = Task.gql('WHERE task_list=:list AND archived=:archived AND complete=:complete', 
                    list=task_list, archived=False, complete=True)
@@ -114,24 +138,8 @@ def get_project_by_index(user, project_index):
     return task.project
   return None
   
-def get_new_list_name(user, new_name):
-  new_name = urlize(new_name)
-  appendage = ''
-  i = 1
-  while get_task_list(user, new_name + appendage) is not None:
-    appendage = "_%s" % i
-    i += 1
-    
-  return new_name + appendage
   
-def username_available(name):
-  return not get_dnzo_user(name=name)         
-  
-def verify_current_user(short_name):
-  user = get_dnzo_user()
-  if not user or short_name != user.short_name:
-    raise AccessError, 'Attempting to access wrong username'
-  return user
+### TASKS ###
 
 def save_task(task):
   if not task.is_saved():
@@ -171,6 +179,9 @@ def delete_task(task):
   db.run_in_transaction(txn, task, undo)
 
   return undo
+
+
+### UNDOS ###
 
 def do_undo(undo):
   for task in undo.find_deleted():

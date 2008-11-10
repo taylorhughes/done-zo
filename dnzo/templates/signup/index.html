@@ -10,7 +10,7 @@
 
 {% block content %}
 <h1>Sign up for Dnzo</h1>
-<form action="/signup/" method="POST">
+<form action="{% url public.views.signup %}" method="POST">
 
   <div id="signup">
     <p>

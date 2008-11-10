@@ -17,18 +17,10 @@ handlers:
 - url: /images
   static_dir: images
   expiration: 30d
- 
-- url: /(robots.txt|favicon.ico)
-  static_files: \1
-  upload: (robots.txt|favicon.ico)
- 
-- url: /admin/.*
-  script: main.py
-  login: admin
   
 - url: /
   script: main.py
   
 - url: /.+
   script: main.py
-  login: required
+  login:  required
