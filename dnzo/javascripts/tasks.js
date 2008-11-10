@@ -87,7 +87,7 @@ var Tasks = {
   
   addSaved: function(event)
   {
-    Tasks.onClickAdd(event);
+    Tasks.onClickAddTask(event);
   },
   
   onSwitchList: function(event)

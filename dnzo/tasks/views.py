@@ -12,18 +12,19 @@ from tasks.statusing import *
 from util.misc       import *
 from util.parsing    import parse_date
 
+import environment
 import logging
 
 DEFAULT_LIST_NAME = 'Tasks'
 ARCHIVED_LIST_NAME = '_archived'
 
-SORTABLE_LIST_COLUMNS = ('project', 'body', 'due_date', 'created_at', 'context')
+SORTABLE_LIST_COLUMNS = ('project_index', 'body', 'due_date', 'created_at', 'context')
 
 MINIMUM_USER_URL_LENGTH = 5
 
 #### VIEWS ####
 
-def list_index(request, username, task_list_name=None, context_name=None, project_name=None):
+def list_index(request, username, task_list_name=None, context_name=None, project_index=None):
   try:
     user = verify_current_user(username)
   except AccessError:
@@ -38,39 +39,39 @@ def list_index(request, username, task_list_name=None, context_name=None, projec
     task_list = None
       
   # FILTER 
-  import environment
   filter_title = None
   view_project = None
-  if project_name:
-    view_project = get_project_by_name(user, project_name)
-    if not view_project:
-      raise Http404
-    filter_title = view_project.name
+  if project_index:
+    project_name = get_project_by_index(user, project_index)
+    if project_name:
+      filter_title = project_name
+      view_project = project_index
+    else:
+      return default_list_redirect(user)
+      
   view_context = None
   if context_name:
-    view_context = get_context_by_name(user, context_name)
-    if not view_context:
-      raise Http404
-    filter_title = "@%s" % view_context.name
+    view_context = context_name
+    filter_title = "@%s" % context_name
 
   if not archived:
     template = 'tasks/index.html'
-    wheres = ['task_list=:task_list AND purged=:purged'] 
-    params = { 'task_list': task_list, 'purged': False }
+    wheres = ['task_list=:task_list AND archived=:archived'] 
+    params = { 'task_list': task_list, 'archived': False }
   else:
     template = 'archived_tasks/index.html'
-    wheres = ['owner=:owner AND purged=:purged AND deleted=:deleted'] 
-    params = { 'owner': user, 'purged': True, 'deleted': False }
+    wheres = ['ANCESTOR IS :user AND archived=:archived AND deleted=:deleted'] 
+    params = { 'user': user, 'archived': True, 'deleted': False }
 
   add_url = reverse_url('tasks.views.task',args=[user.short_name])
   if view_context:
     wheres.append('contexts=:context')
-    params['context'] = view_context.name
-    add_url += "?context=%s" % view_context.name
+    params['context'] = view_context
+    add_url += "?context=%s" % view_context
   elif view_project:
-    wheres.append('project=:project')
-    params['project'] = view_project
-    add_url += "?project=%s" % view_project.short_name
+    wheres.append('project_index=:project_index')
+    params['project_index'] = view_project
+    add_url += "?project=%s" % view_project
 
   order, direction = 'created_at', 'ASC'
   if param('order', request.GET) in SORTABLE_LIST_COLUMNS:
@@ -109,16 +110,16 @@ def purge_list(request, username, task_list_name):
     return access_error_redirect()
   
   task_list = get_task_list(user, task_list_name)
-  if not task_list or not users_equal(task_list.owner, user):
+  if not task_list or not users_equal(task_list.parent(), user):
     return access_error_redirect()
   
   undo = None
   if request.method == "POST":
-    undo = Undo(task_list=task_list, owner=user)
+    undo = Undo(task_list=task_list, parent=user)
     for task in get_completed_tasks(task_list):
-      task.purged = True
+      task.archived = True
       task.put()
-      undo.purged_tasks.append(task.key())
+      undo.archived_tasks.append(task.key())
     undo.put()
   
   redirect = referer_redirect(user,request)
@@ -136,7 +137,7 @@ def delete_list(request, username, task_list_name):
     return access_error_redirect()
   
   task_list = get_task_list(user, task_list_name)
-  if not task_list or not users_equal(task_list.owner, user):
+  if not task_list or not users_equal(task_list.parent(), user):
     return access_error_redirect()
   
   undo = None
@@ -182,10 +183,10 @@ def undo(request, username, undo_id):
 
   task_list = None
   try:
-    undo = db.get(db.Key.from_path('Undo', int(undo_id)))
+    undo = Undo.get_by_id(int(undo_id), parent=user)
       
     if undo:
-      if not users_equal(undo.owner, user):
+      if not users_equal(undo.parent(), user):
         return access_error_redirect()
       do_undo(undo)
       task_list = undo.task_list
@@ -208,19 +209,19 @@ def task(request, username, task_id=None):
     return access_error_redirect()
   
   task_list = param('task_list',request.GET,None)
-  task_list = get_task_list(user, task_list)
+  if task_list:
+    task_list = get_task_list(user, task_list)
   
   # We can't change the URL for the enclosing form element. Ugh.
   if not task_id and request.method == "POST":
     task_id = param('task_id',request.POST)
   
   if task_id:
-    task = db.get(db.Key.from_path('Task', int(task_id)))
-    if not users_equal(task.owner, user):
+    task = Task.get_by_id(int(task_id), parent=user)
+    if not task or not users_equal(task.parent(), user):
       return access_error_redirect()
   else:
-    task = Task(body='')
-    task.owner = user
+    task = Task(parent=user, body='')
     
   force_complete   = param('force_complete', request.POST, None)
   force_uncomplete = param('force_uncomplete', request.POST, None)
@@ -230,19 +231,13 @@ def task(request, username, task_id=None):
   undo = None
   
   if force_complete or force_uncomplete or force_delete:
-    if force_complete:
-      task.complete = True
-    elif force_uncomplete:
-      task.complete = False
+    if force_complete or force_uncomplete:
+      task.complete = (not force_uncomplete)
+      task.put()
+      
     elif force_delete:
-      # TODO: create a transaction
       status = "Task deleted successfully."
-      undo = Undo(task_list=task.task_list, owner=user)
-      undo.deleted_tasks.append(task.key())
-      undo.put()
-      task.task_list = None
-      task.deleted = True
-    task.put()
+      undo = delete_task(task)
     
   elif request.method == "POST":
     task.complete = False
@@ -252,42 +247,30 @@ def task(request, username, task_id=None):
     task.body = param('body',request.POST)
     
     task.project = None
-    raw_project = param('project',request.POST,'')
+    raw_project = param('project',request.POST,'').strip()
     if len(raw_project) > 0:
-      raw_project_short = urlize(raw_project)
-      project = get_project_by_name(user, raw_project_short)
-      # Create the project if it doesn't exist
-      if not project:
-        project = Project(name=raw_project, short_name=raw_project_short, owner=user)
-        project.put()
-      task.project = project
+      task.project       = raw_project
+      task.project_index = urlize(raw_project)
     
     task.contexts = []
     raw_contexts = param('contexts',request.POST,'')
     raw_contexts = re.findall(r'[A-Za-z_-]+', raw_contexts)
     for raw_context in raw_contexts:
-      raw_context = raw_context.lower()
-      context = get_context_by_name(user, raw_context)
-      if not context:
-        context = Context(owner=user, name=raw_context)
-        context.put()
-      task.contexts.append(context.name)
+      task.contexts.append(urlize(raw_context))
     
     task.due_date = parse_date(param('due_date', request.POST))
-    
     task.task_list = task_list
-    task.put()
+
+    save_task(task)
     
   elif request.method == "GET":
     raw_project = param('project', request.GET, None)
     if raw_project:
-      task.project = get_project_by_name(user, raw_project)
+      task.project = raw_project
       
     raw_context = param('context', request.GET, None)
     if raw_context:
-      context = get_context_by_name(user, raw_context)
-      if context:
-        task.contexts = [context.name]
+      task.contexts = [raw_context]
         
     task.editing = True
   
@@ -307,6 +290,7 @@ def task(request, username, task_id=None):
     
 def redirect(request, username=None):
   user = get_dnzo_user()
+  logging.info("user is %s" % user)
   if user:
     return default_list_redirect(user)
   else:
@@ -341,7 +325,7 @@ def signup(request):
     message = username_invalid(name)
 
     if not message:
-      new_user = TasksUser(short_name=name, user=current_user)
+      new_user = TasksUser(key_name=name, user=current_user)
       new_user.put()
       
       # Create a default new list for this user

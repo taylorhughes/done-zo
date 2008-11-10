@@ -5,7 +5,7 @@
 from util.misc import param
 
 class Statuses:
-  TASKS_PURGED = 'purged'
+  TASKS_PURGED = 'archived'
   TASK_DELETED = 'deleted'
   LIST_DELETED = 'list_deleted'
 

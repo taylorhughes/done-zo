@@ -23,7 +23,7 @@ urlpatterns = patterns('',
   # /username/l/list_name/delete
   (list_pattern + r'delete/$', 'tasks.views.delete_list'),
   #  /username/l/list_name/in/project
-  (list_pattern + r'for/(?P<project_name>[a-z_-]+)/$', 'tasks.views.list_index'),
+  (list_pattern + r'for/(?P<project_index>[a-z_-]+)/$', 'tasks.views.list_index'),
   #  /username/l/list_name/near/context
   (list_pattern + r'at/(?P<context_name>[a-z_-]+)/$', 'tasks.views.list_index'),
   #  /username/l/list_name

@@ -8,7 +8,7 @@
       {% endif %}
     </td>
     <td class="project">
-      <input type="text" value="{{ task.project.name|escape }}" class="text-input task-project" name="project">
+      <input type="text" value="{% if task.project %}{{ task.project|escape }}{% endif %}" class="text-input task-project" name="project">
     </td>
     <td class="task">
       <input type="text" value="{{ task.body|escape }}" class="text-input task-body" name="body">
@@ -35,22 +35,24 @@
       <input type="checkbox"{% if task.complete %} checked{% endif %} class="complete">
     </td>
     <td class="project">
-      <a href="{% url tasks.views.list_index task.owner.short_name,task.task_list.short_name,project_name=task.project.short_name %}">{{ task.project.name|escape }}</a>
+      {% if task.project %}
+      <a href="{% url tasks.views.list_index task.parent.short_name,task.task_list.short_name,project_index=task.project_index %}">{{ task.project|escape }}</a>
+      {% endif %}
     </td>
     <td class="task">
       {{ task.body|escape }}
     </td>
     <td class="context">
       {% for context in task.contexts %}
-      <a href="{% url tasks.views.list_index task.owner.short_name,task.task_list.short_name,context_name=context %}">@{{ context|escape }}</a>
+      <a href="{% url tasks.views.list_index task.parent.short_name,task.task_list.short_name,context_name=context %}">@{{ context|escape }}</a>
       {% endfor %}
     </td>
     <td class="due">
       {{ task.due_date|short_date }}
     </td>
     <td class="edit">
-      <a href="{% url tasks.views.task task.owner.short_name,task.key.id %}" class="edit">edit</a>&nbsp;&nbsp;
-      <a href="{% url tasks.views.task task.owner.short_name,task.key.id %}?delete=true" class="delete"><img src="/images/trash.gif" alt="delete task"></a>
+      <a href="{% url tasks.views.task task.parent.short_name,task.key.id %}" class="edit">edit</a>&nbsp;&nbsp;
+      <a href="{% url tasks.views.task task.parent.short_name,task.key.id %}?delete=true" class="delete"><img src="/images/trash.gif" alt="delete task"></a>
     </td>
   </tr>
 {% endif %}

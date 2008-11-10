@@ -22,7 +22,7 @@ def users_equal(a,b):
   if a is None or b is None:
     return False
   if a.is_saved() and b.is_saved():
-    return a.key().id() == b.key().id()
+    return a.key().id_or_name() == b.key().id_or_name()
   return False
 
 def access_error_redirect():
@@ -34,10 +34,14 @@ def default_list_redirect(user):
   '''Redirect a user to his defalt task list.'''
   default_list = get_task_lists(user,1)
   if default_list and len(default_list) > 0:
-    return HttpResponseRedirect(reverse_url('tasks.views.list_index',args=[user.short_name,default_list[0].short_name]))
+    return HttpResponseRedirect(
+             reverse_url('tasks.views.list_index',
+                         args=[user.key().name(),default_list[0].key().name()]
+             )
+           )
   else:
-    logging.error("Shit! Somehow the user does not have any task lists.")
-    return HttpResponseRedirect(reverse_url('tasks.views.lists_index'))
+    logging.error("Somehow this user does not have any task lists.")
+    return HttpResponseRedirect("/")
 
 def referer_redirect(user, request):
   '''Redirect a user to where he came from. If he didn't come from anywhere,
@@ -46,25 +50,20 @@ def referer_redirect(user, request):
     return HttpResponseRedirect(request.META['HTTP_REFERER'])
   return default_list_redirect(user)
   
-def get_dnzo_user(short_name=None):
-  if short_name:
-    return TasksUser.gql('WHERE short_name=:name', name=short_name).get()
+def get_dnzo_user(name=None):
+  if name:
+    return TasksUser.get_by_key_name(name)
   else:
     return TasksUser.gql('WHERE user=:user', user=get_current_user()).get()
   
-def get_task_list(user, task_list_name):
-  query = TaskList.gql(
-    'WHERE owner=:user AND short_name=:short_name', 
-    user=user, short_name=task_list_name
-  )
-  return query.get()
+def get_task_list(user, name):
+  return TaskList.get_by_key_name(name, parent=user)
 
 def add_task_list(user, list_name):
   def txn(list_name, short_name):
     new_list = TaskList(parent=user, 
-      owner=user,
-      name=list_name,
-      short_name=short_name)
+      key_name=short_name,
+      name=list_name)
     new_list.put()
     user.lists_count += 1
     user.put()
@@ -75,28 +74,48 @@ def add_task_list(user, list_name):
   return get_task_list(user, short_name)
 
 def delete_task_list(task_list):
-  def txn(task_list):
+  def txn(task_list, deleted_tasks, undo):
+    # Make sure we do not double count
+    task_list = db.get(task_list.key())
+    if task_list.deleted:
+      return 
+      
     task_list.deleted = True
     task_list.put()
     
-    user = task_list.owner
+    for task in deleted_tasks:
+      task = db.get(task.key())
+      if not task.deleted:
+        task.deleted = True
+        task.put()
+        undo.deleted_tasks.append(task.key())
+    
+    user = task_list.parent()
+    user.tasks_count -= len(undo.deleted_tasks)
     user.lists_count -= 1
     user.put()
     
-  db.run_in_transaction(txn, task_list)
+    undo.put()
     
-  undo = Undo(task_list=task_list, owner=task_list.owner)
+  deleted_tasks = Task.gql("WHERE task_list=:list AND archived=:archived",
+                           list=task_list, archived=False).fetch(100)
+  undo = Undo(task_list=task_list, parent=task_list.parent())
   undo.list_deleted = True
-  undo.put()
+  
+  db.run_in_transaction(txn, task_list, deleted_tasks, undo)
   
   return undo
   
 def undelete_task_list(task_list):
   def txn(task_list):
+    task_list = db.get(task_list.key())
+    if not task_list.deleted:
+      return
+      
     task_list.deleted = False
     task_list.put()
     
-    user = task_list.owner
+    user = task_list.parent()
     user.lists_count += 1
     user.put()
 
@@ -104,23 +123,22 @@ def undelete_task_list(task_list):
   
 def get_task_lists(user, limit=10):
   query = TaskList.gql(
-    'WHERE owner=:user AND deleted=:deleted ORDER BY short_name ASC', 
+    'WHERE ANCESTOR IS :user AND deleted=:deleted ORDER BY name ASC', 
     user=user, deleted=False
   )
   return query.fetch(limit)
   
 def get_completed_tasks(task_list, limit=100):
-  tasks = Task.gql('WHERE task_list=:list AND purged=:purged AND complete=:complete', 
-                   list=task_list, purged=False, complete=True)
+  tasks = Task.gql('WHERE task_list=:list AND archived=:archived AND complete=:complete', 
+                   list=task_list, archived=False, complete=True)
   return tasks.fetch(limit)
-  
-def get_context_by_name(user, short_name):
-  return Context.gql('WHERE owner=:user AND name=:name', user=user, name=short_name).get()
 
-def get_project_by_name(user, short_name):
-  project = Project.gql('WHERE owner=:user AND short_name=:name', 
-                               user=user, name=short_name)
-  return project.get()
+def get_project_by_index(user, project_index):
+  task = Task.gql('WHERE ANCESTOR IS :user AND project_index=:project_index', 
+                  user=user, project_index=project_index).get()
+  if task:
+    return task.project
+  return None
   
 def get_new_list_name(user, new_name):
   new_name = urlize(new_name)
@@ -133,22 +151,62 @@ def get_new_list_name(user, new_name):
   return new_name + appendage
   
 def username_available(name):
-  return not get_dnzo_user(short_name=name)         
+  return not get_dnzo_user(name=name)         
   
 def verify_current_user(short_name):
   user = get_dnzo_user()
-  if not user or short_name != user.short_name:
+  if not user or short_name != user.key().name():
     raise AccessError, 'Attempting to access wrong username'
   return user
 
+def save_task(task):
+  if not task.is_saved():
+    save_uncounted_task(task)
+  else:
+    task.put()
+  
+def undelete_task(task):
+  task.deleted = False
+  save_uncounted_task(task)
+  
+def save_uncounted_task(task):
+  def txn(task):
+    task.put()
+    
+    user = task.parent()
+    user.tasks_count += 1
+    user.save()
+    
+  db.run_in_transaction(txn, task)
+
+def delete_task(task):
+  def txn(task, undo):
+    task.deleted = True
+    task.task_list = None
+    task.put()
+    
+    user = task.parent()
+    user.tasks_count -= 1
+    user.put()
+
+    undo.put()
+
+  undo = Undo(task_list=task.task_list, parent=task.parent())
+  undo.deleted_tasks.append(task.key())
+      
+  db.run_in_transaction(txn, task, undo)
+
+  return undo
+
 def do_undo(undo):
   for task in undo.find_deleted():
-    task.task_list = self.task_list
-    task.deleted = False
+    task.task_list = undo.task_list
+    undelete_task(task)
+    
+  for task in undo.find_archived():
+    task.archived = False
     task.put()
-  for task in undo.find_purged():
-    task.purged = False
-    task.put()
+    
   if undo.list_deleted:
     undelete_task_list(undo.task_list)
     

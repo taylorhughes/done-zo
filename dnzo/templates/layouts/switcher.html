@@ -2,7 +2,7 @@
 <select id="switcher">
 {% for list in task_lists %}
   <option value="{% url tasks.views.list_index user.short_name,list.short_name %}"
-          {% ifequal list.key.id task_list.key.id %} selected{% endifequal %}>{{ list.name|escape }}</option>
+          {% ifequal list.key task_list.key %} selected{% endifequal %}>{{ list.name|escape }}</option>
 {% endfor %}
   <option value="{% url tasks.views.list_index user.short_name,"_archived" %}"{% if not task_list %} selected{% endif %}>Archived tasks</option>
 </select>

@@ -2,49 +2,42 @@
 from google.appengine.ext import db
 from google.appengine.api import users
 
-class TasksUser(db.Model):  
-  short_name  = db.StringProperty(required=True)
-  user        = db.UserProperty()
+class TasksUser(db.Model):
+  user          = db.UserProperty()
   
-  tasks_count = db.IntegerProperty(default=0)
-  lists_count = db.IntegerProperty(default=0)
+  tasks_count   = db.IntegerProperty(default=0)
+  lists_count   = db.IntegerProperty(default=0)
+
+  @property
+  def short_name(self):
+    return self.key().name()
     
 class TaskList(db.Model):
-  short_name = db.StringProperty()
-  name       = db.StringProperty()
-  owner      = db.ReferenceProperty(TasksUser, collection_name='task_lists')
-  deleted    = db.BooleanProperty(default=False)
-
-class Project(db.Model):
-  name       = db.StringProperty(required=True)
-  short_name = db.StringProperty()
-  created_at = db.DateTimeProperty(auto_now_add=True)
-  owner      = db.ReferenceProperty(TasksUser, collection_name='projects')
-    
-class Context(db.Model):
-  name       = db.StringProperty(required=True)
-  created_at = db.DateTimeProperty(auto_now_add=True)
-  owner      = db.ReferenceProperty(TasksUser, collection_name='contexts')
+  name          = db.StringProperty()
+  deleted       = db.BooleanProperty(default=False)
   
-  def tasks(self, fetch=50):
-    result = Task.gql("WHERE contexts=:context AND user=:user",
-                      context=self.short_name, user=self.owner)
-    return result.fetch(fetch)
+  @property
+  def short_name(self):
+    return self.key().name()
 
 class Task(db.Model):
-  created_at = db.DateTimeProperty(auto_now_add=True)
-  body       = db.StringProperty()
-  # Whether or not the task is complete
-  complete   = db.BooleanProperty(default=False)
+  task_list     = db.ReferenceProperty(TaskList, collection_name='tasks')
+  created_at    = db.DateTimeProperty(auto_now_add=True)
+  
+  complete      = db.BooleanProperty(default=False)
+  
+  project_index = db.StringProperty()
+  project       = db.StringProperty()
+
+  contexts      = db.StringListProperty()
+
+  due_date      = db.DateTimeProperty()
+  body          = db.StringProperty()
+  
   # For a complete task, whether it is shown in the list
-  purged     = db.BooleanProperty(default=False)
+  archived      = db.BooleanProperty(default=False)
   # Need this so we can filter it out in the archived tasks list
-  deleted    = db.BooleanProperty(default=False)
-  due_date   = db.DateTimeProperty()
-  contexts   = db.StringListProperty()
-  project    = db.ReferenceProperty(Project, collection_name='tasks')
-  owner      = db.ReferenceProperty(TasksUser, collection_name='tasks')
-  task_list  = db.ReferenceProperty(TaskList, collection_name='tasks')
+  deleted       = db.BooleanProperty(default=False)
 
   def editing():
     def fset(self, value):
@@ -59,13 +52,12 @@ class Task(db.Model):
     db.Model.__init__(self, *args, **kwargs)
 
 class Undo(db.Model):
-  task_list     = db.ReferenceProperty(TaskList, collection_name='undos')
-  owner         = db.ReferenceProperty(TasksUser, collection_name='undos')
-  created_at    = db.DateTimeProperty(auto_now_add=True)
+  task_list      = db.ReferenceProperty(TaskList, collection_name='undos')
+  created_at     = db.DateTimeProperty(auto_now_add=True)
 
-  list_deleted  = db.BooleanProperty(default=False)
-  deleted_tasks = db.ListProperty(db.Key)
-  purged_tasks  = db.ListProperty(db.Key)
+  list_deleted   = db.BooleanProperty(default=False)
+  deleted_tasks  = db.ListProperty(db.Key)
+  archived_tasks = db.ListProperty(db.Key)
 
   def find_deleted(self):
     deleted = []
@@ -73,11 +65,11 @@ class Undo(db.Model):
       deleted.append(db.get(key))
     return deleted
     
-  def find_purged(self):
-    purged = []
-    for key in self.purged_tasks:
-      purged.append(db.get(key))
-    return purged
+  def find_archived(self):
+    archived = []
+    for key in self.archived_tasks:
+      archived.append(db.get(key))
+    return archived
 
 
 
