@@ -36,7 +36,7 @@ def default_list_redirect(user):
   if default_list and len(default_list) > 0:
     return HttpResponseRedirect(
              reverse_url('tasks.views.list_index',
-                         args=[user.key().name(),default_list[0].key().name()]
+                         args=[user.short_name,default_list[0].short_name]
              )
            )
   else:
@@ -52,24 +52,26 @@ def referer_redirect(user, request):
   
 def get_dnzo_user(name=None):
   if name:
-    return TasksUser.get_by_key_name(name)
+    return TasksUser.get_by_key_name(TasksUser.name_to_key_name(name))
   else:
     return TasksUser.gql('WHERE user=:user', user=get_current_user()).get()
   
 def get_task_list(user, name):
-  return TaskList.get_by_key_name(name, parent=user)
+  return TaskList.get_by_key_name(TaskList.name_to_key_name(name), parent=user)
 
 def add_task_list(user, list_name):
-  def txn(list_name, short_name):
+  def txn(user, list_name):
+    short_name = get_new_list_name(user, list_name)
     new_list = TaskList(parent=user, 
-      key_name=short_name,
+      key_name=TaskList.name_to_key_name(short_name),
+      short_name=short_name,
       name=list_name)
     new_list.put()
     user.lists_count += 1
     user.put()
+    return short_name
     
-  short_name = get_new_list_name(user, list_name)
-  db.run_in_transaction(txn, list_name, short_name)
+  short_name = db.run_in_transaction(txn, user, list_name)
   
   return get_task_list(user, short_name)
 
@@ -155,7 +157,7 @@ def username_available(name):
   
 def verify_current_user(short_name):
   user = get_dnzo_user()
-  if not user or short_name != user.key().name():
+  if not user or short_name != user.short_name:
     raise AccessError, 'Attempting to access wrong username'
   return user
 

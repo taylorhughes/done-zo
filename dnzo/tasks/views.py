@@ -325,7 +325,11 @@ def signup(request):
     message = username_invalid(name)
 
     if not message:
-      new_user = TasksUser(key_name=name, user=current_user)
+      new_user = TasksUser(
+        key_name=TasksUser.name_to_key_name(name), 
+        user=current_user,
+        short_name = name
+      )
       new_user.put()
       
       # Create a default new list for this user

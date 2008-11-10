@@ -4,21 +4,23 @@ from google.appengine.api import users
 
 class TasksUser(db.Model):
   user          = db.UserProperty()
+  short_name    = db.StringProperty()
   
   tasks_count   = db.IntegerProperty(default=0)
   lists_count   = db.IntegerProperty(default=0)
-
-  @property
-  def short_name(self):
-    return self.key().name()
+  
+  @classmethod
+  def name_to_key_name(self,name):
+    return "user(%s)" % name
     
 class TaskList(db.Model):
   name          = db.StringProperty()
+  short_name    = db.StringProperty()
   deleted       = db.BooleanProperty(default=False)
   
-  @property
-  def short_name(self):
-    return self.key().name()
+  @classmethod
+  def name_to_key_name(self,name):
+    return "list(%s)" % name
 
 class Task(db.Model):
   task_list     = db.ReferenceProperty(TaskList, collection_name='tasks')
