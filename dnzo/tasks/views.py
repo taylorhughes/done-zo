@@ -8,6 +8,7 @@ from django.core.urlresolvers import reverse as reverse_url
 from tasks.models    import *
 from tasks.errors    import *
 from tasks.data      import *
+from tasks.redirects import *
 from tasks.statusing import *
 from util.misc       import *
 from util.parsing    import parse_date
@@ -163,10 +164,8 @@ def add_list(request, username):
   if request.method == "POST":
     if len(urlize(new_name)) > 0:
       new_list = add_task_list(user, new_name)
+      return list_redirect(user, new_list)
       
-      return HttpResponseRedirect(
-        reverse_url('tasks.views.list_index', args=[user.short_name,new_list.short_name])
-      )
     else:
       return referer_redirect(user,request)
       
@@ -195,12 +194,10 @@ def undo(request, username, undo_id):
     logger.error("Error undoing: " + strerror)
   
   if task_list:
-    return HttpResponseRedirect(
-             reverse_url('tasks.views.list_index', 
-                         args=[user.short_name,task_list.short_name])
-           )
+    return list_redirect(user, task_list)
+    
   else:
-    return referer_redirect(user,request)
+    return referer_redirect(user, request)
   
 def task(request, username, task_id=None):
   try:

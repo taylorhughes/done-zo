@@ -6,9 +6,6 @@
 
 from google.appengine.api.users import get_current_user
 
-from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect
-from django.core.urlresolvers import reverse as reverse_url
-
 from tasks.errors import *
 from tasks.models import *
 from util.misc import urlize
@@ -24,31 +21,6 @@ def users_equal(a,b):
   if a.is_saved() and b.is_saved():
     return a.key().id_or_name() == b.key().id_or_name()
   return False
-
-def access_error_redirect():
-  # TODO: Redirect to some kind of 5xx access denied error.
-  logging.error("Shit! Access error.")
-  return HttpResponseRedirect('/')
-
-def default_list_redirect(user):
-  '''Redirect a user to his defalt task list.'''
-  default_list = get_task_lists(user,1)
-  if default_list and len(default_list) > 0:
-    return HttpResponseRedirect(
-             reverse_url('tasks.views.list_index',
-                         args=[user.short_name,default_list[0].short_name]
-             )
-           )
-  else:
-    logging.error("Somehow this user does not have any task lists.")
-    return HttpResponseRedirect("/")
-
-def referer_redirect(user, request):
-  '''Redirect a user to where he came from. If he didn't come from anywhere,
-    refer him to a default location.'''
-  if 'HTTP_REFERER' in request.META:
-    return HttpResponseRedirect(request.META['HTTP_REFERER'])
-  return default_list_redirect(user)
   
 def get_dnzo_user(name=None):
   if name:

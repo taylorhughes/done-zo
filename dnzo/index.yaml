@@ -15,11 +15,126 @@ indexes:
 - kind: Task
   properties:
   - name: archived
+  - name: contexts
+  - name: task_list
+  - name: body
+
+# Used once in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: contexts
+  - name: task_list
+  - name: body
+    direction: desc
+
+# Used once in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: contexts
+  - name: task_list
+  - name: created_at
+
+# Used once in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: contexts
+  - name: task_list
+  - name: due_date
+
+# Used once in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: contexts
+  - name: task_list
+  - name: due_date
+    direction: desc
+
+# Used once in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: contexts
+  - name: task_list
+  - name: project_index
+
+# Used once in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: contexts
+  - name: task_list
+  - name: project_index
+    direction: desc
+
+# Used 2 times in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: project_index
+  - name: task_list
+
+# Used once in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: project_index
+  - name: task_list
+  - name: body
+
+# Used once in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: project_index
+  - name: task_list
+  - name: body
+    direction: desc
+
+# Used once in query history.
+- kind: Task
+  properties:
+  - name: archived
   - name: project_index
   - name: task_list
   - name: created_at
 
-# Used 21 times in query history.
+# Used once in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: project_index
+  - name: task_list
+  - name: due_date
+
+# Used once in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: project_index
+  - name: task_list
+  - name: due_date
+    direction: desc
+
+# Used 2 times in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: task_list
+  - name: body
+
+# Used 2 times in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: task_list
+  - name: body
+    direction: desc
+
+# Used 18 times in query history.
 - kind: Task
   properties:
   - name: archived
@@ -28,13 +143,43 @@ indexes:
 
 # Used 2 times in query history.
 - kind: Task
+  properties:
+  - name: archived
+  - name: task_list
+  - name: due_date
+
+# Used 2 times in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: task_list
+  - name: due_date
+    direction: desc
+
+# Used 3 times in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: task_list
+  - name: project_index
+
+# Used 2 times in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: task_list
+  - name: project_index
+    direction: desc
+
+# Used once in query history.
+- kind: Task
   ancestor: yes
   properties:
   - name: archived
   - name: deleted
   - name: created_at
 
-# Used 28 times in query history.
+# Used 49 times in query history.
 - kind: TaskList
   ancestor: yes
   properties:
