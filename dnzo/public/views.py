@@ -5,6 +5,7 @@ from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse as reverse_url
 
 from tasks.errors    import *
+from tasks.models    import *
 from tasks.data      import *
 from tasks.redirects import *
 from util.misc       import *
@@ -34,7 +35,7 @@ def availability(request):
       'message':     message
     })
   else:
-    return HttpResponseRedirect(reverse_url('tasks.views.signup'))
+    return HttpResponseRedirect(reverse_url('public.views.signup'))
 
 def signup(request):
   current_user = get_dnzo_user()
