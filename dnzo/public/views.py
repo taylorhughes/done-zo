@@ -20,9 +20,14 @@ def welcome(request):
   dnzo_user = get_dnzo_user()
   if dnzo_user:
     return default_list_redirect(dnzo_user)
+
+  nickname = None
+  current_user = get_current_user()
+  if current_user:
+    nickname = current_user.nickname()
     
   return render_to_response("public/index.html", {
-    'signed_in': (get_current_user() is not None)
+    'nickname': nickname 
   })
 
 def availability(request):

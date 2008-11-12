@@ -1,6 +1,6 @@
 {% load tasks_library %}
 
-{% extends "layouts/logged_in.html" %}
+{% extends "layouts/public.html" %}
 
 {% block page_title %}Sign up for DNZO!{% endblock %}
 
@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block content %}
-<h1>Sign up for Dnzo</h1>
+<h2>Sign up for DNZO</h2>
 <form action="{% url public.views.signup %}" method="POST">
 
   <div id="signup">
