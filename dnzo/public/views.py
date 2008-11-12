@@ -14,6 +14,7 @@ from public.data     import *
 import environment
 import logging
 import datetime
+import re
 
 DEFAULT_LIST_NAME = 'Tasks'
 MINIMUM_USER_URL_LENGTH = 5
@@ -72,7 +73,7 @@ def signup(request):
       
       if invitation:
         invitation.registered_at = datetime.datetime.now()
-        invitation.user = current_user
+        invitation.username = new_user.short_name
         invitation.put()
       
       # Create a default new list for this user

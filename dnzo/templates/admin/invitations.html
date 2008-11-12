@@ -1,0 +1,25 @@
+{% extends "layouts/admin.html" %}
+
+{% block page_title %}DNZO Admin: Add invitations{% endblock %}
+
+{% block content %}
+  <h2>DNZO invitations</h2>
+  
+  <ul>
+    {% for invitation in invitations %}
+    <li>
+      {{ invitation.email_address|escape }}, 
+      invited by {{ invitation.added_by.email|escape }}.
+      
+      {% if invitation.username %}
+        [REGISTERED] as {{ invitation.username|escape }}
+      {% else %}
+        [unregistered]
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  
+  <p>Why not <a href="{% url admin.views.add_invitation %}">add some more</a>?</p>
+
+{% endblock %}

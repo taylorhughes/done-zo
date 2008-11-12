@@ -87,4 +87,5 @@ INSTALLED_APPS = (
     'django.contrib.markup',
     'tasks',
     'public',
+    'admin',
 )

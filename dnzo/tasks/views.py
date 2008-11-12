@@ -287,7 +287,7 @@ def redirect(request, username=None):
   if user:
     return default_list_redirect(user)
   else:
-    return HttpResponseRedirect(reverse_url('tasks.views.signup'))
+    return HttpResponseRedirect(reverse_url('public.views.signup'))
 
 #### UTILITY METHODS ####
 

@@ -5,4 +5,5 @@ class Invitation(db.Model):
   email_address = db.StringProperty()
   created_at    = db.DateTimeProperty(auto_now_add=True)
   registered_at = db.DateTimeProperty()
-  user          = db.UserProperty()
+  username      = db.StringProperty()
+  added_by      = db.UserProperty()

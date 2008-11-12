@@ -1,0 +1,58 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>{% block page_title %}DNZO{% endblock %}</title>
+  <style type="text/css">
+    body {
+      background: #fff;
+      margin: 0;
+      padding: 0;
+      font: 13px Helvetica;
+    }
+    #body {
+      background: #eee;
+      margin-top: 5%;
+      border-top:    2px solid #666;
+      border-bottom: 2px solid #666;
+      padding: 10px 10% 10px 10%;
+    }
+    h1 { 
+      text-align: left;
+      font-size: 2em;
+      margin: 0;
+      padding: 0;
+    }
+    
+    #nav { 
+      float: left;
+      width: 100px;
+      margin: 10px 0 0 0;
+      padding: 0;
+    }
+      #nav li { 
+        list-style-type: none; 
+        margin: 0 0 10px 0;
+        padding: 0;
+      }
+      
+    #content { margin-left: 150px; }
+  </style>
+</head>
+<body>
+  <div id="body">
+    
+    <h1>DNZO</h1>
+    
+    <ul id="nav">
+      <li><a href="{% url admin.views.invitations %}">List invitations</a></li>
+      <li><a href="{% url admin.views.add_invitation %}">Add invitations</a></li>
+    </ul>
+    
+    <div id="content">
+      {% block content %}{% endblock %}
+    </div>
+    
+  </div>
+</body>
+</html>

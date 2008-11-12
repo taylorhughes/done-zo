@@ -18,6 +18,10 @@ handlers:
   static_dir: images
   expiration: 30d
   
+- url: /admin/.+
+  script: main.py
+  login:  admin
+  
 - url: /
   script: main.py
   
