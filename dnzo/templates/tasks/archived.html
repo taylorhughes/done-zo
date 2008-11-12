@@ -28,7 +28,7 @@
     {% sorting_header "Due"         "due_date"   order direction "due" %}
   </tr>
   {% for task in tasks %}
-    {% include "archived_tasks/task.html" %}
+    {% include "tasks/tasks/archived_task.html" %}
   {% endfor %}
 </table>
 </form>

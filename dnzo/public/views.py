@@ -21,7 +21,7 @@ def welcome(request):
   if dnzo_user:
     return default_list_redirect(dnzo_user)
     
-  return render_to_response("index.html", {
+  return render_to_response("public/index.html", {
     'signed_in': (get_current_user() is not None)
   })
 
@@ -30,7 +30,7 @@ def availability(request):
   message = username_invalid(name)
   
   if is_ajax(request):
-    return render_to_response('signup/availability_ajax.html', {
+    return render_to_response('public/signup/availability_ajax.html', {
       'unavailable': message is not None,
       'message':     message
     })
@@ -69,7 +69,7 @@ def signup(request):
       name = "%s_%s" % (original, i)
       i += 1
 
-  return render_to_response('signup/index.html', {
+  return render_to_response('public/signup/index.html', {
     'short_name':  name,
     'unavailable': message is not None,
     'message':     message

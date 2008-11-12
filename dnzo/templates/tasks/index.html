@@ -28,7 +28,7 @@
     {% sorting_header "Due"         "due_date"      order direction "due" %}
   </tr>
   {% for task in tasks %}
-    {% include "tasks/task.html" %}
+    {% include "tasks/tasks/task.html" %}
   {% endfor %}
   <tr id="add_row">
     <td></td>
@@ -45,7 +45,7 @@
 </p>
 </form>
 
-<div style="display: none;">{% include "lists/add.html" %}</div>
+<div style="display: none;">{% include "tasks/lists/add.html" %}</div>
 <form action="{% url tasks.views.delete_list user.short_name,task_list.short_name %}" method="POST">
 <p id="new-delete">
   <a href="{% url tasks.views.add_list user.short_name %}" id="add_list_link">Add list</a>&nbsp;

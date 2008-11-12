@@ -56,7 +56,7 @@ def list_index(request, username, task_list_name=None, context_name=None, projec
     wheres = ['task_list=:task_list AND archived=:archived'] 
     params = { 'task_list': task_list, 'archived': False }
   else:
-    template = 'archived_tasks/index.html'
+    template = 'tasks/archived.html'
     wheres = ['ANCESTOR IS :user AND archived=:archived AND deleted=:deleted'] 
     params = { 'user': user, 'archived': True, 'deleted': False }
 
@@ -166,7 +166,7 @@ def add_list(request, username):
       return referer_redirect(user,request)
       
   else: # GET
-    return render_to_response('lists/index.html', {
+    return render_to_response('tasks/lists/index.html', {
       'user': user
     })
 
@@ -274,7 +274,7 @@ def task(request, username, task_id=None):
     # TODO: Something useful.
     return default_list_redirect(user)
   else:
-    return render_to_response('tasks/ajax_task.html', {
+    return render_to_response('tasks/tasks/ajax_task.html', {
       'user': user,
       'task': task,
       'status': status,
