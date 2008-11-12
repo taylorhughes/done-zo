@@ -3,6 +3,7 @@ from google.appengine.api.users import create_logout_url
 from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect
 from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse as reverse_url
+from django.views.decorators.cache import never_cache
 
 from tasks.models    import *
 from tasks.errors    import *
@@ -21,6 +22,7 @@ SORTABLE_LIST_COLUMNS = ('project_index', 'body', 'due_date', 'created_at', 'con
 
 #### VIEWS ####
 
+@never_cache
 def list_index(request, username, task_list_name=None, context_name=None, project_index=None):
   try:
     user = verify_current_user(username)
@@ -100,6 +102,7 @@ def list_index(request, username, task_list_name=None, context_name=None, projec
   
   return response
 
+@never_cache
 def purge_list(request, username, task_list_name):
   try:
     user = verify_current_user(username)
@@ -127,6 +130,7 @@ def purge_list(request, username, task_list_name):
   
   return redirect
 
+@never_cache
 def delete_list(request, username, task_list_name):
   try:
     user = verify_current_user(username)
@@ -149,6 +153,7 @@ def delete_list(request, username, task_list_name):
   
   return redirect
 
+@never_cache
 def add_list(request, username):
   try:
     user = verify_current_user(username)
@@ -170,6 +175,7 @@ def add_list(request, username):
       'user': user
     })
 
+@never_cache
 def undo(request, username, undo_id):
   try:
     user = verify_current_user(username)
@@ -194,7 +200,8 @@ def undo(request, username, undo_id):
     
   else:
     return referer_redirect(user, request)
-  
+
+@never_cache
 def task(request, username, task_id=None):
   try:
     user = verify_current_user(username)
@@ -280,7 +287,8 @@ def task(request, username, task_id=None):
       'status': status,
       'undo': undo
     })
-    
+
+@never_cache
 def redirect(request, username=None):
   user = get_dnzo_user()
   logging.info("user is %s" % user)
