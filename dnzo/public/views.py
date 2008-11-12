@@ -1,17 +1,19 @@
-from google.appengine.api.users import create_logout_url, get_current_user
+from google.appengine.api.users import create_logout_url, get_current_user, is_current_user_admin
 
 from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect
 from django.shortcuts import render_to_response
 from django.core.urlresolvers import reverse as reverse_url
 
-from tasks.errors    import *
 from tasks.models    import *
 from tasks.data      import *
 from tasks.redirects import *
 from util.misc       import *
 
+from public.data     import *
+
 import environment
 import logging
+import datetime
 
 DEFAULT_LIST_NAME = 'Tasks'
 MINIMUM_USER_URL_LENGTH = 5
@@ -27,8 +29,12 @@ def welcome(request):
     nickname = current_user.nickname()
     
   return render_to_response("public/index.html", {
-    'nickname': nickname 
+    'nickname': nickname,
+    'logout_url': create_logout_url('/')
   })
+  
+def closed(request):
+  return render_to_response("public/signup/closed.html")
 
 def availability(request):
   name = param('name', request.GET, '')
@@ -48,6 +54,9 @@ def signup(request):
     return default_list_redirect(current_user)
   
   current_user = get_current_user()
+  invitation = get_invitation_by_address(current_user.email())
+  if not invitation and not is_current_user_admin():
+    return HttpResponseRedirect(reverse_url('public.views.closed'))
 
   if request.method == 'POST':
     name = param('name',request.POST)
@@ -60,6 +69,11 @@ def signup(request):
         short_name = name
       )
       new_user.put()
+      
+      if invitation:
+        invitation.registered_at = datetime.datetime.now()
+        invitation.user = current_user
+        invitation.put()
       
       # Create a default new list for this user
       tasks_list = add_task_list(new_user, DEFAULT_LIST_NAME)
@@ -80,7 +94,9 @@ def signup(request):
     'message':     message
   })
   
-  
+
+### UTILITY METHODS ###
+
 def username_invalid(new_name):
   message = None
     

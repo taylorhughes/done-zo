@@ -13,7 +13,11 @@
     {% else %}
     <p>
       Welcome, {{ nickname|escape }}!
-      <a href="{% url public.views.signup %}">Sign up</a> for DNZO!
+      <small>(Not {{ nickname|escape }}? <a href="{{ logout_url|escape }}">click here</a>.)</small>
+    </p>
+    <p>
+      If you have been invited to try DNZO, 
+      <a href="{% url public.views.signup %}">click here to sign up</a>.
     </p>
     {% endif %}
 {% endblock %}
