@@ -87,6 +87,6 @@ fi
 
 echo "Submitting to App Engine ..."
 
-# TODO: Actually deploy.
+appcfg.py update dnzo
 
 echo "Done!"

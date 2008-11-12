@@ -55,6 +55,10 @@ except ImportError:
 # Import the part of Django that we use here.
 import django.core.handlers.wsgi
 
+# Force Django to reload its settings. 
+from django.conf import settings 
+settings._target = None 
+
 def main():
   # Create a Django application for WSGI.
   application = django.core.handlers.wsgi.WSGIHandler()
