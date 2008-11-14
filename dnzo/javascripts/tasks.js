@@ -190,7 +190,7 @@ var TaskRow = Class.create({
   wireEditingEvents: function(row)
   {
     var save = row.select('.edit>input[type=submit]')[0];
-    //Event.observe(save, 'click', this.onClickSave.bind(this));
+    Event.observe(save, 'click', this.onClickSave.bind(this));
 
     var cancelLink = row.select('.edit>a.cancel')[0];
     Event.observe(cancelLink, 'click', this.onClickCancel.bind(this));
