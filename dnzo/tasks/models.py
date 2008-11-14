@@ -2,6 +2,8 @@
 from google.appengine.ext import db
 from google.appengine.api import users
 
+from django.db.models import permalink
+
 class TasksUser(db.Model):
   user          = db.UserProperty()
   short_name    = db.StringProperty()
@@ -13,6 +15,10 @@ class TasksUser(db.Model):
   def name_to_key_name(self,name):
     return "user(%s)" % name
     
+  @permalink
+  def get_absolute_url(self):
+    return('tasks.views.redirect', self.short_name)
+    
 class TaskList(db.Model):
   name          = db.StringProperty()
   short_name    = db.StringProperty()
@@ -21,6 +27,10 @@ class TaskList(db.Model):
   @classmethod
   def name_to_key_name(self,name):
     return "list(%s)" % name
+    
+  @permalink
+  def get_absolute_url(self):
+    return ('tasks.views.list_index', None, params)
 
 class Task(db.Model):
   task_list     = db.ReferenceProperty(TaskList, collection_name='tasks')
@@ -40,6 +50,13 @@ class Task(db.Model):
   archived      = db.BooleanProperty(default=False)
   # Need this so we can filter it out in the archived tasks list
   deleted       = db.BooleanProperty(default=False)
+
+  @permalink
+  def get_absolute_url(self):
+    return ('tasks.views.task', None, {
+      'username': self.parent().short_name,
+      'task_id': self.key().id()
+    })
 
   def editing():
     def fset(self, value):
@@ -73,7 +90,12 @@ class Undo(db.Model):
       archived.append(db.get(key))
     return archived
 
-
+  @permalink
+  def get_absolute_url(self):
+    return ('tasks.views.undo', None, {
+      'username': self.parent().short_name,
+      'undo_id': self.key().id()
+    })
 
 
 

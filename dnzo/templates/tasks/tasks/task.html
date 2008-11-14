@@ -51,8 +51,10 @@
       {{ task.due_date|short_date }}
     </td>
     <td class="edit">
-      <a href="{% url tasks.views.task task.parent.short_name,task.key.id %}" class="edit">edit</a>&nbsp;&nbsp;
-      <a href="{% url tasks.views.task task.parent.short_name,task.key.id %}?delete=true" class="delete"><img src="/images/trash.gif" alt="delete task"></a>
+      <a href="{{ task.get_absolute_url }}" class="edit">edit</a>&nbsp;&nbsp;
+      <a href="{{ task.get_absolute_url }}?delete=true" class="delete">
+        <img src="/images/trash.gif" alt="delete task">
+      </a>
     </td>
   </tr>
 {% endif %}
