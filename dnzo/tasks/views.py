@@ -276,7 +276,10 @@ def task(request, username, task_id=None):
   
   if undo:
     undo = undo.key().id()
-
+  
+  new_task = Task(body='', contexts=task.contexts, project=task.project)
+  new_task.editing  = True
+  
   if not is_ajax(request):
     # TODO: Something useful.
     return default_list_redirect(user)
@@ -285,7 +288,8 @@ def task(request, username, task_id=None):
       'user': user,
       'task': task,
       'status': status,
-      'undo': undo
+      'undo': undo,
+      'new_tasks': [new_task]
     })
 
 @never_cache

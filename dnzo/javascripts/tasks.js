@@ -65,6 +65,31 @@ var Tasks = {
     
     var row = Tasks.rowFromResponse(xhr);
     
+    Tasks.doAddNewTask(row);
+  },
+  
+  addCanceled: function(event)
+  {
+    Tasks.addRow.show();
+    Event.stopObserving(Tasks.table, Tasks.TASK_SAVED_EVENT, Tasks.addSaved);
+    event.stop();
+  },
+  
+  addSaved: function(event)
+  {
+    var row = event.memo;
+    if (row)
+    {
+      Tasks.doAddNewTask(row);
+    }
+    else
+    {
+      Tasks.onClickAddTask(event); 
+    }    
+  },
+  
+  doAddNewTask: function(row)
+  {
     var tbody = Tasks.table.select('tbody')[0];
 
     tbody.removeChild(Tasks.addRow);
@@ -77,17 +102,6 @@ var Tasks = {
     
     Tasks.addRow.hide();
     task.activate();
-  },
-  
-  addCanceled: function(event)
-  {
-    Tasks.addRow.show();
-    event.stop();
-  },
-  
-  addSaved: function(event)
-  {
-    Tasks.onClickAddTask(event);
   },
   
   onSwitchList: function(event)
@@ -299,7 +313,20 @@ var TaskRow = Class.create({
     tbody.removeChild(this.editRow);
     this.editRow = null;
     
-    this.fire(Tasks.TASK_SAVED_EVENT);
+    var temp = new Element('div');
+    temp.innerHTML = xhr.responseText;
+    
+    var newTask = temp.select('#new_tasks .task-row');
+    if (newTask && newTask.length > 0)
+    {
+      newTask = newTask[0];
+    }
+    else
+    {
+      newTask = null;
+    }
+    
+    this.fire(Tasks.TASK_SAVED_EVENT, newTask);
   },
   
   onClickComplete: function(event)
@@ -343,9 +370,9 @@ var TaskRow = Class.create({
     Tasks.doFail(xhr);
   },
   
-  fire: function(eventName)
+  fire: function(eventName, memo)
   {
-    Event.fire((this.viewRow || this.editRow), eventName);
+    Event.fire((this.viewRow || this.editRow), eventName, memo);
   },
   
   // Find the first empty field in the row and activate it.
