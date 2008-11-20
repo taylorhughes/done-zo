@@ -43,8 +43,8 @@ def list_index(request, username, task_list_name=None, context_name=None, projec
   view_project_name = None
   if project_index:
     view_project_name = get_project_by_index(user, project_index)
-    if project_name:
-      filter_title = project_name
+    if view_project_name:
+      filter_title = view_project_name
       view_project = project_index
     else:
       return default_list_redirect(user)
