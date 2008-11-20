@@ -18,7 +18,6 @@
 {% endblock %}
 
 {% block content %}
-<form action="{% url tasks.views.task user.short_name %}?task_list={{task_list.short_name|escape}}" method="POST" id="tasks_form">
 <table cellspacing="0" cellpadding="0" id="tasks_list">
   <tr>
     <th class="done"><span>&nbsp;&nbsp;✓</span></th>
@@ -35,6 +34,13 @@
     <td colspan="6"><a id="add" href="{{ add_url }}" style="text-decoration:underline; color:#369">Add task</a></td>
   </tr>
 </table>
+
+<form method="POST" id="tasks_form" action="{% url tasks.views.task user.short_name %}?task_list={{task_list.short_name|escape}}">
+  <table id="new_task_table">
+  {% for task in new_tasks %}
+    {% include "tasks/tasks/task.html" %}
+  {% endfor %}
+  </table>
 </form>
 {% endblock %}
 

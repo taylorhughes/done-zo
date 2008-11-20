@@ -16,17 +16,22 @@ var Tasks = {
     }
     
     Tasks.table = $('tasks_list');
-    if (Tasks.table && !Tasks.table.hasClassName('archived'))
+    if (! Tasks.table || Tasks.table.hasClassName('archived'))
     {
-      Tasks.addRow = Tasks.table.select('#add_row')[0];
-      Tasks.addLink = Tasks.addRow.select('#add')[0];
-    
-      Event.observe(Tasks.addLink, 'click', Tasks.onClickAddTask);
-    
-      Tasks.table.select('tr.task-row').each(function(row) {
-        new TaskRow(row, null);
-      });
+      return;
     }
+    
+    Tasks.addRow = Tasks.table.select('#add_row')[0];
+    Tasks.addLink = Tasks.addRow.select('#add')[0];
+    
+    Tasks.tasksForm = $('tasks_form');
+    Tasks.newTaskTableHTML = Tasks.tasksForm.innerHTML;
+  
+    Event.observe(Tasks.addLink, 'click', Tasks.onClickAddTask);
+  
+    Tasks.table.select('tr.task-row').each(function(row) {
+      new TaskRow(row, null);
+    });
   },
   
   // Add new list
@@ -46,26 +51,11 @@ var Tasks = {
   
   onClickAddTask: function(event)
   {
-    if (! Tasks.newTaskRequested)
-    {
-      Tasks.newTaskRequested = true;
-      new Ajax.Request(Tasks.addLink.href, {
-        method: 'get',
-        onFailure: Tasks.doFail,
-        onSuccess: Tasks.doAddBlankTask,
-        onComplete: function(xhr) { Tasks.newTaskRequested = false; }
-      });
-    }
     event.stop();
-  },
-  
-  doAddBlankTask: function(xhr)
-  {
+    
     Tasks.cancelAll();
     
-    var row = Tasks.rowFromResponse(xhr);
-    
-    Tasks.doAddNewTask(row);
+    Tasks.doAddNewTask(Tasks.getNewTaskRow(), event.memo);
   },
   
   addCanceled: function(event)
@@ -77,28 +67,28 @@ var Tasks = {
   
   addSaved: function(event)
   {
-    var row = event.memo;
-    if (row)
-    {
-      Tasks.doAddNewTask(row);
-    }
-    else
-    {
-      Tasks.onClickAddTask(event); 
-    }    
+    Tasks.onClickAddTask(event); 
   },
   
-  doAddNewTask: function(row)
+  doAddNewTask: function(row, existingTask)
   {
     var tbody = Tasks.table.select('tbody')[0];
 
-    tbody.removeChild(Tasks.addRow);
-    tbody.appendChild(row);
-    tbody.appendChild(Tasks.addRow);
+    Tasks.addRow.remove();
+    tbody.insert(row);
+    tbody.insert(Tasks.addRow);
+    
+    if (existingTask)
+    {
+      var newInputs = row.select('input[type=text]');
+      var oldInputs = existingTask.select('input[type=text]');
+      newInputs[0].setValue(oldInputs[0].getValue());
+      newInputs[2].setValue(oldInputs[2].getValue());
+    }
 
     var task = new TaskRow(null, row);
     Event.observe(Tasks.table, Tasks.TASK_SAVED_EVENT, Tasks.addSaved);
-    Event.observe(Tasks.table, Tasks.TASK_CANCEL_EDITING_EVENT, Tasks.addCanceled);
+    Event.observe(row, Tasks.TASK_CANCEL_EDITING_EVENT, Tasks.addCanceled);
     
     Tasks.addRow.hide();
     task.activate();
@@ -137,6 +127,35 @@ var Tasks = {
   updateStatusFromResponse: function(xhr)
   {
     Tasks.loadStatus(Tasks.containerFromResponse(xhr));
+  },
+  
+  saveTask: function(row, options)
+  {
+    var duplicateBySelector = function(from,to,selector) {
+      var fromFields = from.select(selector);
+      var toFields   = to.select(selector);
+      
+      if (fromFields.length != toFields.length) return;
+      
+      var i = 0;
+      fromFields.each(function(fromField) {
+        toFields[i].setValue(fromField.getValue());
+        i += 1;
+      });
+    }
+    
+    duplicateBySelector(row, Tasks.tasksForm, 'input[type=text]');
+    duplicateBySelector(row, Tasks.tasksForm, 'input[type=hidden]');
+    var chk = 'input[type=checkbox]';
+    Tasks.tasksForm.select(chk)[0].checked = row.select(chk)[0].checked;
+    Tasks.tasksForm.request(options);
+  },
+  
+  getNewTaskRow: function()
+  {
+    var temp = new Element('div');
+    temp.innerHTML = Tasks.newTaskTableHTML;
+    return temp.select("tr")[0];
   },
   
   containerFromResponse: function(xhr)
@@ -184,8 +203,15 @@ var TaskRow = Class.create({
   
   destroy: function()
   {
-    if (this.viewRow) this.viewRow.parentNode.removeChild(this.viewRow);
-    if (this.editRow && this.editRow.parentNode) this.editRow.parentNode.removeChild(this.editRow);
+    if (this.viewRow) this.viewRow.remove();
+    if (this.editRow && this.editRow.parentNode) this.editRow.remove();
+    this.ignoreCancels();
+  },
+  
+  ignoreCancels: function()
+  {
+    Event.stopObserving(this.cancelLink, 'click', this.boundOnClickCancel);
+    this.cancelLink.href = null;
     Event.stopObserving(Tasks.table, Tasks.TASK_EDITING_EVENT, this.boundOnOtherTaskEditing);
   },
   
@@ -205,9 +231,12 @@ var TaskRow = Class.create({
   {
     var save = row.select('.edit>input[type=submit]')[0];
     Event.observe(save, 'click', this.onClickSave.bind(this));
+    
+    Event.observe(row, 'keyup', this.onKeyUp.bind(this));
 
-    var cancelLink = row.select('.edit>a.cancel')[0];
-    Event.observe(cancelLink, 'click', this.onClickCancel.bind(this));
+    this.cancelLink = row.select('.edit>a.cancel')[0];
+    this.boundOnClickCancel = this.onClickCancel.bind(this);
+    Event.observe(this.cancelLink, 'click', this.boundOnClickCancel);
   },
   
   isEditing: function()
@@ -222,7 +251,7 @@ var TaskRow = Class.create({
     if (this.viewRow)
     {
       this.viewRow.show();
-      this.viewRow.parentNode.removeChild(this.editRow);
+      this.editRow.hide();
     }
     else
     {
@@ -239,11 +268,11 @@ var TaskRow = Class.create({
   
   onClickEdit: function(event)
   {
-    this.fire(Tasks.TASK_EDITING_EVENT);
     if (this.editRow)
     {
       this.viewRow.hide();
-      this.viewRow.parentNode.insertBefore(this.editRow, this.viewRow);
+      this.editRow.show();
+      this.activate();
     }
     else if (! this.requestedEditRow)
     {
@@ -258,7 +287,9 @@ var TaskRow = Class.create({
     event.stop();
   },
   doEdit: function(xhr)
-  {    
+  {
+    this.fire(Tasks.TASK_EDITING_EVENT);
+    
     this.editRow = Tasks.rowFromResponse(xhr);
     this.viewRow.parentNode.insertBefore(this.editRow, this.viewRow);
     this.viewRow.hide();
@@ -291,10 +322,17 @@ var TaskRow = Class.create({
   {
     event.element().disable();
     
-    this.editRow.up('form').request({
+    Tasks.saveTask(this.editRow,{
       onSuccess: this.doSave.bind(this),
       onFailure: this.doFail.bind(this)
     });
+    
+    this.editRow.select('input').each(function(e) {
+      e.disable();
+    })
+    
+    this.ignoreCancels();
+    this.fire(Tasks.TASK_SAVED_EVENT, this.editRow);
     
     event.stop();
   },
@@ -304,13 +342,13 @@ var TaskRow = Class.create({
     // May be adding a new task
     if (this.viewRow)
     {
-      tbody.removeChild(this.viewRow);
+      this.viewRow.remove();
     }
     this.viewRow = Tasks.rowFromResponse(xhr);
     this.wireViewingEvents(this.viewRow);
     
     tbody.insertBefore(this.viewRow, this.editRow);
-    tbody.removeChild(this.editRow);
+    this.editRow.remove();
     this.editRow = null;
     
     var temp = new Element('div');
@@ -325,8 +363,6 @@ var TaskRow = Class.create({
     {
       newTask = null;
     }
-    
-    this.fire(Tasks.TASK_SAVED_EVENT, newTask);
   },
   
   onClickComplete: function(event)
@@ -354,6 +390,20 @@ var TaskRow = Class.create({
   {
     var newRow = Tasks.rowFromResponse(xhr);
     this.viewRow.className = newRow.className;
+  },
+  
+  onKeyUp: function(event)
+  {
+    switch(event.keyCode)
+    {
+      case Event.KEY_RETURN:
+        this.onClickSave(event);
+        break;
+        
+      case Event.KEY_ESC:
+        this.onClickCancel(event);
+        break;
+    }    
   },
 
   onOtherTaskEditing: function(event)

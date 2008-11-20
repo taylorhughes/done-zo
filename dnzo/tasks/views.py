@@ -40,8 +40,9 @@ def list_index(request, username, task_list_name=None, context_name=None, projec
   # FILTER 
   filter_title = None
   view_project = None
+  view_project_name = None
   if project_index:
-    project_name = get_project_by_index(user, project_index)
+    view_project_name = get_project_by_index(user, project_index)
     if project_name:
       filter_title = project_name
       view_project = project_index
@@ -85,6 +86,15 @@ def list_index(request, username, task_list_name=None, context_name=None, projec
   status = get_status(request)
   undo = get_undo(request)
   
+  new_task_attrs = {'body': ''}
+  if view_context:
+    new_task_attrs['context'] = [view_context]
+  if view_project:
+    new_task_attrs['project'] = view_project_name
+  
+  new_task = Task(**new_task_attrs)
+  new_task.editing = True
+    
   response = render_to_response(template, always_includes({
     'tasks': tasks,
     'task_list': task_list,
@@ -95,6 +105,7 @@ def list_index(request, username, task_list_name=None, context_name=None, projec
     'status': status,
     'undo': undo,
     'archived': archived,
+    'new_tasks': [new_task]
   }, request, user))
   
   reset_status(response,status)
@@ -277,9 +288,6 @@ def task(request, username, task_id=None):
   if undo:
     undo = undo.key().id()
   
-  new_task = Task(body='', contexts=task.contexts, project=task.project)
-  new_task.editing  = True
-  
   if not is_ajax(request):
     # TODO: Something useful.
     return default_list_redirect(user)
@@ -288,8 +296,7 @@ def task(request, username, task_id=None):
       'user': user,
       'task': task,
       'status': status,
-      'undo': undo,
-      'new_tasks': [new_task]
+      'undo': undo
     })
 
 @never_cache

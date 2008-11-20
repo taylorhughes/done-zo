@@ -3,9 +3,7 @@
 {% if task.editing %}
   <tr class="editable task-row">
     <td class="done">
-      {% if task.is_saved %}
       <input type="checkbox"{% if task.complete %} checked{% endif %} name="complete" value="true" class="complete editing">
-      {% endif %}
     </td>
     <td class="project">
       <input type="text" value="{% if task.project %}{{ task.project|escape }}{% endif %}" class="text-input task-project" name="project">
@@ -24,6 +22,7 @@
       <input type="hidden" name="task_id" value="{{ task.key.id }}">
       <input type="submit" value="Save"> 
     {% else %}
+      <input type="hidden" name="task_id" value="">
       <input type="submit" value="Add">
     {% endif %}
     or <a href="{{ request_uri }}" class="cancel">cancel</a>

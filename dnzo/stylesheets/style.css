@@ -201,6 +201,8 @@ tr.error td {
   background: #c00;
 }
 
+#tasks_form { display: none; }
+
 #footer {
   font-size: 1.1em;
   margin: 1em 6.4em 1.2em 2em;
