@@ -100,7 +100,7 @@ indexes:
   - name: body
     direction: desc
 
-# Used once in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   properties:
   - name: archived
@@ -140,7 +140,7 @@ indexes:
   - name: body
     direction: desc
 
-# Used 4 times in query history.
+# Used 18 times in query history.
 - kind: Task
   properties:
   - name: archived
@@ -185,7 +185,7 @@ indexes:
   - name: deleted
   - name: created_at
 
-# Used 6 times in query history.
+# Used 21 times in query history.
 - kind: TaskList
   ancestor: yes
   properties:
