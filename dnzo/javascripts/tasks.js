@@ -320,21 +320,34 @@ var TaskRow = Class.create({
   
   onClickSave: function(event)
   {
-    event.element().disable();
-    
-    Tasks.saveTask(this.editRow,{
-      onSuccess: this.doSave.bind(this),
-      onFailure: this.doFail.bind(this)
-    });
-    
-    this.editRow.select('input').each(function(e) {
-      e.disable();
-    })
-    
-    this.ignoreCancels();
-    this.fire(Tasks.TASK_SAVED_EVENT, this.editRow);
-    
+    // pointerX and pointerY are zero if it was clicked by, for
+    // example, hitting return as opposed to actually clicking it.
+    if (event.pointerX() != 0 || event.pointerY() != 0)
+    {
+      this.save();
+    }
     event.stop();
+  },
+  
+  save: function()
+  {
+    if (! this.isSaving)
+    {
+      this.isSaving = true;
+      
+      Tasks.saveTask(this.editRow,{
+        onSuccess: this.doSave.bind(this),
+        onFailure: this.doFail.bind(this),
+        onComplete: (function(xhr){this.isSaving=false;}).bind(this)
+      });
+    
+      this.editRow.select('input').each(function(e) {
+        e.disable();
+      })
+    
+      this.ignoreCancels();
+      this.fire(Tasks.TASK_SAVED_EVENT, this.editRow); 
+    }
   },
   doSave: function(xhr)
   {
@@ -350,19 +363,6 @@ var TaskRow = Class.create({
     tbody.insertBefore(this.viewRow, this.editRow);
     this.editRow.remove();
     this.editRow = null;
-    
-    var temp = new Element('div');
-    temp.innerHTML = xhr.responseText;
-    
-    var newTask = temp.select('#new_tasks .task-row');
-    if (newTask && newTask.length > 0)
-    {
-      newTask = newTask[0];
-    }
-    else
-    {
-      newTask = null;
-    }
   },
   
   onClickComplete: function(event)
@@ -397,11 +397,11 @@ var TaskRow = Class.create({
     switch(event.keyCode)
     {
       case Event.KEY_RETURN:
-        this.onClickSave(event);
+        this.save();
         break;
         
       case Event.KEY_ESC:
-        this.onClickCancel(event);
+        this.cancel();
         break;
     }    
   },
