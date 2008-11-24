@@ -3,6 +3,8 @@ var Tasks = {
   TASK_EDITING_EVENT: 'tasks:task_editing',
   TASK_CANCEL_EDITING_EVENT: 'tasks:task_cancel_editing',
   
+  HIDE_STATUS_DELAY: 15, // seconds
+  
   load: function(event)
   {
     // Setup dropdown switcher
@@ -32,6 +34,8 @@ var Tasks = {
     Tasks.table.select('tr.task-row').each(function(row) {
       new TaskRow(row, null);
     });
+    
+    Tasks.setHideStatus();
   },
   
   // Add new list
@@ -107,21 +111,70 @@ var Tasks = {
   loadStatus: function(container)
   {
     var status = container.select("#status");
-    if (status.length > 0)
+    if (status.length == 0)
     {
-      status = status[0];
-      
-      var existingStatus = $("status");
-      if (existingStatus)
-      {
-        existingStatus.innerHTML = status.innerHTML;
-        existingStatus.show();
-      }
-      else
-      {
-        Tasks.table.up('div').appendChild(status);
-      }
+      return;
     }
+    
+    status = status[0];
+    var existingStatus = $("status");
+    if (existingStatus)
+    {
+      existingStatus.innerHTML = status.innerHTML;
+      status = existingStatus;
+    }
+    else
+    {
+      status.hide();
+      Tasks.table.up('div').appendChild(status);
+    }
+    
+    Tasks.showStatus();
+    Tasks.setHideStatus();
+  },
+  
+  setHideStatus: function()
+  {
+    if (Tasks.hideStatusTimeout)
+    {
+      clearTimeout(Tasks.hideStatusTimeout);
+    }
+    Tasks.hideStatusTimeout = setTimeout(Tasks.hideStatus, Tasks.HIDE_STATUS_DELAY * 1000);
+  },
+  
+  hideStatus: function()
+  {
+    var status = $('status');
+    if (!status) { return; }
+    
+    var subeffects = status.immediateDescendants().collect(function(child){
+      return new Effect.Fade(child, { sync: true });
+    });
+    
+    new Effect.Parallel(subeffects, { 
+      duration: 0.25,
+      afterFinish: function() {
+        new Effect.BlindUp(status, { duration: 0.25 });
+      }
+    });
+  },
+  
+  showStatus: function()
+  {
+    var status = $('status');
+    if (!status || status.visible()) { return; }
+    
+    var subeffects = status.immediateDescendants().collect(function(child){
+      child.hide();
+      return new Effect.Appear(child, { sync: true });
+    });
+    
+    new Effect.BlindDown(status, { 
+      duration: 0.25,
+      afterFinish: function() {
+        new Effect.Parallel(subeffects, { duration: 0.25 });
+      }
+    });
   },
   
   updateStatusFromResponse: function(xhr)
@@ -183,6 +236,9 @@ var Tasks = {
 };
 
 var TaskRow = Class.create({
+  
+  /*** INITIALIZATION ***/
+  
   initialize: function(viewRow, editRow)
   {
     if (viewRow)
@@ -201,27 +257,13 @@ var TaskRow = Class.create({
     Event.observe(Tasks.table, Tasks.TASK_EDITING_EVENT, this.boundOnOtherTaskEditing);
   },
   
-  destroy: function()
-  {
-    if (this.viewRow) this.viewRow.remove();
-    if (this.editRow && this.editRow.parentNode) this.editRow.remove();
-    this.ignoreCancels();
-  },
-  
-  ignoreCancels: function()
-  {
-    Event.stopObserving(this.cancelLink, 'click', this.boundOnClickCancel);
-    this.cancelLink.href = null;
-    Event.stopObserving(Tasks.table, Tasks.TASK_EDITING_EVENT, this.boundOnOtherTaskEditing);
-  },
-  
   wireViewingEvents: function(row)
   {
     this.edit = row.select('.edit>a.edit')[0];
     Event.observe(this.edit, 'click', this.onClickEdit.bind(this));
     
-    this.trash = row.select('.edit>a.delete')[0];
-    Event.observe(this.trash, 'click', this.onClickTrash.bind(this));
+    this.trashcan = row.select('.edit>a.delete')[0];
+    Event.observe(this.trashcan, 'click', this.onClickTrash.bind(this));
 
     var finish = row.select('.complete')[0];
     Event.observe(finish, 'click', this.onClickComplete.bind(this));
@@ -239,9 +281,129 @@ var TaskRow = Class.create({
     Event.observe(this.cancelLink, 'click', this.boundOnClickCancel);
   },
   
+  destroy: function()
+  {
+    if (this.viewRow) this.viewRow.remove();
+    if (this.editRow && this.editRow.parentNode) this.editRow.remove();
+    this.ignoreCancels();
+  },
+  
+  ignoreCancels: function()
+  {
+    Event.stopObserving(this.cancelLink, 'click', this.boundOnClickCancel);
+    this.cancelLink.href = null;
+    Event.stopObserving(Tasks.table, Tasks.TASK_EDITING_EVENT, this.boundOnOtherTaskEditing);
+  },
+  
+  /*** MISC ***/
+  
   isEditing: function()
   {
     return this.editRow && this.editRow.parentNode;
+  },
+  
+  fire: function(eventName, memo)
+  {
+    Event.fire((this.viewRow || this.editRow), eventName, memo);
+  },
+  
+  /*** EVENT HANDLERS ***/
+  
+  onClickEdit: function(event)
+  {
+    this.edit();
+    event.stop();
+  },
+  
+  onClickCancel: function(event)
+  {
+    this.cancel();
+    event.stop();
+  },
+  
+  onClickTrash: function(event)
+  {
+    this.trash();
+    event.stop();
+  },
+  
+  onClickSave: function(event)
+  {
+    // pointerX and pointerY are zero if it was clicked by, for
+    // example, hitting return as opposed to actually clicking it.
+    if (event.pointerX() != 0 || event.pointerY() != 0)
+    {
+      this.save();
+    }
+    event.stop();
+  },
+  
+  onClickComplete: function(event)
+  {
+    if (this.isEditing()) return;
+    
+    var check = event.element();
+    this.completeOrUncomplete(check.checked, {
+      onFailure: (function(xhr){
+        this.doFail();
+        check.checked = !checked;
+      }).bind(this)
+    });
+  },
+  
+  onKeyUp: function(event)
+  {
+    switch(event.keyCode)
+    {
+      case Event.KEY_RETURN:
+        this.save();
+        break;
+        
+      case Event.KEY_ESC:
+        this.cancel();
+        break;
+    }    
+  },
+
+  onOtherTaskEditing: function(event)
+  {
+    if (this.isEditing())
+    {
+      this.cancel();
+    }
+  },
+  
+  /*** ACTIONS ***/
+
+  edit: function()
+  {
+    if (this.editRow)
+    {
+      this.viewRow.hide();
+      this.editRow.show();
+      this.activate();
+    }
+    else if (! this.requestedEditRow)
+    {
+      this.requestedEditRow = true;
+      new Ajax.Request(this.edit.href, {
+        method: 'get',
+        onSuccess: this.doEdit.bind(this),
+        onFailure: this.doFail.bind(this),
+        onComplete: (function(xhr){this.requestedEditRow = false;}).bind(this)
+      }); 
+    }
+  },
+  doEdit: function(xhr)
+  {
+    this.fire(Tasks.TASK_EDITING_EVENT);
+    
+    this.editRow = Tasks.rowFromResponse(xhr);
+    this.viewRow.parentNode.insertBefore(this.editRow, this.viewRow);
+    this.viewRow.hide();
+
+    this.wireEditingEvents(this.editRow);
+    this.activate();
   },
   
   cancel: function()
@@ -260,73 +422,23 @@ var TaskRow = Class.create({
     }
   },
   
-  onClickCancel: function(event)
-  {
-    this.cancel();
-    event.stop();
-  },
-  
-  onClickEdit: function(event)
-  {
-    if (this.editRow)
-    {
-      this.viewRow.hide();
-      this.editRow.show();
-      this.activate();
-    }
-    else if (! this.requestedEditRow)
-    {
-      this.requestedEditRow = true;
-      new Ajax.Request(this.edit.href, {
-        method: 'get',
-        onSuccess: this.doEdit.bind(this),
-        onFailure: this.doFail.bind(this),
-        onComplete: (function(xhr){this.requestedEditRow = false;}).bind(this)
-      }); 
-    }
-    event.stop();
-  },
-  doEdit: function(xhr)
-  {
-    this.fire(Tasks.TASK_EDITING_EVENT);
-    
-    this.editRow = Tasks.rowFromResponse(xhr);
-    this.viewRow.parentNode.insertBefore(this.editRow, this.viewRow);
-    this.viewRow.hide();
-
-    this.wireEditingEvents(this.editRow);
-    this.activate();
-  },
-  
-  onClickTrash: function(event)
+  trash: function()
   {
     if (! this.requestedTrash)
     {
       this.requestedTrash = true;
-      new Ajax.Request(this.trash.href, {
+      new Ajax.Request(this.trashcan.href, {
         method: 'get',
         onSuccess: this.doTrash.bind(this),
         onFailure: this.doFail.bind(this),
         onComplete: (function(xhr){this.requestedTrash=false;}).bind(this)
       });
     }
-    event.stop();
   },
   doTrash: function(xhr)
   {
-    this.destroy();
     Tasks.updateStatusFromResponse(xhr);
-  },
-  
-  onClickSave: function(event)
-  {
-    // pointerX and pointerY are zero if it was clicked by, for
-    // example, hitting return as opposed to actually clicking it.
-    if (event.pointerX() != 0 || event.pointerY() != 0)
-    {
-      this.save();
-    }
-    event.stop();
+    this.destroy();
   },
   
   save: function()
@@ -365,53 +477,30 @@ var TaskRow = Class.create({
     this.editRow = null;
   },
   
-  onClickComplete: function(event)
+  completeOrUncomplete: function(complete, options)
   {
-    if (this.isEditing()) return;
-    
-    var check = event.element();
     var params = {}
-    if (check.checked) 
+    if (complete)
       params['force_complete'] = true;
     else
       params['force_uncomplete'] = true;
     
-    new Ajax.Request(this.edit.href, {
+    defaultOptions = {
       method: 'post',
       parameters: params,
-      onSuccess: this.doComplete.bind(this),
-      onFailure: (function(xhr){
-        this.doFail();
-        check.checked = !checked;
-      }).bind(this)
-    });
+      onSuccess: this.doComplete.bind(this)      
+    };
+    if (options)
+    {
+      for (p in options) { defaultOptions[p] = options[p] };
+    }
+    
+    new Ajax.Request(this.edit.href, defaultOptions);
   },
   doComplete: function(xhr)
   {
     var newRow = Tasks.rowFromResponse(xhr);
     this.viewRow.className = newRow.className;
-  },
-  
-  onKeyUp: function(event)
-  {
-    switch(event.keyCode)
-    {
-      case Event.KEY_RETURN:
-        this.save();
-        break;
-        
-      case Event.KEY_ESC:
-        this.cancel();
-        break;
-    }    
-  },
-
-  onOtherTaskEditing: function(event)
-  {
-    if (this.isEditing())
-    {
-      this.cancel();
-    }
   },
   
   doFail: function(xhr)
@@ -420,12 +509,6 @@ var TaskRow = Class.create({
     Tasks.doFail(xhr);
   },
   
-  fire: function(eventName, memo)
-  {
-    Event.fire((this.viewRow || this.editRow), eventName, memo);
-  },
-  
-  // Find the first empty field in the row and activate it.
   activate: function()
   {
     if (!this.editRow) return;

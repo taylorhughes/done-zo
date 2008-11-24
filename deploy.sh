@@ -5,6 +5,14 @@
 #  in DNZO and increments the version number in the app.yaml file.
 #
 
+JAVASCRIPTS=" 
+  dnzo/javascripts/tasks.js  
+  dnzo/javascripts/signup.js 
+"
+CSS=" 
+  dnzo/stylesheets/tasks.js  
+"
+
 exit_unless_confirmed ()
 {
   CONTINUE=""
@@ -40,27 +48,19 @@ then
 fi
 
 # Update compiled stylesheets
-for i in dnzo/stylesheets/*.css
+for i in $CSS
 do
-  # Do not recompile compiled files
-  if [ $i = ${i/_compiled/} ]
-  then
-    compiled=${i/.css/_compiled.css}
-    echo "Updating $compiled ..."
-    java -jar tools/yuicompressor-2.4.1.jar $i > $compiled
-  fi
+  compiled=${i/.css/_compiled.css}
+  echo "Updating $compiled ..."
+  java -jar tools/yuicompressor-2.4.1.jar $i > $compiled
 done
 
 # Update compiled scripts
-for i in dnzo/javascripts/*.js
+for i in $JAVASCRIPTS
 do
-  # Do not recompile compiled files or prototype
-  if [ $i = ${i/_compiled/} ] && [ $i = ${i/prototype/} ]
-  then
-    compiled=${i/.js/_compiled.js}
-    echo "Updating $compiled ..."
-    java -jar tools/yuicompressor-2.4.1.jar $i > $compiled
-  fi
+  compiled=${i/.js/_compiled.js}
+  echo "Updating $compiled ..."
+  java -jar tools/yuicompressor-2.4.1.jar $i > $compiled
 done
 
 # Get the current svn revision number.
