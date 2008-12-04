@@ -225,14 +225,6 @@ var TaskRow = Class.create({
   
   initialize: function(viewRow, editRow)
   {
-    this.wireEvents(viewRow, editRow);
-    // Need to keep this around so we can unobserve it later in destroy()
-    this.boundOnOtherTaskEditing = this.onOtherTaskEditing.bind(this);
-    Event.observe(Tasks.table, Tasks.TASK_EDITING_EVENT, this.boundOnOtherTaskEditing);
-  },
-  
-  wireEvents: function(viewRow, editRow)
-  {
     if (viewRow)
     {
       this.viewRow = viewRow;
@@ -243,6 +235,10 @@ var TaskRow = Class.create({
       this.editRow = editRow;
       this.wireEditingEvents(this.editRow);
     }
+    
+    // Need to keep this around so we can unobserve it later in destroy()
+    this.boundOnOtherTaskEditing = this.onOtherTaskEditing.bind(this);
+    Event.observe(Tasks.table, Tasks.TASK_EDITING_EVENT, this.boundOnOtherTaskEditing);
   },
   
   wireViewingEvents: function(row)
@@ -482,7 +478,8 @@ var TaskRow = Class.create({
     tbody.insertBefore(newViewRow, this.editRow);
     
     this.editRow.remove();
-    this.wireEvents(newViewRow, newEditRow);
+    // Re-initialize everything.
+    this.initialize(newViewRow, newEditRow);
   },
   
   activate: function()
