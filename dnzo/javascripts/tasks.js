@@ -251,6 +251,9 @@ var TaskRow = Class.create({
 
     var finish = row.select('.complete')[0];
     Event.observe(finish, 'click', this.onClickComplete.bind(this));
+    
+    // For clicking events
+    Event.observe(row, 'click', this.onClickViewRow.bind(this));
   },
   
   wireEditingEvents: function(row)
@@ -333,6 +336,16 @@ var TaskRow = Class.create({
         check.checked = !checked;
       }).bind(this)
     });
+  },
+  
+  onClickViewRow: function(event)
+  {
+    if (event.detail == 2)
+    {
+      // double click
+      event.stop();
+      this.edit();
+    }
   },
   
   onKeyUp: function(event)
