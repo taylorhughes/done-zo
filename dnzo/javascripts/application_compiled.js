@@ -1,0 +1,1 @@
+var DNZO={load:function(B){var A=$("switcher");if(A){Event.observe(A,"change",DNZO.onSwitchList)}},onSwitchList:function(A){document.location.href=$F(A.element())}};Event.observe(window,"load",DNZO.load);

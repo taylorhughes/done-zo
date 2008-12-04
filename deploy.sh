@@ -11,7 +11,7 @@ JAVASCRIPTS="
   dnzo/javascripts/signup.js 
 "
 CSS=" 
-  dnzo/stylesheets/tasks.js  
+  dnzo/stylesheets/style.css  
 "
 
 exit_unless_confirmed ()
