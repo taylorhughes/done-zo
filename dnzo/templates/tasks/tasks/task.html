@@ -1,59 +1,60 @@
 {% load tasks_library %}
 
-{% if task.editing %}
-  <tr class="editable task-row">
-    <td class="done">
-      <input type="checkbox"{% if task.complete %} checked{% endif %} name="complete" value="true" class="complete editing">
-    </td>
-    <td class="project">
-      <input type="text" value="{% if task.project %}{{ task.project|escape }}{% endif %}" class="text-input task-project" name="project">
-    </td>
-    <td class="task">
-      <input type="text" value="{{ task.body|escape }}" class="text-input task-body" name="body">
-    </td>
-    <td class="context">
-      <input type="text" value="{% for context in task.contexts %}@{{ context|escape }} {% endfor %}" class="text-input" name="contexts">
-    </td>
-    <td class="due">
-      <input type="text" value="{{ task.due_date|date:"n/j/y" }}" class="text-input" name="due_date">
-    </td>
-    <td class="edit">
-    {% if task.is_saved %}
-      <input type="hidden" name="task_id" value="{{ task.key.id }}">
-      <input type="submit" value="Save"> 
-    {% else %}
-      <input type="hidden" name="task_id" value="">
-      <input type="submit" value="Add">
+<tr class="editable task-row{% if task.is_saved %} task-{{ task.key.id }}{% endif %}"
+    {% if not task.editing %} style="display: none"{% endif %}>
+  <td class="done">
+    <input type="checkbox"{% if task.complete %} checked{% endif %} name="complete" value="true" class="complete editing">
+  </td>
+  <td class="project">
+    <input type="text" value="{% if task.project %}{{ task.project|escape }}{% endif %}" class="text-input task-project" name="project">
+  </td>
+  <td class="task">
+    <input type="text" value="{{ task.body|escape }}" class="text-input task-body" name="body">
+  </td>
+  <td class="context">
+    <input type="text" value="{% for context in task.contexts %}@{{ context|escape }} {% endfor %}" class="text-input" name="contexts">
+  </td>
+  <td class="due">
+    <input type="text" value="{{ task.due_date|date:"n/j/y" }}" class="text-input" name="due_date">
+  </td>
+  <td class="edit">
+  {% if task.is_saved %}
+    <input type="hidden" name="task_id" value="{{ task.key.id }}">
+    <input type="submit" value="Save"> 
+  {% else %}
+    <input type="hidden" name="task_id" value="">
+    <input type="submit" value="Add">
+  {% endif %}
+  or <a href="{{ request_uri }}" class="cancel">cancel</a>
+  </td>
+</tr>
+{% if task.is_saved %}
+<tr class="task-row{% if task.complete %} completed{% endif %} task-{{ task.key.id }}" 
+    {% if task.editing %} style="display: none"{% endif %}>
+  <td class="done">
+    <input type="checkbox"{% if task.complete %} checked{% endif %} class="complete">
+  </td>
+  <td class="project">
+    {% if task.project %}
+    <a href="{% url tasks.views.list_index task.parent.short_name,task.task_list.short_name,project_index=task.project_index %}">{{ task.project|escape }}</a>
     {% endif %}
-    or <a href="{{ request_uri }}" class="cancel">cancel</a>
-    </td>
-  </tr>
-{% else %}
-  <tr class="task-row{% if task.complete %} completed{% endif %}">
-    <td class="done">
-      <input type="checkbox"{% if task.complete %} checked{% endif %} class="complete">
-    </td>
-    <td class="project">
-      {% if task.project %}
-      <a href="{% url tasks.views.list_index task.parent.short_name,task.task_list.short_name,project_index=task.project_index %}">{{ task.project|escape }}</a>
-      {% endif %}
-    </td>
-    <td class="task">
-      {{ task.body|escape }}
-    </td>
-    <td class="context">
-      {% for context in task.contexts %}
-      <a href="{% url tasks.views.list_index task.parent.short_name,task.task_list.short_name,context_name=context %}">@{{ context|escape }}</a>
-      {% endfor %}
-    </td>
-    <td class="due">
-      {{ task.due_date|short_date }}
-    </td>
-    <td class="edit">
-      <a href="{{ task.get_absolute_url }}" class="edit">edit</a>&nbsp;&nbsp;
-      <a href="{{ task.get_absolute_url }}?delete=true" class="delete">
-        <img src="/images/trash.gif" alt="delete task">
-      </a>
-    </td>
-  </tr>
+  </td>
+  <td class="task">
+    {{ task.body|escape }}
+  </td>
+  <td class="context">
+    {% for context in task.contexts %}
+    <a href="{% url tasks.views.list_index task.parent.short_name,task.task_list.short_name,context_name=context %}">@{{ context|escape }}</a>
+    {% endfor %}
+  </td>
+  <td class="due">
+    {{ task.due_date|short_date }}
+  </td>
+  <td class="edit">
+    <a href="{{ task.get_absolute_url }}" class="edit">edit</a>&nbsp;&nbsp;
+    <a href="{{ task.get_absolute_url }}?delete=true" class="delete">
+      <img src="/images/trash.gif" alt="delete task">
+    </a>
+  </td>
+</tr>
 {% endif %}

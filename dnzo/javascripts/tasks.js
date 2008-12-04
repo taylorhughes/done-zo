@@ -7,10 +7,6 @@ var Tasks = {
   
   load: function(event)
   {
-    // Setup dropdown switcher
-    var switcher = $('switcher');
-    if (switcher) Event.observe(switcher, 'change', Tasks.onSwitchList);
-    
     if (!Prototype.Browser.IE)
     {
       var addList = $('add_list_link');
@@ -31,9 +27,13 @@ var Tasks = {
   
     Event.observe(Tasks.addLink, 'click', Tasks.onClickAddTask);
   
-    Tasks.table.select('tr.task-row').each(function(row) {
-      new TaskRow(row, null);
-    });
+    var rows = Tasks.table.select('tr.task-row');
+    for (var i = 0; i < rows.length; i += 2)
+    {
+      // NOTE: This makes us depdendent on the order that these
+      //       rows are output. That is not good, but this is fast.
+      new TaskRow(rows[i + 1], rows[i]);
+    }
     
     Tasks.setHideStatus();
   },
@@ -96,11 +96,6 @@ var Tasks = {
     
     Tasks.addRow.hide();
     task.activate();
-  },
-  
-  onSwitchList: function(event)
-  {
-    document.location.href = $F(event.element());
   },
   
   cancelAll: function()
@@ -218,17 +213,6 @@ var Tasks = {
     return temp;
   },
   
-  rowFromResponse: function(xhr)
-  {
-    var temp = Tasks.containerFromResponse(xhr);
-    var row = temp.select('tr');
-    if (row.length > 0) 
-    {
-      return row[0];
-    }
-    return null;
-  },
-  
   doFail: function(xhr)
   {
     alert("Ruh roh! Something went wrong. Please let us know what happened!");
@@ -241,6 +225,14 @@ var TaskRow = Class.create({
   
   initialize: function(viewRow, editRow)
   {
+    this.wireEvents(viewRow, editRow);
+    // Need to keep this around so we can unobserve it later in destroy()
+    this.boundOnOtherTaskEditing = this.onOtherTaskEditing.bind(this);
+    Event.observe(Tasks.table, Tasks.TASK_EDITING_EVENT, this.boundOnOtherTaskEditing);
+  },
+  
+  wireEvents: function(viewRow, editRow)
+  {
     if (viewRow)
     {
       this.viewRow = viewRow;
@@ -251,17 +243,13 @@ var TaskRow = Class.create({
       this.editRow = editRow;
       this.wireEditingEvents(this.editRow);
     }
-
-    // Need to keep this around so we can unobserve it later in destroy()
-    this.boundOnOtherTaskEditing = this.onOtherTaskEditing.bind(this);
-    Event.observe(Tasks.table, Tasks.TASK_EDITING_EVENT, this.boundOnOtherTaskEditing);
   },
   
   wireViewingEvents: function(row)
   {
-    this.edit = row.select('.edit>a.edit')[0];
-    Event.observe(this.edit, 'click', this.onClickEdit.bind(this));
-    
+    this.editLink = row.select('.edit>a.edit')[0];
+    Event.observe(this.editLink, 'click', this.onClickEdit.bind(this));
+
     this.trashcan = row.select('.edit>a.delete')[0];
     Event.observe(this.trashcan, 'click', this.onClickTrash.bind(this));
 
@@ -299,7 +287,7 @@ var TaskRow = Class.create({
   
   isEditing: function()
   {
-    return this.editRow && this.editRow.parentNode;
+    return this.editRow && this.editRow.visible();
   },
   
   fire: function(eventName, memo)
@@ -377,32 +365,10 @@ var TaskRow = Class.create({
 
   edit: function()
   {
-    if (this.editRow)
-    {
-      this.viewRow.hide();
-      this.editRow.show();
-      this.activate();
-    }
-    else if (! this.requestedEditRow)
-    {
-      this.requestedEditRow = true;
-      new Ajax.Request(this.edit.href, {
-        method: 'get',
-        onSuccess: this.doEdit.bind(this),
-        onFailure: this.doFail.bind(this),
-        onComplete: (function(xhr){this.requestedEditRow = false;}).bind(this)
-      }); 
-    }
-  },
-  doEdit: function(xhr)
-  {
     this.fire(Tasks.TASK_EDITING_EVENT);
     
-    this.editRow = Tasks.rowFromResponse(xhr);
-    this.viewRow.parentNode.insertBefore(this.editRow, this.viewRow);
     this.viewRow.hide();
-
-    this.wireEditingEvents(this.editRow);
+    this.editRow.show();
     this.activate();
   },
   
@@ -462,19 +428,8 @@ var TaskRow = Class.create({
     }
   },
   doSave: function(xhr)
-  {
-    var tbody = this.editRow.parentNode;
-    // May be adding a new task
-    if (this.viewRow)
-    {
-      this.viewRow.remove();
-    }
-    this.viewRow = Tasks.rowFromResponse(xhr);
-    this.wireViewingEvents(this.viewRow);
-    
-    tbody.insertBefore(this.viewRow, this.editRow);
-    this.editRow.remove();
-    this.editRow = null;
+  { 
+    this.replaceRows(xhr);
   },
   
   completeOrUncomplete: function(complete, options)
@@ -495,12 +450,11 @@ var TaskRow = Class.create({
       for (p in options) { defaultOptions[p] = options[p] };
     }
     
-    new Ajax.Request(this.edit.href, defaultOptions);
+    new Ajax.Request(this.editLink.href, defaultOptions);
   },
   doComplete: function(xhr)
   {
-    var newRow = Tasks.rowFromResponse(xhr);
-    this.viewRow.className = newRow.className;
+    this.replaceRows(xhr);
   },
   
   doFail: function(xhr)
@@ -509,17 +463,44 @@ var TaskRow = Class.create({
     Tasks.doFail(xhr);
   },
   
+  replaceRows: function(xhr)
+  {
+    // May be adding a new task
+    if (this.viewRow)
+    {
+      this.viewRow.remove();
+    }
+   
+    var tbody = this.editRow.parentNode; 
+    var temp = Tasks.containerFromResponse(xhr);
+    var rows = temp.select('tr');
+
+    var newEditRow = rows.find(function(row){ return row.hasClassName('editable'); });
+    var newViewRow = rows.without(newEditRow)[0];
+    
+    tbody.insertBefore(newEditRow, this.editRow);
+    tbody.insertBefore(newViewRow, this.editRow);
+    
+    this.editRow.remove();
+    this.wireEvents(newViewRow, newEditRow);
+  },
+  
   activate: function()
   {
     if (!this.editRow) return;
     
-    this.editRow.select('input[type=text]').each(function(input) {
-      if (input.getValue().blank())
-      {
-        input.activate();
-        throw $break;
-      }
-    });
+    var body = this.editRow.select('input.task-body').first();
+    var project = this.editRow.select('input.task-project').first();
+    
+    if (!body || !project) { return; }
+    
+    if (body.getValue().blank() && project.getValue().blank()) { 
+      project.activate();
+    }
+    else
+    {
+      body.activate();
+    }    
   }
 });
 

@@ -8,21 +8,16 @@
   {% include "tasks/switcher.html" %}
 {% endblock %}
 
-{% block javascripts %}
-<script type="text/javascript" src="/javascripts/tasks.js"></script>
-{% endblock %}
-
 {% block header %}
   {% if filter_title %}<a href="{% url tasks.views.list_index user.short_name,"_archived" %}">{% endif %}
   Archived Tasks{% if filter_title %}</a> / {{ filter_title|escape }}{% endif %}
 {% endblock %}
 
 {% block content %}
-<form action="{% url tasks.views.task user.short_name %}?task_list={{task_list.short_name|escape}}" method="POST" id="tasks_form">
 <table cellspacing="0" cellpadding="0" id="tasks_list" class="archived">
   <tr>
     <th class="list"><span>List</span></th>
-    {% sorting_header "Project"     "project"    order direction "project" %}
+    {% sorting_header "Project"     "project_index"    order direction "project" %}
     {% sorting_header "Task"        "body"       order direction "body" %}
     <th><span>Context</span></th>
     {% sorting_header "Due"         "due_date"   order direction "due" %}
@@ -31,7 +26,6 @@
     {% include "tasks/tasks/archived_task.html" %}
   {% endfor %}
 </table>
-</form>
 {% endblock %}
 
 {% block footer %}{% endblock %}

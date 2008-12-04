@@ -6,7 +6,8 @@
 #
 
 JAVASCRIPTS=" 
-  dnzo/javascripts/tasks.js  
+  dnzo/javascripts/application.js
+  dnzo/javascripts/tasks.js
   dnzo/javascripts/signup.js 
 "
 CSS=" 
