@@ -10,7 +10,7 @@ var Tasks = {
     if (!Prototype.Browser.IE)
     {
       var addList = $('add_list_link');
-      if (addList) Event.observe(addList, 'click', Tasks.onClickAddList);
+      if (addList) addList.observe('click', Tasks.onClickAddList);
     }
     
     Tasks.table = $('tasks_list');
@@ -25,7 +25,7 @@ var Tasks = {
     Tasks.tasksForm = $('tasks_form');
     Tasks.newTaskTableHTML = Tasks.tasksForm.innerHTML;
   
-    Event.observe(Tasks.addLink, 'click', Tasks.onClickAddTask);
+    Tasks.addLink.observe('click', Tasks.onClickAddTask);
   
     var rows = Tasks.table.select('tr.task-row');
     for (var i = 0; i < rows.length; i += 2)
@@ -91,8 +91,8 @@ var Tasks = {
     }
 
     var task = new TaskRow(null, row);
-    Event.observe(Tasks.table, Tasks.TASK_SAVED_EVENT, Tasks.addSaved);
-    Event.observe(row, Tasks.TASK_CANCEL_EDITING_EVENT, Tasks.addCanceled);
+    Tasks.table.observe(Tasks.TASK_SAVED_EVENT, Tasks.addSaved);
+    row.observe(Tasks.TASK_CANCEL_EDITING_EVENT, Tasks.addCanceled);
     
     Tasks.addRow.hide();
     task.activate();
@@ -238,34 +238,34 @@ var TaskRow = Class.create({
     
     // Need to keep this around so we can unobserve it later in destroy()
     this.boundOnOtherTaskEditing = this.onOtherTaskEditing.bind(this);
-    Event.observe(Tasks.table, Tasks.TASK_EDITING_EVENT, this.boundOnOtherTaskEditing);
+    Tasks.table.observe(Tasks.TASK_EDITING_EVENT, this.boundOnOtherTaskEditing);
   },
   
   wireViewingEvents: function(row)
   {
     this.editLink = row.select('.edit>a.edit')[0];
-    Event.observe(this.editLink, 'click', this.onClickEdit.bind(this));
+    this.editLink.observe('click', this.onClickEdit.bind(this));
 
     this.trashcan = row.select('.edit>a.delete')[0];
-    Event.observe(this.trashcan, 'click', this.onClickTrash.bind(this));
+    this.trashcan.observe('click', this.onClickTrash.bind(this));
 
     var finish = row.select('.complete')[0];
-    Event.observe(finish, 'click', this.onClickComplete.bind(this));
+    finish.observe('click', this.onClickComplete.bind(this));
     
     // For clicking events
-    Event.observe(row, 'click', this.onClickViewRow.bind(this));
+    row.observe('dblclick', this.onDoubleClickViewRow.bind(this));
   },
   
   wireEditingEvents: function(row)
   {
     var save = row.select('.edit>input[type=submit]')[0];
-    Event.observe(save, 'click', this.onClickSave.bind(this));
+    save.observe('click', this.onClickSave.bind(this));
     
-    Event.observe(row, 'keyup', this.onKeyUp.bind(this));
+    row.observe('keyup', this.onKeyUp.bind(this));
 
     this.cancelLink = row.select('.edit>a.cancel')[0];
     this.boundOnClickCancel = this.onClickCancel.bind(this);
-    Event.observe(this.cancelLink, 'click', this.boundOnClickCancel);
+    this.cancelLink.observe('click', this.boundOnClickCancel);
   },
   
   destroy: function()
@@ -338,14 +338,11 @@ var TaskRow = Class.create({
     });
   },
   
-  onClickViewRow: function(event)
+  onDoubleClickViewRow: function(event)
   {
-    if (event.detail == 2)
-    {
-      // double click
-      event.stop();
-      this.edit();
-    }
+    // double click
+    event.stop();
+    this.edit();
   },
   
   onKeyUp: function(event)

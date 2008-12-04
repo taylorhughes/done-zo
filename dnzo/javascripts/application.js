@@ -3,7 +3,7 @@ var DNZO = {
   {
     // Setup dropdown switcher
     var switcher = $('switcher');
-    if (switcher) Event.observe(switcher, 'change', DNZO.onSwitchList); 
+    if (switcher) switcher.observe('change', DNZO.onSwitchList); 
   },
   
   onSwitchList: function(event)

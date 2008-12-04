@@ -65,7 +65,7 @@ var Signup = {
   {
     Signup.nameField = $('name');
     Signup.availabilityURL = $('availability').href;
-    Event.observe(Signup.nameField,'keydown',Signup.onKeyDown);
+    Signup.nameField.observe('keydown',Signup.onKeyDown);
   }
 }
 
