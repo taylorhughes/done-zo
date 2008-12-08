@@ -319,7 +319,8 @@ def always_includes(params=None, request=None, user=None):
   if user:
     params['task_lists']  = get_task_lists(user)
     params['user']        = user
-    
+  
+  params['is_production'] = environment.IS_PRODUCTION
   params['logout_url'] = create_logout_url('/')
   
   return params

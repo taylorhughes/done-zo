@@ -6,8 +6,17 @@
 	<title>{% block page_title %}{% endblock %}</title>
 	
   {% css_tag style %}
-  <script type="text/javascript" src="/javascripts/prototype-1.6.0.3.js"></script>
-  <script type="text/javascript" src="/javascripts/scriptaculous.js?load=effects"></script>
+  
+  {% if not is_production %}
+    <script type="text/javascript" src="/javascripts/prototype-1.6.0.3.js"></script>
+    <script type="text/javascript" src="/javascripts/scriptaculous.js?load=effects"></script>
+  {% else %}
+    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+      google.load("prototype", "1.6.0.3");
+      google.load("scriptaculous", "1.8.2");
+    </script>
+  {% endif %}
   {% javascript_tag application %}
   {% block javascripts %}{% endblock %}
 </head>

@@ -140,7 +140,7 @@ indexes:
   - name: body
     direction: desc
 
-# Used 54 times in query history.
+# Used 79 times in query history.
 - kind: Task
   properties:
   - name: archived
@@ -194,7 +194,7 @@ indexes:
   - name: body
     direction: desc
 
-# Used 6 times in query history.
+# Used 12 times in query history.
 - kind: Task
   ancestor: yes
   properties:
@@ -227,7 +227,7 @@ indexes:
   - name: deleted
   - name: project_index
 
-# Used once in query history.
+# Used 3 times in query history.
 - kind: Task
   ancestor: yes
   properties:
@@ -236,7 +236,7 @@ indexes:
   - name: project_index
     direction: desc
 
-# Used 92 times in query history.
+# Used 127 times in query history.
 - kind: TaskList
   ancestor: yes
   properties:
