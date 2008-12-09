@@ -1,3 +1,4 @@
+{% load tasks_library %}
 <!DOCTYPE HTML>
 <html>
 <head>
@@ -49,7 +50,7 @@
       #buttons { text-align: right; }
   </style>
   
-  <script type="text/javascript" src="/javascripts/prototype-1.6.0.2.js"></script>
+  {% javascript_tag ext/prototype %}
   {% block javascripts %}{% endblock %}
 </head>
 <body>

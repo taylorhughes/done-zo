@@ -17,17 +17,17 @@ indexes:
   - name: created_at
     direction: desc
 
-# Used 804 times in query history.
-- kind: Project
-  properties:
-  - name: name
-  - name: last_used_at
-    direction: desc
-
 # Used 9 times in query history.
 - kind: Project
   properties:
   - name: name
+  - name: last_used_at
+    direction: desc
+
+# Unused in query history -- copied from input.
+- kind: Project
+  properties:
+  - name: name
   - name: name
   - name: last_used_at
     direction: desc
@@ -155,7 +155,7 @@ indexes:
   - name: body
     direction: desc
 
-# Used 63 times in query history.
+# Used once in query history.
 - kind: Task
   properties:
   - name: archived
@@ -207,51 +207,51 @@ indexes:
   - name: archived
   - name: deleted
   - name: body
+    direction: desc
+
+# Unused in query history -- copied from input.
+- kind: Task
+  ancestor: yes
+  properties:
+  - name: archived
+  - name: deleted
+  - name: created_at
+
+# Unused in query history -- copied from input.
+- kind: Task
+  ancestor: yes
+  properties:
+  - name: archived
+  - name: deleted
+  - name: due_date
+
+# Unused in query history -- copied from input.
+- kind: Task
+  ancestor: yes
+  properties:
+  - name: archived
+  - name: deleted
+  - name: due_date
+    direction: desc
+
+# Unused in query history -- copied from input.
+- kind: Task
+  ancestor: yes
+  properties:
+  - name: archived
+  - name: deleted
+  - name: project_index
+
+# Unused in query history -- copied from input.
+- kind: Task
+  ancestor: yes
+  properties:
+  - name: archived
+  - name: deleted
+  - name: project_index
     direction: desc
 
 # Used 2 times in query history.
-- kind: Task
-  ancestor: yes
-  properties:
-  - name: archived
-  - name: deleted
-  - name: created_at
-
-# Unused in query history -- copied from input.
-- kind: Task
-  ancestor: yes
-  properties:
-  - name: archived
-  - name: deleted
-  - name: due_date
-
-# Unused in query history -- copied from input.
-- kind: Task
-  ancestor: yes
-  properties:
-  - name: archived
-  - name: deleted
-  - name: due_date
-    direction: desc
-
-# Unused in query history -- copied from input.
-- kind: Task
-  ancestor: yes
-  properties:
-  - name: archived
-  - name: deleted
-  - name: project_index
-
-# Unused in query history -- copied from input.
-- kind: Task
-  ancestor: yes
-  properties:
-  - name: archived
-  - name: deleted
-  - name: project_index
-    direction: desc
-
-# Used 74 times in query history.
 - kind: TaskList
   ancestor: yes
   properties:
