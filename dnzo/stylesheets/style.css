@@ -249,3 +249,19 @@ tr.error td {
     padding-top: 1em;
     text-align: right;
   }
+
+div.project-autocompleter {
+  background: white;
+  border: 1px solid #666;
+}
+  div.project-autocompleter ul, div.project-autocompleter li {
+    margin: 0;
+    padding: 0;
+  }
+  div.project-autocompleter li {
+    padding: 5px;
+    list-style-type: none;
+  }
+  div.project-autocompleter li.selected {
+    background: #ff9;
+  }

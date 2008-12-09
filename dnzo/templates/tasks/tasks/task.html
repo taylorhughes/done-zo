@@ -7,6 +7,9 @@
   </td>
   <td class="project">
     <input type="text" value="{% if task.project %}{{ task.project|escape }}{% endif %}" class="text-input task-project" name="project">
+    <div class="project-autocompleter" style="display: none">
+      <a href="{% url tasks.views.find_projects task.parent.short_name %}">Find projects</a>
+    </div>
   </td>
   <td class="task">
     <input type="text" value="{{ task.body|escape }}" class="text-input task-body" name="body">

@@ -17,7 +17,7 @@ indexes:
   - name: created_at
     direction: desc
 
-# Used 157 times in query history.
+# Used 804 times in query history.
 - kind: Project
   properties:
   - name: name
@@ -155,7 +155,7 @@ indexes:
   - name: body
     direction: desc
 
-# Used 6 times in query history.
+# Used 63 times in query history.
 - kind: Task
   properties:
   - name: archived
@@ -209,7 +209,7 @@ indexes:
   - name: body
     direction: desc
 
-# Unused in query history -- copied from input.
+# Used 2 times in query history.
 - kind: Task
   ancestor: yes
   properties:
@@ -251,7 +251,7 @@ indexes:
   - name: project_index
     direction: desc
 
-# Used 8 times in query history.
+# Used 74 times in query history.
 - kind: TaskList
   ancestor: yes
   properties:

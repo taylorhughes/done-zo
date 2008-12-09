@@ -266,6 +266,22 @@ var TaskRow = Class.create({
     this.cancelLink = row.select('.edit>a.cancel')[0];
     this.boundOnClickCancel = this.onClickCancel.bind(this);
     this.cancelLink.observe('click', this.boundOnClickCancel);
+    
+    var project = row.select('input.task-project').first();
+    var autocompleter = row.select('.project-autocompleter').first();
+    var autocompleterLink = autocompleter.select('a').first();
+    
+    project.observe('keyup', function(event) {
+      if (autocompleter.visible())
+      {
+        event.stop(); 
+      }
+    });
+    
+    new Ajax.Autocompleter(project, autocompleter, autocompleterLink.href, {
+      method: 'get',
+      paramName: "q"
+    });
   },
   
   destroy: function()

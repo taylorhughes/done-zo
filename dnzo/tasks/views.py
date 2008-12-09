@@ -86,7 +86,7 @@ def list_index(request, username, task_list_name=None, context_name=None, projec
   status = get_status(request)
   undo = get_undo(request)
   
-  new_task_attrs = {'body': ''}
+  new_task_attrs = {'body': '', 'parent': user}
   if view_context:
     new_task_attrs['context'] = [view_context]
   if view_project:
