@@ -94,7 +94,10 @@ class VersionedTag(Node):
     
 class JavaScriptTag(VersionedTag):
   def render(self, context):
-    filename = '/javascripts/%s/%s.js' % (self.version, self.filename)
+    filename = self.filename
+    if filename.find(".js") < 0:
+      filename += ".js"
+    filename = '/javascripts/%s/%s' % (self.version, filename)
     return '<script type="text/javascript" src="%s"></script>' % filename
     
 class CSSTag(VersionedTag):

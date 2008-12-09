@@ -9,7 +9,7 @@ handlers:
   upload:       stylesheets/(.+\.css)
   expiration:   365d
   
-- url: /javascripts/(r[0-9]+/)?([^/]+\.js)
+- url: /javascripts/(r[0-9]+/)?([\w/]+\.js)
   static_files: javascripts/\2
   upload:       javascripts/(.+\.js)
   expiration:   365d

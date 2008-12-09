@@ -6,9 +6,13 @@
 #
 
 JAVASCRIPTS=" 
-  dnzo/javascripts/application.js
-  dnzo/javascripts/tasks.js
-  dnzo/javascripts/signup.js 
+  dnzo/javascripts/dnzo/application.js
+  dnzo/javascripts/dnzo/tasks.js
+  dnzo/javascripts/dnzo/signup.js
+  dnzo/javascripts/ext/prototype.js
+  dnzo/javascripts/ext/scriptaculous.js
+  dnzo/javascripts/ext/controls.js
+  dnzo/javascripts/ext/effects.js
 "
 CSS=" 
   dnzo/stylesheets/style.css  
