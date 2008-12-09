@@ -34,3 +34,13 @@ def urlize(title):
 def is_urlized(string): 
   return re.search(r'^[a-z0-9][a-z0-9_-]+[a-z0-9]$', string) and not \
          re.search(r'[_-]{2,}', string)
+         
+def format_for_index(string):
+  if not string:
+    string = ''
+  string = string.lower()
+  string = re.sub(r'[^0-9a-z]+', '', string)
+  return string
+  
+def zpad(string):
+  return string + 'zzzzzzzzzzzzzzzzzzzzzzzzz'

@@ -73,6 +73,24 @@ class Task(db.Model):
     self.editing = False
     db.Model.__init__(self, *args, **kwargs)
 
+#
+#  Contains pieces of project names that reference projects
+#
+class IndexedProjectName(db.Model):
+  @classmethod
+  def name_to_key_name(self,name):
+    return "indexed_project(%s)" % name
+  index        = db.StringProperty()
+  projects     = db.StringListProperty()
+  
+class Project(db.Model):
+  @classmethod
+  def name_to_key_name(self,name):
+    return "project(%s)" % name
+  name         = db.StringProperty()
+  short_name   = db.StringProperty()
+  last_used_at = db.DateTimeProperty(auto_now_add=True)
+
 class Undo(db.Model):
   task_list      = db.ReferenceProperty(TaskList, collection_name='undos')
   created_at     = db.DateTimeProperty(auto_now_add=True)

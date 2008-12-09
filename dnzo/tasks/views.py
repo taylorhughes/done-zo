@@ -114,6 +114,21 @@ def list_index(request, username, task_list_name=None, context_name=None, projec
   return response
 
 @never_cache
+def find_projects(request, username):
+  try:
+    user = verify_current_user(username)
+  except AccessError:
+    return access_error_redirect()
+  
+  project_name = param('q', request.GET, '')
+  projects = find_projects_by_name(user, project_name, 5)
+  
+  return render_to_response('tasks/projects.html', {
+    'projects': projects
+  })
+  
+
+@never_cache
 def purge_list(request, username, task_list_name):
   try:
     user = verify_current_user(username)

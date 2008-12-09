@@ -8,8 +8,9 @@ from google.appengine.api.users import get_current_user
 
 from tasks.errors import *
 from tasks.models import *
-from util.misc import urlize
+from util.misc import urlize, format_for_index, zpad
 
+from datetime import datetime
 import logging
 import re
 
@@ -147,6 +148,9 @@ def save_task(task):
   else:
     task.put()
   
+  if task.project_index:
+    save_project(task.parent(), task.project)
+  
 def undelete_task(task):
   task.deleted = False
   save_uncounted_task(task)
@@ -180,7 +184,86 @@ def delete_task(task):
 
   return undo
 
+### PROJECTS ###
 
+def get_project(user, project_name):
+  return Project.get_by_key_name(
+             Project.name_to_key_name(project_name),
+             parent=user
+         )
+
+def save_project(user, project_name):
+  project = get_project(user, project_name)
+  
+  if not project:
+    project = create_project(user, project_name)
+    
+  else:
+    project.last_used_at = datetime.now()
+    project.put()
+    
+  return project
+  
+def create_project(user, project_name):
+  def txn(user, project):
+    project.put()
+    name = format_for_index(project.name)
+    while len(name) > 0:
+      key_name = IndexedProjectName.name_to_key_name(name)
+      index    = IndexedProjectName.get_by_key_name(key_name, parent=user)
+      if not index:
+        index  = IndexedProjectName(parent=user, key_name=key_name, index=name)
+        
+      index.projects.append(project.name)
+      index.put()
+      # Do this for "name", "ame", "me" and "e"
+      name = name[1:]
+    
+  short_name = urlize(project_name)
+  key_name = Project.name_to_key_name(project_name)
+  project = Project(
+    parent=user, 
+    key_name=key_name,
+    name=project_name, 
+    short_name=short_name
+  )
+    
+  db.run_in_transaction(txn, user, project)
+
+  return project
+  
+def find_projects_by_name(user, project_name, limit=5):
+  indexed_name = format_for_index(project_name)
+  
+  indexes = IndexedProjectName.gql(
+    "WHERE index >= :start AND index < :end",
+    start=indexed_name, end=zpad(indexed_name)
+  )
+  
+  project_names = set()
+  for index in indexes:
+    for project_name in index.projects:
+      project_names.add(project_name)
+  
+  if len(project_names) > 0:
+    bound_vars = {}
+    # Having to do this sucks
+    while len(project_names) > 0:
+      key = 'name_' + str(len(project_names))
+      bound_vars[key] = project_names.pop()
+    
+    placeholders = map(lambda k : ":" + k, bound_vars.keys())
+    placeholders = ', '.join(placeholders)
+    projects = Project.gql(
+      'WHERE name IN (' + placeholders + ') ORDER BY last_used_at DESC',
+      **bound_vars
+    ).fetch(limit)
+    
+  else:
+    projects = []
+  
+  return projects
+  
 ### UNDOS ###
 
 def do_undo(undo):
