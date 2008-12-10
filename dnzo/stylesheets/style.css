@@ -178,6 +178,13 @@ tr.editable td {
   tr.task-row.completed {
     color: #666;
   }
+    tr.task-row.completed td {
+      text-decoration: line-through;
+    }
+    tr.task-row.completed td.edit {
+      text-decoration: none;
+    }
+
   tr.task-row td {
     white-space: nowrap;
   }
