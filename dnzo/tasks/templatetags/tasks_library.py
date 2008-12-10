@@ -3,6 +3,7 @@ from django.template import Library, Node, Context, loader, resolve_variable
 from django.template.defaultfilters import date
 from datetime import datetime
 
+import re
 import logging
 
 import environment
@@ -19,6 +20,19 @@ def short_date(my_date):
     format += " y"
   # utilize the default django date filter
   return date(my_date, format)
+        
+@register.filter
+def spans_around(string, to_highlight):
+  if not string or not to_highlight:
+    return ""
+
+  to_highlight = re.sub(r'\s+', ' ', to_highlight)
+  string = re.sub(r'\s+', ' ', string)
+    
+  regex = '\s*'.join(list(to_highlight))
+  regex = re.compile(regex, re.IGNORECASE)
+  
+  return re.sub(regex, '<span>\g<0></span>', string)
     
 @register.tag
 def sorting_header(parser, token):

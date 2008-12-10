@@ -2,6 +2,6 @@
 
 <ul>
   {% for project in projects %}
-  <li>{{ project.name }}</li>
+  <li>{{ project.name|spans_around:query }}</li>
   {% endfor %}
 </ul>

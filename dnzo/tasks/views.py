@@ -124,7 +124,8 @@ def find_projects(request, username):
   projects = find_projects_by_name(user, project_name, 5)
   
   return render_to_response('tasks/projects.html', {
-    'projects': projects
+    'projects': projects,
+    'query': project_name
   })
   
 @never_cache

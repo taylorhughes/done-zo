@@ -262,6 +262,8 @@ div.project-autocompleter {
     padding: 5px;
     list-style-type: none;
   }
-  div.project-autocompleter li.selected {
-    background: #ff9;
+  /* Highlighted matches */
+  div.project-autocompleter li span {
+    text-decoration: underline;
   }
+  div.project-autocompleter li.selected { background: #ff9; }
