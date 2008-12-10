@@ -12,6 +12,8 @@ from util.misc import urlize, indexize, zpad
 
 from datetime import datetime
 
+import re
+
 #
 #  This specifies how long the maximum indexized value can be.
 #  This essentially limits the maximum number of records to 
@@ -19,7 +21,7 @@ from datetime import datetime
 #  but also restricts the resultset from index queries to results
 #  appearing in the first MAX_INDEX_LENGTH characters of the value.
 #
-MAX_INDEX_LENGTH = 25
+MAX_INDEX_LENGTH = 50
 
 ### USERS ###
 
@@ -200,8 +202,10 @@ def save_project(user, project_name):
     project = create_project(user, project_name)
     
   else:
-    project.last_used_at = datetime.now()
-    project.put()
+    for index in project.indexes:
+      # TODO: update in a transaction?
+      index.last_used_at = datetime.now()
+      index.put()
     
   return project
   
@@ -209,16 +213,11 @@ def create_project(user, project_name):
   def txn(user, project):
     project.put()
     name = indexize(project.name)[0:MAX_INDEX_LENGTH]
-    while len(name) > 0:
-      key_name = IndexedProjectName.name_to_key_name(name)
-      index    = IndexedProjectName.get_by_key_name(key_name, parent=user)
-      if not index:
-        index  = IndexedProjectName(parent=user, key_name=key_name, index=name)
-        
-      index.projects.append(project.name)
+    tokens = re.split(r'\s+', name)
+    for i in range(0,len(tokens)):
+      token = ' '.join(tokens[i:])
+      index = ProjectIndex(parent=user, index=token, name=project.name, project=project)
       index.put()
-      # Do this for "name", "ame", "me" and "e"
-      name = name[1:]
     
   short_name = urlize(project_name)
   key_name = Project.name_to_key_name(project_name)
@@ -236,40 +235,29 @@ def create_project(user, project_name):
 def find_projects_by_name(user, project_name, limit=5):
   indexed_name = indexize(project_name)
   
-  indexes = IndexedProjectName.gql(
+  indexes = ProjectIndex.gql(
     "WHERE index >= :start AND index < :end AND ANCESTOR IS :user",
     start=indexed_name, end=zpad(indexed_name, MAX_INDEX_LENGTH), user=user
   )
   
-  project_names = set()
+  project_indexes = {}
   for index in indexes:
-    for project_name in index.projects:
-      project_names.add(project_name)
+    name, last_used_at = index.name, index.last_used_at
+    if name not in project_indexes or last_used_at > project_indexes[name]:
+      project_indexes[name] = last_used_at
+
+  names = project_indexes.items()
+  names.sort(key=lambda item: item[1])
+  names.reverse()
+  names = map(lambda item: item[0], names)
+
+  return names[0:limit]
   
-  if len(project_names) > 0:
-    bound_vars = {'user': user}
-    while len(project_names) > 0:
-      key = 'name_%s' % len(project_names)
-      bound_vars[key] = project_names.pop()
-    
-    placeholders = map(lambda k : ":" + k, bound_vars.keys())
-    placeholders = ', '.join(placeholders)
-    projects = Project.gql(
-      'WHERE name IN (' + placeholders + ') AND ANCESTOR IS :user ' +
-      'ORDER BY last_used_at DESC',
-      **bound_vars
-    ).fetch(limit)
-    
-  else:
-    projects = []
-  
-  return projects
-  
-def get_project_by_index(user, project_index):
+def get_project_by_short_name(user, short_name):
   project = Project.gql(
-    'WHERE ANCESTOR IS :user AND short_name=:project_index ' + 
-    'ORDER BY last_used_at DESC',
-    user=user, project_index=project_index
+    'WHERE ANCESTOR IS :user AND short_name=:short_name ' + 
+    'ORDER BY created_at DESC',
+    user=user, short_name=short_name
   ).get()
   
   if project:

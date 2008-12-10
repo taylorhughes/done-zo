@@ -39,7 +39,8 @@ def indexize(string):
   if not string:
     string = ''
   string = string.lower()
-  string = re.sub(r'[^0-9a-z]+', '', string)
+  string = re.sub(r'\s+', ' ', string)
+  string = re.sub(r'[^0-9a-z\s]+', '', string)
   return string
   
 def zpad(string, length=20):
