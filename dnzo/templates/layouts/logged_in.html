@@ -23,12 +23,12 @@
 <body>
   
   <div id="header">
-    <p id="branding">
+    <p id="branding-lists">
       <span>DNZO</span>&nbsp;
       {% block switcher %}{% endblock %}
     </p>
     {% if user %}
-    <p id="user-lists">
+    <p id="user">
       <strong>{{ user.user.nickname|escape }}</strong> -
       <a href="{{ logout_url }}">Sign out</a>
     </p>

@@ -1,3 +1,17 @@
+/**
+ * Clear browser default styles
+ * Adapted from Tantek Celik's undohtml.css
+ *   http://tantek.com/log/2004/09.html#d06t2354
+ */  
+:link,:visited { text-decoration:none }
+ul,ol { list-style:none }
+h1,h2,h3,h4,h5,h6,pre,code { font-size:1em; }
+ul,ol,li,dl,dt,dd,h1,h2,h3,h4,h5,h6,
+pre,form,body,html,p,blockquote,fieldset,input { margin:0; padding:0; line-height:1; }
+a img,:link img,:visited img { border:none }
+address { font-style:normal }  
+
+
 body {
   background: #eee;
   margin: 0;
@@ -5,39 +19,47 @@ body {
 }
 body,
 .text-input {
-  font: 10px Helvetica;
+  font: 13px Helvetica;
 }
 
-#header {
-  font-size: 1.1em;
-  margin: 1em 6.4em 1.7em 2em;
-  margin-right: 8.2%;
+#header,
+#footer {
+  height: 50px;
+  font-size: 11px;
 }
-  #header p {
-    margin: 0;
+  #header p,
+  #footer p {
+    display: inline;
+    width: 35%;
+    margin: 20px;
   }
-  #branding {
+  #header #branding-lists,
+  #footer #archive {
     float: left;
   }
-    #branding span {
-      vertical-align: -3px;
+  #header #branding-lists {
+    margin-top: 15px;
+  }
+    #branding-lists span {
+      vertical-align: -4px;
 	    font-weight: bold;
-	    font-size: 1.7em;
+	    font-size: 22px;
 	    letter-spacing: -2px;
-	    color: gray;	      
+	    color: #999;	      
     }
-  #user-lists {
-    padding-top: 0.7em;
+  #header #user,
+  #footer #new-delete {
+    float: right;
     text-align: right;
   }
   
 #status {
   position: absolute;
-  width: 36em;
-  height: 2.1em;
+  width: 400px;
+  height: 20px;
   top: 50px;
   left: 50%;
-  margin-left: -12em;
+  margin-left: -200px;
   background: red;
   color: white;
 }
@@ -45,28 +67,26 @@ body,
     color: white;
   }
   #status p {
-    margin: 0.3em 1em 0 1em;
+    margin-top: 3px;
     padding: 0;
-	  font-size: 1.3em;
 	  text-align: center;
   }
   
 #body {
-  margin: 1em 0;
-  padding: 1em;
+  padding: 20px 10px;
   background: white;
   border: 1px solid #ccc;	 
   border-right: 0;
   border-left: 0; 
 }
   #body p {
-    margin-left: 1em;
-    font-size: 1.3em;
+    margin-left: 10px;
+    font-size: 13px;
   }
 h1 {
-  margin-left: 2.4em;
-  margin-left: 0.6em;
-  font-size: 2.2em;
+  margin-left: 10px;
+  margin-bottom: 10px;
+  font-size: 22px;
 }
 a {
   text-decoration: underline;
@@ -75,20 +95,19 @@ a {
 
 #tasks_list {
   width: 100%;
-  margin-bottom: 0.5em;
 }
 td, th {
   text-align: left;
 }
 th {
   font-weight: normal;
-  font-size: 1.2em;
+  font-size: 12px;
   border-bottom: 1px solid #ccc;
   white-space: nowrap;
 }
   th a, th span {
     display: block;
-    padding: 0.4em 0.8em 0.3em 0.8em;
+    padding: 4px 8px 3px 8px;
     text-decoration: none;
     color: #999;
   }	  
@@ -108,8 +127,8 @@ th {
 
     
 td {
-  padding: 0.5em;
-  font-size: 1.3em;
+  padding: 7px 8px 6px 8px;
+  font-size: 13px;
 }
 	td a {
 	  text-decoration: none;
@@ -117,23 +136,20 @@ td {
 	}
 	td.done,
 	th.done {
-	  width: 1em;
-	  background-image: none;
+	  width: 10px;
+	  text-align: center;
 	}
-	  td.done input {
-	    margin-top: -2px;
-	  }	
 	td.project {
-    width: 8em;
+    width: 80px;
 	}
 	td.context {
-	  width: 10em;
+	  width: 100px;
 	}
 	td.due {
-	  width: 6em;
+	  width: 60px;
 	}
 	td.edit {
-	  width: 8em;
+	  width: 50px;
 	  text-align: right;
 	}
   	td.edit a {
@@ -164,7 +180,6 @@ tr.editable td {
   }
   tr.task-row td {
     white-space: nowrap;
-    vertical-align: top;
   }
     tr.task-row td.task {
       white-space: normal;
@@ -175,26 +190,14 @@ tr.editable.task-row td.task,
 tr.editable.task-row td.context,
 tr.editable.task-row td.due,
 tr.editable.task-row td.edit {
-  padding: 0.3em;
-  padding-bottom: 0.4em;
-  padding-left: 0.2em;
+  padding: 6px 4px 5px 4px;
 }
   tr.editable.task-row td.edit {
     padding-left: 0;
   }
-  
-/*  
-tr.editable.task-row td.project,
-tr.editable.task-row td.task,
-tr.editable.task-row td.context,
-tr.editable.task-row td.due {
-  padding: 0.4em 0.6em 0em 0.3em;
-}
-*/
 
 .text-input {
   padding: 2px;
-  font-size: 1em;
   border: 1px solid #ccc;
 }
 
@@ -209,12 +212,6 @@ tr.editable.task-row td.context input,
 tr.editable.task-row td.due input {
   width: 100%;
 }
-
-/*
-tr.editable.task-row td.due input {
-  width: 5em;
-}
-*/
 
 /*
 tr.editable td.message {
@@ -233,22 +230,6 @@ tr.error td {
 }
 
 #tasks_form { display: none; }
-
-#footer {
-  font-size: 1.1em;
-  margin: 1em 6.4em 1.2em 2em;
-  margin-right: 8.2%;    
-}
-  #footer p {
-   
-  }
-  #archive {
-    float: left;
-  }
-  #new-delete {
-    padding-top: 1em;
-    text-align: right;
-  }
 
 div.project-autocompleter {
   background: white;
