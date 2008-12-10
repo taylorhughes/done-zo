@@ -131,14 +131,7 @@ def get_completed_tasks(task_list, limit=100):
   tasks = Task.gql('WHERE task_list=:list AND archived=:archived AND complete=:complete', 
                    list=task_list, archived=False, complete=True)
   return tasks.fetch(limit)
-
-def get_project_by_index(user, project_index):
-  task = Task.gql('WHERE ANCESTOR IS :user AND project_index=:project_index AND archived=:archived AND deleted=:deleted', 
-                  user=user, project_index=project_index, archived=False, deleted=False).get()
-  if task:
-    return task.project
-  return None
-  
+    
   
 ### TASKS ###
 
@@ -265,6 +258,18 @@ def find_projects_by_name(user, project_name, limit=5):
     projects = []
   
   return projects
+  
+def get_project_by_index(user, project_index):
+  project = Project.gql(
+    'WHERE ANCESTOR IS :user AND short_name=:project_index ' + 
+    'ORDER BY last_used_at DESC',
+    user=user, project_index=project_index
+  ).get()
+  
+  if project:
+    return project.name
+  return None
+  
   
 ### UNDOS ###
 
