@@ -5,19 +5,6 @@
 #  in DNZO and increments the version number in the app.yaml file.
 #
 
-JAVASCRIPTS=" 
-  dnzo/javascripts/dnzo/application.js
-  dnzo/javascripts/dnzo/tasks.js
-  dnzo/javascripts/dnzo/signup.js
-  dnzo/javascripts/ext/prototype.js
-  dnzo/javascripts/ext/scriptaculous.js
-  dnzo/javascripts/ext/controls.js
-  dnzo/javascripts/ext/effects.js
-"
-CSS=" 
-  dnzo/stylesheets/style.css  
-"
-
 exit_unless_confirmed ()
 {
   CONTINUE=""
@@ -52,21 +39,7 @@ then
   exit
 fi
 
-# Update compiled stylesheets
-for i in $CSS
-do
-  compiled=${i/.css/_compiled.css}
-  echo "Updating $compiled ..."
-  java -jar tools/yuicompressor-2.4.1.jar $i > $compiled
-done
-
-# Update compiled scripts
-for i in $JAVASCRIPTS
-do
-  compiled=${i/.js/_compiled.js}
-  echo "Updating $compiled ..."
-  java -jar tools/yuicompressor-2.4.1.jar $i > $compiled
-done
+./compile_javascripts.sh
 
 # Get the current svn revision number.
 REV=$(svn info . | grep Revision | sed -E -e s/[^0-9]+//g)
