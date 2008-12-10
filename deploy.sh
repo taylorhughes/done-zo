@@ -39,7 +39,8 @@ then
   exit
 fi
 
-./compile_javascripts.sh
+# Update the _compiled JS/CSS files
+./compile_resources.sh
 
 # Get the current svn revision number.
 REV=$(svn info . | grep Revision | sed -E -e s/[^0-9]+//g)
