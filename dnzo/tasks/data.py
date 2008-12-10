@@ -8,11 +8,18 @@ from google.appengine.api.users import get_current_user
 
 from tasks.errors import *
 from tasks.models import *
-from util.misc import urlize, format_for_index, zpad
+from util.misc import urlize, indexize, zpad
 
 from datetime import datetime
-import logging
-import re
+
+#
+#  This specifies how long the maximum indexized value can be.
+#  This essentially limits the maximum number of records to 
+#  MAX_INDEX_LENGTH index records per unique indexed value,
+#  but also restricts the resultset from index queries to results
+#  appearing in the first MAX_INDEX_LENGTH characters of the value.
+#
+MAX_INDEX_LENGTH = 25
 
 ### USERS ###
 
@@ -201,7 +208,7 @@ def save_project(user, project_name):
 def create_project(user, project_name):
   def txn(user, project):
     project.put()
-    name = format_for_index(project.name)
+    name = indexize(project.name)[0:MAX_INDEX_LENGTH]
     while len(name) > 0:
       key_name = IndexedProjectName.name_to_key_name(name)
       index    = IndexedProjectName.get_by_key_name(key_name, parent=user)
@@ -227,11 +234,11 @@ def create_project(user, project_name):
   return project
   
 def find_projects_by_name(user, project_name, limit=5):
-  indexed_name = format_for_index(project_name)
+  indexed_name = indexize(project_name)
   
   indexes = IndexedProjectName.gql(
     "WHERE index >= :start AND index < :end AND ANCESTOR IS :user",
-    start=indexed_name, end=zpad(indexed_name), user=user
+    start=indexed_name, end=zpad(indexed_name, MAX_INDEX_LENGTH), user=user
   )
   
   project_names = set()
