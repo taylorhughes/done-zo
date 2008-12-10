@@ -11,28 +11,21 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
-# Unused in query history -- copied from input.
-- kind: Invitation
+# Used 9 times in query history.
+- kind: IndexedProjectName
+  ancestor: yes
   properties:
-  - name: created_at
-    direction: desc
+  - name: index
 
 # Used 9 times in query history.
 - kind: Project
+  ancestor: yes
   properties:
   - name: name
   - name: last_used_at
     direction: desc
 
-# Unused in query history -- copied from input.
-- kind: Project
-  properties:
-  - name: name
-  - name: name
-  - name: last_used_at
-    direction: desc
-
-# Unused in query history -- copied from input.
+# Used once in query history.
 - kind: Task
   properties:
   - name: archived
@@ -40,117 +33,11 @@ indexes:
   - name: task_list
   - name: body
 
-# Unused in query history -- copied from input.
+# Used once in query history.
 - kind: Task
   properties:
   - name: archived
   - name: contexts
-  - name: task_list
-  - name: body
-    direction: desc
-
-# Unused in query history -- copied from input.
-- kind: Task
-  properties:
-  - name: archived
-  - name: contexts
-  - name: task_list
-  - name: created_at
-
-# Unused in query history -- copied from input.
-- kind: Task
-  properties:
-  - name: archived
-  - name: contexts
-  - name: task_list
-  - name: due_date
-
-# Unused in query history -- copied from input.
-- kind: Task
-  properties:
-  - name: archived
-  - name: contexts
-  - name: task_list
-  - name: due_date
-    direction: desc
-
-# Unused in query history -- copied from input.
-- kind: Task
-  properties:
-  - name: archived
-  - name: contexts
-  - name: task_list
-  - name: project_index
-
-# Unused in query history -- copied from input.
-- kind: Task
-  properties:
-  - name: archived
-  - name: contexts
-  - name: task_list
-  - name: project_index
-    direction: desc
-
-# Unused in query history -- copied from input.
-- kind: Task
-  properties:
-  - name: archived
-  - name: project_index
-  - name: task_list
-
-# Unused in query history -- copied from input.
-- kind: Task
-  properties:
-  - name: archived
-  - name: project_index
-  - name: task_list
-  - name: body
-
-# Unused in query history -- copied from input.
-- kind: Task
-  properties:
-  - name: archived
-  - name: project_index
-  - name: task_list
-  - name: body
-    direction: desc
-
-# Unused in query history -- copied from input.
-- kind: Task
-  properties:
-  - name: archived
-  - name: project_index
-  - name: task_list
-  - name: created_at
-
-# Unused in query history -- copied from input.
-- kind: Task
-  properties:
-  - name: archived
-  - name: project_index
-  - name: task_list
-  - name: due_date
-
-# Unused in query history -- copied from input.
-- kind: Task
-  properties:
-  - name: archived
-  - name: project_index
-  - name: task_list
-  - name: due_date
-    direction: desc
-
-# Unused in query history -- copied from input.
-- kind: Task
-  properties:
-  - name: archived
-  - name: task_list
-  - name: body
-
-# Unused in query history -- copied from input.
-- kind: Task
-  properties:
-  - name: archived
   - name: task_list
   - name: body
     direction: desc
@@ -159,99 +46,205 @@ indexes:
 - kind: Task
   properties:
   - name: archived
+  - name: contexts
   - name: task_list
   - name: created_at
 
-# Unused in query history -- copied from input.
+# Used once in query history.
 - kind: Task
   properties:
   - name: archived
+  - name: contexts
   - name: task_list
   - name: due_date
 
-# Unused in query history -- copied from input.
+# Used once in query history.
 - kind: Task
   properties:
   - name: archived
+  - name: contexts
   - name: task_list
   - name: due_date
     direction: desc
 
-# Unused in query history -- copied from input.
+# Used once in query history.
 - kind: Task
   properties:
   - name: archived
-  - name: task_list
-  - name: project_index
-
-# Unused in query history -- copied from input.
-- kind: Task
-  properties:
-  - name: archived
+  - name: contexts
   - name: task_list
   - name: project_index
-    direction: desc
 
-# Unused in query history -- copied from input.
+# Used once in query history.
 - kind: Task
-  ancestor: yes
   properties:
   - name: archived
-  - name: deleted
-  - name: body
-
-# Unused in query history -- copied from input.
-- kind: Task
-  ancestor: yes
-  properties:
-  - name: archived
-  - name: deleted
-  - name: body
-    direction: desc
-
-# Unused in query history -- copied from input.
-- kind: Task
-  ancestor: yes
-  properties:
-  - name: archived
-  - name: deleted
-  - name: created_at
-
-# Unused in query history -- copied from input.
-- kind: Task
-  ancestor: yes
-  properties:
-  - name: archived
-  - name: deleted
-  - name: due_date
-
-# Unused in query history -- copied from input.
-- kind: Task
-  ancestor: yes
-  properties:
-  - name: archived
-  - name: deleted
-  - name: due_date
-    direction: desc
-
-# Unused in query history -- copied from input.
-- kind: Task
-  ancestor: yes
-  properties:
-  - name: archived
-  - name: deleted
-  - name: project_index
-
-# Unused in query history -- copied from input.
-- kind: Task
-  ancestor: yes
-  properties:
-  - name: archived
-  - name: deleted
+  - name: contexts
+  - name: task_list
   - name: project_index
     direction: desc
 
 # Used 2 times in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: project_index
+  - name: task_list
+
+# Used once in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: project_index
+  - name: task_list
+  - name: body
+
+# Used once in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: project_index
+  - name: task_list
+  - name: body
+    direction: desc
+
+# Used once in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: project_index
+  - name: task_list
+  - name: created_at
+
+# Used once in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: project_index
+  - name: task_list
+  - name: due_date
+
+# Used 2 times in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: project_index
+  - name: task_list
+  - name: due_date
+    direction: desc
+
+# Used once in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: task_list
+  - name: body
+
+# Used once in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: task_list
+  - name: body
+    direction: desc
+
+# Used 5 times in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: task_list
+  - name: created_at
+
+# Used once in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: task_list
+  - name: due_date
+
+# Used once in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: task_list
+  - name: due_date
+    direction: desc
+
+# Used once in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: task_list
+  - name: project_index
+
+# Used once in query history.
+- kind: Task
+  properties:
+  - name: archived
+  - name: task_list
+  - name: project_index
+    direction: desc
+
+# Used once in query history.
+- kind: Task
+  ancestor: yes
+  properties:
+  - name: archived
+  - name: deleted
+  - name: body
+
+# Used once in query history.
+- kind: Task
+  ancestor: yes
+  properties:
+  - name: archived
+  - name: deleted
+  - name: body
+    direction: desc
+
+# Used once in query history.
+- kind: Task
+  ancestor: yes
+  properties:
+  - name: archived
+  - name: deleted
+  - name: created_at
+
+# Used once in query history.
+- kind: Task
+  ancestor: yes
+  properties:
+  - name: archived
+  - name: deleted
+  - name: due_date
+
+# Used once in query history.
+- kind: Task
+  ancestor: yes
+  properties:
+  - name: archived
+  - name: deleted
+  - name: due_date
+    direction: desc
+
+# Used once in query history.
+- kind: Task
+  ancestor: yes
+  properties:
+  - name: archived
+  - name: deleted
+  - name: project_index
+
+# Used once in query history.
+- kind: Task
+  ancestor: yes
+  properties:
+  - name: archived
+  - name: deleted
+  - name: project_index
+    direction: desc
+
+# Used 35 times in query history.
 - kind: TaskList
   ancestor: yes
   properties:

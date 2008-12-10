@@ -183,6 +183,7 @@ def delete_task(task):
   db.run_in_transaction(txn, task, undo)
 
   return undo
+  
 
 ### PROJECTS ###
 
@@ -236,8 +237,8 @@ def find_projects_by_name(user, project_name, limit=5):
   indexed_name = format_for_index(project_name)
   
   indexes = IndexedProjectName.gql(
-    "WHERE index >= :start AND index < :end",
-    start=indexed_name, end=zpad(indexed_name)
+    "WHERE index >= :start AND index < :end AND ANCESTOR IS :user",
+    start=indexed_name, end=zpad(indexed_name), user=user
   )
   
   project_names = set()
@@ -246,7 +247,7 @@ def find_projects_by_name(user, project_name, limit=5):
       project_names.add(project_name)
   
   if len(project_names) > 0:
-    bound_vars = {}
+    bound_vars = {'user': user}
     # Having to do this sucks
     while len(project_names) > 0:
       key = 'name_' + str(len(project_names))
@@ -255,7 +256,8 @@ def find_projects_by_name(user, project_name, limit=5):
     placeholders = map(lambda k : ":" + k, bound_vars.keys())
     placeholders = ', '.join(placeholders)
     projects = Project.gql(
-      'WHERE name IN (' + placeholders + ') ORDER BY last_used_at DESC',
+      'WHERE name IN (' + placeholders + ') AND ANCESTOR IS :user ' +
+      'ORDER BY last_used_at DESC',
       **bound_vars
     ).fetch(limit)
     
