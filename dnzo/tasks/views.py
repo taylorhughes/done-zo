@@ -127,7 +127,6 @@ def find_projects(request, username):
     'projects': projects
   })
   
-
 @never_cache
 def purge_list(request, username, task_list_name):
   try:
@@ -273,6 +272,7 @@ def task(request, username, task_id=None):
     task.body = param('body',request.POST)
     
     task.project = None
+    task.project_index = None
     raw_project = param('project',request.POST,'').strip()
     if len(raw_project) > 0:
       task.project       = raw_project
@@ -317,7 +317,6 @@ def task(request, username, task_id=None):
 @never_cache
 def redirect(request, username=None):
   user = get_dnzo_user()
-  logging.info("user is %s" % user)
   if user:
     return default_list_redirect(user)
   else:
@@ -336,6 +335,6 @@ def always_includes(params=None, request=None, user=None):
     params['user']        = user
   
   params['is_production'] = environment.IS_PRODUCTION
-  params['logout_url'] = create_logout_url('/')
+  params['logout_url']    = create_logout_url('/')
   
   return params

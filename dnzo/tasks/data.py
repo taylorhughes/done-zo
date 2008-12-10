@@ -241,9 +241,8 @@ def find_projects_by_name(user, project_name, limit=5):
   
   if len(project_names) > 0:
     bound_vars = {'user': user}
-    # Having to do this sucks
     while len(project_names) > 0:
-      key = 'name_' + str(len(project_names))
+      key = 'name_%s' % len(project_names)
       bound_vars[key] = project_names.pop()
     
     placeholders = map(lambda k : ":" + k, bound_vars.keys())
