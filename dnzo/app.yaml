@@ -5,17 +5,17 @@ api_version: 1
 
 handlers:  
 - url: /stylesheets/(r[0-9]+/)?([^/]+\.css)
-  static_files: stylesheets/\2
-  upload:       stylesheets/(.+\.css)
+  static_files: resources/stylesheets/\2
+  upload:       resources/stylesheets/(.+\.css)
   expiration:   365d
   
 - url: /javascripts/(r[0-9]+/)?([\w/]+\.js)
-  static_files: javascripts/\2
-  upload:       javascripts/(.+\.js)
+  static_files: resources/javascripts/\2
+  upload:       resources/javascripts/(.+\.js)
   expiration:   365d
   
 - url: /images
-  static_dir: images
+  static_dir: resources/images
   expiration: 30d
   
 - url: /admin/.+

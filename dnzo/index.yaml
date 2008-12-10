@@ -11,7 +11,7 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
-# Used 3 times in query history.
+# Unused in query history -- copied from input.
 - kind: Project
   ancestor: yes
   properties:
@@ -19,7 +19,7 @@ indexes:
   - name: created_at
     direction: desc
 
-# Used 16 times in query history.
+# Used once in query history.
 - kind: ProjectIndex
   ancestor: yes
   properties:
@@ -108,50 +108,50 @@ indexes:
   - name: body
     direction: desc
 
+# Unused in query history -- copied from input.
+- kind: Task
+  properties:
+  - name: archived
+  - name: project_index
+  - name: task_list
+  - name: created_at
+
+# Unused in query history -- copied from input.
+- kind: Task
+  properties:
+  - name: archived
+  - name: project_index
+  - name: task_list
+  - name: due_date
+
+# Unused in query history -- copied from input.
+- kind: Task
+  properties:
+  - name: archived
+  - name: project_index
+  - name: task_list
+  - name: due_date
+    direction: desc
+
+# Unused in query history -- copied from input.
+- kind: Task
+  properties:
+  - name: archived
+  - name: task_list
+  - name: body
+
+# Unused in query history -- copied from input.
+- kind: Task
+  properties:
+  - name: archived
+  - name: task_list
+  - name: body
+    direction: desc
+
 # Used 3 times in query history.
 - kind: Task
   properties:
   - name: archived
-  - name: project_index
-  - name: task_list
-  - name: created_at
-
-# Unused in query history -- copied from input.
-- kind: Task
-  properties:
-  - name: archived
-  - name: project_index
-  - name: task_list
-  - name: due_date
-
-# Unused in query history -- copied from input.
-- kind: Task
-  properties:
-  - name: archived
-  - name: project_index
-  - name: task_list
-  - name: due_date
-    direction: desc
-
-# Unused in query history -- copied from input.
-- kind: Task
-  properties:
-  - name: archived
-  - name: task_list
-  - name: body
-
-# Unused in query history -- copied from input.
-- kind: Task
-  properties:
-  - name: archived
-  - name: task_list
-  - name: body
-    direction: desc
-
-# Used 4 times in query history.
-- kind: Task
-  properties:
-  - name: archived
   - name: task_list
   - name: created_at
 
@@ -202,7 +202,7 @@ indexes:
   - name: body
     direction: desc
 
-# Unused in query history -- copied from input.
+# Used once in query history.
 - kind: Task
   ancestor: yes
   properties:
@@ -244,7 +244,7 @@ indexes:
   - name: project_index
     direction: desc
 
-# Used 8 times in query history.
+# Used 5 times in query history.
 - kind: TaskList
   ancestor: yes
   properties:
