@@ -6,19 +6,6 @@
 	<title>{% block page_title %}{% endblock %}</title>
 	
   {% css_tag style %}
-  
-  {% if not is_production %}
-    {% javascript_tag ext/prototype %}
-    {% javascript_tag ext/scriptaculous.js?load=effects,controls %}
-  {% else %}
-    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
-    <script type="text/javascript">
-      google.load("prototype", "1.6.0.3");
-      google.load("scriptaculous", "1.8.2");
-    </script>
-  {% endif %}
-  {% javascript_tag dnzo/application %}
-  {% block javascripts %}{% endblock %}
 </head>
 <body>
   
@@ -49,5 +36,9 @@
   {% block footer %}<p>Foo bar</p>{% endblock %}
   </div>  <!-- end DIV footer -->
   
+  {% javascript_tag ext/prototype %}
+  {% javascript_tag ext/scriptaculous.js?load=effects,controls %}
+  {% javascript_tag dnzo/application %}
+  {% block javascripts %}{% endblock %}
 </body>
 </html>
