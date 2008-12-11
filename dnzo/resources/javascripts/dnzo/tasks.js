@@ -280,7 +280,8 @@ var TaskRow = Class.create({
     
     new Ajax.Autocompleter(project, autocompleter, autocompleterLink.href, {
       method: 'get',
-      paramName: 'q'
+      paramName: 'q',
+      frequency: 0.2
     });
   },
   

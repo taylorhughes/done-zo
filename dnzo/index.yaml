@@ -6,10 +6,6 @@ indexes:
   properties:
   - name: created_at
     direction: desc
-    
-- kind: Invitation
-  properties:
-  - name: email_address
 
 ###### TaskLists ######
 
@@ -189,7 +185,7 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
-# Used once in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   ancestor: yes
   properties:
@@ -197,7 +193,7 @@ indexes:
   - name: deleted
   - name: body
 
-# Used once in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   ancestor: yes
   properties:
@@ -206,7 +202,7 @@ indexes:
   - name: body
     direction: desc
 
-# Used once in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   ancestor: yes
   properties:
@@ -214,7 +210,7 @@ indexes:
   - name: deleted
   - name: created_at
 
-# Used once in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   ancestor: yes
   properties:
@@ -222,7 +218,7 @@ indexes:
   - name: deleted
   - name: due_date
 
-# Used once in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   ancestor: yes
   properties:
@@ -231,7 +227,7 @@ indexes:
   - name: due_date
     direction: desc
 
-# Used once in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   ancestor: yes
   properties:
@@ -239,7 +235,7 @@ indexes:
   - name: deleted
   - name: project_index
 
-# Used once in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   ancestor: yes
   properties:
