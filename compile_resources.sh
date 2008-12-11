@@ -1,14 +1,20 @@
 #!/usr/bin/env bash
 
 JAVASCRIPTS_DIR="dnzo/resources/javascripts"
+
+# Ensure that these indexes match.
+COMBINED_JS_OUTPUT=(
+  "ext/combined.js"
+)
+COMBINE_JS=(
+  "ext/prototype.js ext/scriptaculous.js ext/effects.js ext/controls.js"
+)
+
 JAVASCRIPTS=" 
   dnzo/application.js
   dnzo/tasks.js
   dnzo/signup.js
-  ext/prototype.js
-  ext/scriptaculous.js
-  ext/controls.js
-  ext/effects.js
+  ext/combined.js
 "
 CSS_DIR="dnzo/resources/stylesheets"
 CSS=" 
@@ -18,6 +24,15 @@ CSS="
 # Location of YUI compressor tool
 COMPRESSOR="tools/yuicompressor-2.4.1.jar"
 
+for i in ${!COMBINE_JS[@]}
+do
+  inputs=""
+  for file in ${COMBINE_JS[$i]}; do inputs="$inputs $JAVASCRIPTS_DIR/$file"; done
+  
+  echo "Combining ${COMBINE_JS[$i]} into ${COMBINED_JS_OUTPUT[$i]} ..."
+    
+  cat $inputs > $JAVASCRIPTS_DIR/${COMBINED_JS_OUTPUT[$i]}
+done
 
 # Update compiled stylesheets
 for i in $CSS

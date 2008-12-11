@@ -36,10 +36,7 @@
   {% block footer %}<p>Foo bar</p>{% endblock %}
   </div>  <!-- end DIV footer -->
   
-  {% javascript_tag ext/prototype %}
-  {% javascript_tag ext/scriptaculous %}
-  {% javascript_tag ext/effects %}
-  {% javascript_tag ext/controls %}
+  {% combined_javascript_tag ext/combined ext/prototype ext/scriptaculous ext/effects ext/controls %}
   {% javascript_tag dnzo/application %}
   {% block javascripts %}{% endblock %}
 </body>

@@ -85,12 +85,35 @@ def javascript_tag(parser, token):
   return JavaScriptTag(filename)
   
 @register.tag
+def combined_javascript_tag(parser, token):
+  ''' {% combined_javascript_tag collection a b c %}
+  
+      will output a script tag for collection in production,
+      but will output a script tag for a, b, and c in development.  '''
+   
+  tokens = list(token.split_contents()[1:])
+
+  if len(tokens) < 2:
+    raise template.TemplateSyntaxError, "%r requires at least 2 arguments." % token.contents.split()[0]
+    
+  if environment.IS_DEVELOPMENT:
+    return TagCollection(map(lambda f: JavaScriptTag(f), tokens[1:]))
+  else:
+    return JavaScriptTag(tokens[0])
+  
+@register.tag
 def css_tag(parser, token):
   try:
     tag_name, filename = token.split_contents()
   except ValueError:
     raise template.TemplateSyntaxError, "%r requires exactly one argument." % token.contents.split()[0]
   return CSSTag(filename)
+  
+class TagCollection(Node):
+  def __init__(self, nodes):
+    self.nodes = nodes
+  def render(self, context):
+    return ' '.join(map(lambda n: n.render(context), self.nodes))
   
 class VersionedTag(Node):
   def __init__(self, filename):
