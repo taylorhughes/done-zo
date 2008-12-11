@@ -316,6 +316,7 @@ var TaskRow = Class.create({
   onClickEdit: function(event)
   {
     this.edit();
+    this.activate();
     event.stop();
   },
   
@@ -357,9 +358,21 @@ var TaskRow = Class.create({
   
   onDoubleClickViewRow: function(event)
   {
-    // double click
     event.stop();
+    
+    var element = event.element();
+    var td = (element.match('td')) ? element : element.up('td');
+    var className = null;
+    
+    // Clicking on checkbox should not cause an edit
+    if (td)
+    {
+      if (td.hasClassName('done')) { return; }
+      className = td.classNames().toArray().first();
+    } 
+    
     this.edit();
+    this.activate(className);
   },
   
   onKeyUp: function(event)
@@ -509,22 +522,32 @@ var TaskRow = Class.create({
     this.initialize(newViewRow, newEditRow);
   },
   
-  activate: function()
+  activate: function(tdClassName)
   {
     if (!this.editRow) return;
     
-    var body = this.editRow.select('input.task-body').first();
-    var project = this.editRow.select('input.task-project').first();
+    if (!tdClassName)
+    {
+      var body = this.editRow.select('td.task>input').first();
+      var project = this.editRow.select('td.project>input').first();
     
-    if (!body || !project) { return; }
-    
-    if (body.getValue().blank() && project.getValue().blank()) { 
-      project.activate();
+      if (body && project)
+      {
+        if (body.getValue().blank() && project.getValue().blank())
+        { 
+          project.activate();
+        }
+        else
+        {
+          body.activate();
+        }
+      }
     }
     else
     {
-      body.activate();
-    }    
+      var input = this.editRow.select('td.' + tdClassName + '>input').first();
+      if (input) { input.activate(); }
+    }
   }
 });
 
