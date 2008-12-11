@@ -43,8 +43,8 @@ def indexize(string):
   string = re.sub(r'[^0-9a-z\s]+', '', string)
   return string
   
-def zpad(string, length=20):
+def zpad(string):
   if not string:
     string = ''
-    
-  return string + ('z' * (length - len(string)))
+  # Append the maximum unicode value.
+  return string + u"\ufffd"

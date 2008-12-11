@@ -237,7 +237,7 @@ def find_projects_by_name(user, project_name, limit=5):
   
   indexes = ProjectIndex.gql(
     "WHERE index >= :start AND index < :end AND ANCESTOR IS :user",
-    start=indexed_name, end=zpad(indexed_name, MAX_INDEX_LENGTH), user=user
+    start=indexed_name, end=zpad(indexed_name), user=user
   )
   
   project_indexes = {}
