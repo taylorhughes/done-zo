@@ -106,7 +106,7 @@ ModalDialog = Class.create({
     this.position();
     new Effect.Parallel([
       new Effect.Appear(this.blackout, { from: 0, to: 0.2, sync: true }),
-      new Effect.Appear(this.container, { sync: true }),
+      new Effect.Appear(this.container, { sync: true })
     ], {
       duration: 0.25,
       afterFinish: (function() { this.effecting = false; }).bind(this)
@@ -149,7 +149,7 @@ ModalDialog = Class.create({
     
     new Effect.Parallel([
       new Effect.Fade(this.blackout, { sync: true }),
-      new Effect.Fade(this.container, { sync: true }),
+      new Effect.Fade(this.container, { sync: true })
     ], {
       duration: 0.25,
       afterFinish: (function() { this.effecting = false; }).bind(this)

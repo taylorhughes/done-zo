@@ -111,13 +111,20 @@ var Tasks = {
   
   loadStatus: function(container)
   {
-    var status = container.select("#status");
-    if (status.length == 0)
+    //
+    // container.select("#status") is broken because disconnected
+    // nodes with the same ID as a connected nodes are not OK in this
+    // version of prototype. Stupid.
+    //
+    var status = container.select("div").find(function(div){
+      return div.id == "status";
+    });
+    
+    if (!status)
     {
       return;
     }
     
-    status = status[0];
     var existingStatus = $("status");
     if (existingStatus)
     {
@@ -322,31 +329,49 @@ var TaskRow = Class.create({
   
   onClickEdit: function(event)
   {
+    event.stop();
     this.edit();
     this.activate();
-    event.stop();
   },
   
   onClickCancel: function(event)
   {
-    this.cancel();
     event.stop();
+    this.cancel();
   },
   
   onClickTrash: function(event)
   {
-    this.trash();
     event.stop();
+    this.trash();
   },
   
   onClickSave: function(event)
   {
-    // pointerX and pointerY are zero if it was clicked by, for
-    // example, hitting return as opposed to actually clicking it.
-    if (event.pointerX() != 0 || event.pointerY() != 0)
-    {
-      this.save();
+    var pointer = {
+      x: event.pointerX(),
+      y: event.pointerY()
     }
+    
+    if (pointer.x != 0 || pointer.y != 0)
+    {
+      var element = event.element();
+      var dimensions = element.getDimensions();
+      var position = element.cumulativeOffset();
+      
+      // We have to verify the click actually clicked this button because IE
+      // assigns pointer.x and pointer.y to nonzero values even if it was 
+      // not triggered by an actual click on that button, unlike Firefox and
+      // Safari which assign x and y to be zero in that case.
+      inX = pointer.x >= position.left && pointer.x <= position.left + dimensions.width;
+      inY = pointer.y >= position.top  && pointer.y <= position.top + dimensions.height;
+      
+      if (inX && inY)
+      {
+        this.save();
+      }
+    }
+
     event.stop();
   },
   
