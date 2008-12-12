@@ -27,5 +27,3 @@ var Scriptaculous = {
   Version: '1.8.2',
   REQUIRED_PROTOTYPE: '1.6.0.3'
 };
-
-Scriptaculous.load();
