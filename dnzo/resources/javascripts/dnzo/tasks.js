@@ -399,7 +399,7 @@ var TaskRow = Class.create({
     // Clicking on checkbox should not cause an edit
     if (td)
     {
-      if (td.hasClassName('done')) { return; }
+      if (td.hasClassName('done') || td.hasClassName('edit')) { return; }
       className = td.classNames().toArray().first();
     } 
     
