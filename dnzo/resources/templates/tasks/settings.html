@@ -5,15 +5,15 @@
   <form action="{% url tasks.views.settings user.short_name %}" method="POST">
     <ul>
       <li>
-        <input type="checkbox" id="show_project" name="show_project" checked>
+        <input type="checkbox" id="show_project" name="show_project"{% if not user.hide_project %} checked{% endif %} value="true">
         <label for="show_project">Show project column</label>
       </li>
       <li>
-        <input type="checkbox" id="show_contexts" name="show_contexts" checked>
+        <input type="checkbox" id="show_contexts" name="show_contexts"{% if not user.hide_contexts %} checked{% endif %} value="true">
         <label for="show_contexts">Show contexts column</label>
       </li>
       <li>
-        <input type="checkbox" id="show_due_date" name="show_due_date" checked>
+        <input type="checkbox" id="show_due_date" name="show_due_date"{% if not user.hide_due_date %} checked{% endif %} value="true">
         <label for="show_due_date">Show due date column</label>
       </li>
       <li class="buttons">

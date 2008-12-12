@@ -84,10 +84,16 @@ var Tasks = {
     
     if (existingTask)
     {
-      var newInputs = row.select('input[type=text]');
-      var oldInputs = existingTask.select('input[type=text]');
-      newInputs[0].setValue(oldInputs[0].getValue());
-      newInputs[2].setValue(oldInputs[2].getValue());
+      ['context','project'].each(function(className){
+        var selector = 'td.' + className + '>input';
+        var oldinput = existingTask.select(selector).first();
+        var newinput = row.select(selector).first();
+        
+        if (newinput && oldinput)
+        {
+          newinput.setValue(oldinput.getValue());
+        }
+      });
     }
 
     var task = new TaskRow(null, row);
@@ -267,17 +273,18 @@ var TaskRow = Class.create({
     this.boundOnClickCancel = this.onClickCancel.bind(this);
     this.cancelLink.observe('click', this.boundOnClickCancel);
     
-    var project = row.select('input.task-project').first();
+    var project = row.select('td.project>input').first();
+
     var autocompleter = row.select('.project-autocompleter').first();
     var autocompleterLink = autocompleter.select('a').first();
-    
+  
     project.observe('keyup', function(event) {
       if (autocompleter.visible())
       {
         event.stop(); 
       }
     });
-    
+  
     new Ajax.Autocompleter(project, autocompleter, autocompleterLink.href, {
       method: 'get',
       paramName: 'q',
@@ -533,7 +540,8 @@ var TaskRow = Class.create({
     
       if (body && project)
       {
-        if (body.getValue().blank() && project.getValue().blank())
+        var projectIsVisible = project.getDimensions().width > 0;
+        if (body.getValue().blank() && project.getValue().blank() && projectIsVisible)
         { 
           project.activate();
         }

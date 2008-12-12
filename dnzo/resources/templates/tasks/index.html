@@ -19,13 +19,25 @@
 {% endblock %}
 
 {% block content %}
+<style type="text/css">
+  {% if user.hide_project %}
+  th.project, td.project { display: none; }
+  {% endif %}
+  {% if user.hide_contexts %}
+  th.context, td.context { display: none; }
+  {% endif %}
+  {% if user.hide_contexts %}
+  th.due, td.due { display: none; }
+  {% endif %}
+</style>
+
 <table cellspacing="0" cellpadding="0" id="tasks_list">
   <tr>
     <th class="done"><span><img src="/images/checkmark.gif" alt="checkmark"></span></th>
-    {% sorting_header "Project"     "project_index" order direction "project" %}
-    {% sorting_header "Task"        "body"          order direction "body" %}
-    <th><span>Context</span></th>
-    {% sorting_header "Due"         "due_date"      order direction "due" %}
+    {% sorting_header "Project" "project_index" order direction "project" %}
+    {% sorting_header "Task" "body" order direction "body" %}
+    <th class="context"><span>Context</span></th>
+    {% sorting_header "Due" "due_date" order direction "due" %}
   </tr>
   {% for task in tasks %}
     {% include "tasks/tasks/task.html" %}

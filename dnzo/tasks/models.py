@@ -7,7 +7,13 @@ from django.db.models import permalink
 class TasksUser(db.Model):
   user          = db.UserProperty()
   short_name    = db.StringProperty()
+    
+  # Settings
+  hide_project  = db.BooleanProperty(default=False)
+  hide_contexts = db.BooleanProperty(default=False)
+  hide_due_date = db.BooleanProperty(default=False)
   
+  # Counts
   tasks_count   = db.IntegerProperty(default=0)
   lists_count   = db.IntegerProperty(default=0)
   

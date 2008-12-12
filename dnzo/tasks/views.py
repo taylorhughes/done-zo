@@ -88,7 +88,7 @@ def list_index(request, username, task_list_name=None, context_name=None, projec
   
   new_task_attrs = {'body': '', 'parent': user}
   if view_context:
-    new_task_attrs['context'] = [view_context]
+    new_task_attrs['contexts'] = [view_context]
   if view_project:
     new_task_attrs['project'] = view_project_name
   
@@ -272,20 +272,27 @@ def task(request, username, task_id=None):
     
     task.body = param('body',request.POST)
     
-    task.project = None
-    task.project_index = None
-    raw_project = param('project',request.POST,'').strip()
-    if len(raw_project) > 0:
-      task.project       = raw_project
-      task.project_index = urlize(raw_project)
+    raw_project = param('project',request.POST,None)
+    if raw_project:
+      raw_project = raw_project.strip()
+      if len(raw_project) > 0:
+        task.project       = raw_project
+        task.project_index = urlize(raw_project)
+      else:
+        task.project = None
+        task.project_index = None
     
-    task.contexts = []
-    raw_contexts = param('contexts',request.POST,'')
-    raw_contexts = re.findall(r'[A-Za-z_-]+', raw_contexts)
-    for raw_context in raw_contexts:
-      task.contexts.append(urlize(raw_context))
+    raw_contexts = param('contexts',request.POST,None)
+    if raw_contexts:
+      task.contexts = []
+      raw_contexts = re.findall(r'[A-Za-z_-]+', raw_contexts)
+      for raw_context in raw_contexts:
+        task.contexts.append(urlize(raw_context))
     
-    task.due_date = parse_date(param('due_date', request.POST))
+    raw_due_date = param('due_date', request.POST, None)
+    if raw_due_date:
+      task.due_date = parse_date(raw_due_date)
+      
     task.task_list = task_list
 
     save_task(task)
@@ -322,7 +329,10 @@ def settings(request, username):
     return access_error_redirect()
     
   if request.method == "POST":
-    pass
+    user.hide_project  = (param('show_project',  request.POST, None)) is None
+    user.hide_contexts = (param('show_contexts', request.POST, None)) is None
+    user.hide_due_date = (param('show_due_date', request.POST, None)) is None
+    user.put()
     
   elif is_ajax(request):
     return render_to_response('tasks/settings.html', {
