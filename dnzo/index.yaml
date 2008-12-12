@@ -202,7 +202,7 @@ indexes:
   - name: body
     direction: desc
 
-# Unused in query history -- copied from input.
+# Used once in query history.
 - kind: Task
   ancestor: yes
   properties:

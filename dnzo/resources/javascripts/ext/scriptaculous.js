@@ -25,24 +25,7 @@
 
 var Scriptaculous = {
   Version: '1.8.2',
-  REQUIRED_PROTOTYPE: '1.6.0.3',
-  load: function() {
-    function convertVersionString(versionString) {
-      var v = versionString.replace(/_.*|\./g, '');
-      v = parseInt(v + '0'.times(4-v.length));
-      return versionString.indexOf('_') > -1 ? v-1 : v;
-    }
-
-    if((typeof Prototype=='undefined') ||
-       (typeof Element == 'undefined') ||
-       (typeof Element.Methods=='undefined') ||
-       (convertVersionString(Prototype.Version) <
-        convertVersionString(Scriptaculous.REQUIRED_PROTOTYPE)))
-    {
-       throw("script.aculo.us requires the Prototype JavaScript framework >= " +
-        Scriptaculous.REQUIRED_PROTOTYPE);
-    }
-  }
+  REQUIRED_PROTOTYPE: '1.6.0.3'
 };
 
 Scriptaculous.load();

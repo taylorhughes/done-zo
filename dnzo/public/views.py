@@ -17,7 +17,7 @@ import datetime
 import re
 
 DEFAULT_LIST_NAME = 'Tasks'
-MINIMUM_USER_URL_LENGTH = 5
+MINIMUM_USER_URL_LENGTH = 1
 
 def welcome(request):
   dnzo_user = get_dnzo_user()
@@ -101,14 +101,14 @@ def signup(request):
 def username_invalid(new_name):
   message = None
     
-  if not is_urlized(new_name):
+  if not len(new_name) >= MINIMUM_USER_URL_LENGTH:
+    message = 'URLs must be at least %s character long.' % MINIMUM_USER_URL_LENGTH
+    
+  elif not is_urlized(new_name):
     message = 'URLs can only contain lowercase letters, numbers, underscores and hyphens.'
     urlized = urlize(new_name)
     if len(urlized) >= MINIMUM_USER_URL_LENGTH:
       message += " How about &ldquo;%s&rdquo;?" % urlized
-    
-  elif not len(new_name) >= MINIMUM_USER_URL_LENGTH:
-    message = 'URLs must be at least %s characters long.' % MINIMUM_USER_URL_LENGTH
     
   elif not username_available(new_name):
     message = 'Unfortunately, that URL has been taken.'

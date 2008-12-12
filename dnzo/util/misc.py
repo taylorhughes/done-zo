@@ -32,7 +32,7 @@ def urlize(title):
   return title
   
 def is_urlized(string): 
-  return re.search(r'^[a-z0-9][a-z0-9_-]+[a-z0-9]$', string) and not \
+  return re.search(r'^[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?$', string) and not \
          re.search(r'[_-]{2,}', string)
          
 def indexize(string):
