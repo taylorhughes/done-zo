@@ -59,7 +59,7 @@ ModalDialog = Class.create({
     var scrolled   = document.viewport.getScrollOffsets();
     var viewport   = document.viewport.getDimensions();
 
-    var top = (viewport.height / 2) - (dimensions.height / 2) + scrolled.top;
+    var top = (viewport.height / 4) - (dimensions.height / 4) + scrolled.top;
     var left = (viewport.width / 2) - (dimensions.width / 2) + scrolled.left;
 
     this.blackout.setStyle({

@@ -5,20 +5,26 @@
   <form action="{% url tasks.views.settings user.short_name %}" method="POST">
     <ul>
       <li>
-        <input type="checkbox" id="show_project" name="show_project"{% if not user.hide_project %} checked{% endif %} value="true">
-        <label for="show_project">Show project column</label>
+        <label>
+          <input type="checkbox" id="show_project" name="show_project"{% if not user.hide_project %} checked{% endif %} value="true">
+          Show project column
+        </label>
       </li>
       <li>
-        <input type="checkbox" id="show_contexts" name="show_contexts"{% if not user.hide_contexts %} checked{% endif %} value="true">
-        <label for="show_contexts">Show contexts column</label>
+        <label>
+          <input type="checkbox" id="show_contexts" name="show_contexts"{% if not user.hide_contexts %} checked{% endif %} value="true">
+          Show contexts column
+        </label>
       </li>
       <li>
-        <input type="checkbox" id="show_due_date" name="show_due_date"{% if not user.hide_due_date %} checked{% endif %} value="true">
-        <label for="show_due_date">Show due date column</label>
+        <label>
+          <input type="checkbox" id="show_due_date" name="show_due_date"{% if not user.hide_due_date %} checked{% endif %} value="true">
+          Show due date column
+        </label>
       </li>
       <li class="buttons">
-        <a href="{% url tasks.views.redirect user.short_name %}" class="hide_dialog">cancel</a>
         <input type="submit" value="Save changes">
+        <a href="{% url tasks.views.redirect user.short_name %}" class="hide_dialog">cancel</a>
       </li>
     </ul>
   </form>

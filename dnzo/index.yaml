@@ -185,6 +185,28 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
+# Used 9 times in query history.
+- kind: IndexedProjectName
+  ancestor: yes
+  properties:
+  - name: index
+
+# Used 11 times in query history.
+- kind: Project
+  ancestor: yes
+  properties:
+  - name: name
+  - name: last_used_at
+    direction: desc
+
+# Used 3 times in query history.
+- kind: Project
+  ancestor: yes
+  properties:
+  - name: short_name
+  - name: last_used_at
+    direction: desc
+
 # Unused in query history -- copied from input.
 - kind: Task
   ancestor: yes
@@ -202,7 +224,7 @@ indexes:
   - name: body
     direction: desc
 
-# Used once in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   ancestor: yes
   properties:

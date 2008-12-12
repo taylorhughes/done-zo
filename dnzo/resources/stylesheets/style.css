@@ -65,6 +65,7 @@ body,
 }
   #status a {
     color: white;
+    text-decoration: underline;
   }
   #status p {
     margin-top: 3px;
@@ -261,7 +262,7 @@ div.project-autocompleter {
 
 .dialog_container {
   background: white;
-  border: 2px solid #ff9;
+  border: 4px solid #ff9;
   padding: 20px;
 }
   .dialog_container .loading {
@@ -278,16 +279,17 @@ div.project-autocompleter {
 }
   #settings h2 { 
     font-size: 16px;
-    margin: 0 0 20px 0;
+    margin-bottom: 10px;
   }
-  #settings ul { 
-    margin-left: 20px;
+  #settings li { 
+    margin-bottom: 10px;
   }
-  #settings li { margin: 0 0 10px 0; }
-  #settings label { margin-left: 5px; }
-  #settings li.buttons { 
-    margin: 20px 0 0 0; 
-    text-align: right;
-  }
-  #settings li.buttons input { margin-left: 10px; }
-
+    #settings li input {
+      vertical-align: -2px;
+    }
+    #settings li.buttons { 
+      margin: 20px 0 0 0;
+    }
+      #settings li.buttons input {
+        vertical-align: 0;
+      }
