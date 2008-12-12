@@ -5,6 +5,8 @@ list_pattern = username_pattern + r'l/(?P<task_list_name>[a-z0-9_-]+)/'
 
 urlpatterns = patterns('',
   
+  (username_pattern + r'account/$', 'tasks.views.settings'),
+  
   #  /username/t/id => specific task
   (username_pattern + r't/(?P<task_id>\d+)/$', 'tasks.views.task'),
   (username_pattern + r't/$', 'tasks.views.task'),

@@ -250,8 +250,44 @@ div.project-autocompleter {
     padding: 5px;
     list-style-type: none;
   }
-  /* Highlighted matches */
-  div.project-autocompleter li span {
-    text-decoration: underline;
+    /* Highlighted matches */
+    div.project-autocompleter li span {
+      text-decoration: underline;
+    }
+    div.project-autocompleter li.selected { background: #ff9; }
+
+
+/* Modal dialogs */
+
+.dialog_container {
+  background: white;
+  border: 2px solid #ff9;
+  padding: 20px;
+}
+  .dialog_container .loading {
+    background: white url(/images/medium_spinner.gif) center no-repeat;
+    width: 300px;
+    height: 200px;
   }
-  div.project-autocompleter li.selected { background: #ff9; }
+
+
+/* Settings dialog */
+
+#settings { 
+  width: 300px;
+}
+  #settings h2 { 
+    font-size: 16px;
+    margin: 0 0 20px 0;
+  }
+  #settings ul { 
+    margin-left: 20px;
+  }
+  #settings li { margin: 0 0 10px 0; }
+  #settings label { margin-left: 5px; }
+  #settings li.buttons { 
+    margin: 20px 0 0 0; 
+    text-align: right;
+  }
+  #settings li.buttons input { margin-left: 10px; }
+

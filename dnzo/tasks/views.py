@@ -314,6 +314,22 @@ def task(request, username, task_id=None):
       'status': status,
       'undo': undo
     })
+    
+def settings(request, username):
+  try:
+    user = verify_current_user(username)
+  except AccessError:
+    return access_error_redirect()
+    
+  if request.method == "POST":
+    pass
+    
+  elif is_ajax(request):
+    return render_to_response('tasks/settings.html', {
+      'user': user
+    })
+
+  return referer_redirect(user, request)
 
 @never_cache
 def redirect(request, username=None):

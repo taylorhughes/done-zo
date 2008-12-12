@@ -5,6 +5,7 @@
 {% block page_title %}DNZO / {{ task_list.name|escape }}{% if filter_title %} / {{ filter_title|escape }}{% endif %}{% endblock %}
 
 {% block javascripts %}
+  {% javascript_tag dnzo/application %}
   {% javascript_tag dnzo/tasks %}
 {% endblock %}
 

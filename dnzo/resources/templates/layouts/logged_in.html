@@ -14,12 +14,11 @@
       <span>DNZO</span>&nbsp;
       {% block switcher %}{% endblock %}
     </p>
-    {% if user %}
     <p id="user">
       <strong>{{ user.user.nickname|escape }}</strong> -
+      <a href="{% url tasks.views.settings user.short_name %}" class="dialog">Settings</a> -
       <a href="{{ logout_url }}">Sign out</a>
     </p>
-    {% endif %}
   </div>  <!-- end DIV header -->
   
   {% include "tasks/status.html" %}
@@ -33,11 +32,10 @@
   </div>
   
   <div id="footer">
-  {% block footer %}<p>Foo bar</p>{% endblock %}
+  {% block footer %}{% endblock %}
   </div>  <!-- end DIV footer -->
   
   {% combined_javascript_tag ext/combined ext/prototype ext/scriptaculous ext/effects ext/controls %}
-  {% javascript_tag dnzo/application %}
   {% block javascripts %}{% endblock %}
 </body>
 </html>
