@@ -44,7 +44,7 @@ body,
       vertical-align: -4px;
 	    font-weight: bold;
 	    font-size: 22px;
-	    letter-spacing: -2px;
+	    letter-spacing: -1px;
 	    color: #999;	      
     }
   #header #user,
@@ -76,9 +76,6 @@ body,
 #body {
   padding: 20px 10px;
   background: white;
-  border: 1px solid #ccc;	 
-  border-right: 0;
-  border-left: 0; 
 }
   #body p {
     margin-left: 10px;
@@ -137,7 +134,7 @@ td {
 	}
 	td.done,
 	th.done {
-	  width: 10px;
+	  width: 18px;
 	  text-align: center;
 	}
 	td.project {
