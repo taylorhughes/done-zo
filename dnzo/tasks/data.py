@@ -8,7 +8,8 @@ from google.appengine.api.users import get_current_user
 
 from tasks.errors import *
 from tasks.models import *
-from util.misc import urlize, indexize, zpad
+from util.misc import urlize, indexize, zpad, param
+from util.parsing import parse_date
 
 from datetime import datetime
 
@@ -176,6 +177,35 @@ def delete_task(task):
   db.run_in_transaction(txn, task, undo)
 
   return undo
+
+def update_task_with_params(task, params):
+  task.complete = False
+  if param('complete', params) == "true":
+    task.complete = True
+  
+  task.body = param('body', params)
+  
+  raw_project = param('project',params,None)
+  if raw_project:
+    raw_project = raw_project.strip()
+    if len(raw_project) > 0:
+      task.project       = raw_project
+      task.project_index = urlize(raw_project)
+    else:
+      task.project = None
+      task.project_index = None
+  
+  raw_contexts = param('contexts', params,None)
+  if raw_contexts:
+    task.contexts = []
+    raw_contexts = re.findall(r'[A-Za-z_-]+', raw_contexts)
+    for raw_context in raw_contexts:
+      task.contexts.append(urlize(raw_context))
+  
+  raw_due_date = param('due_date', params, None)
+  if raw_due_date:
+    task.due_date = parse_date(raw_due_date)
+    
   
 
 ### PROJECTS ###

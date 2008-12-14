@@ -60,15 +60,12 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
     wheres = ['ANCESTOR IS :user AND archived=:archived AND deleted=:deleted'] 
     params = { 'user': user, 'archived': True, 'deleted': False }
 
-  add_url = reverse_url('tasks.views.task')
   if view_context:
     wheres.append('contexts=:context')
     params['context'] = view_context
-    add_url += "?context=%s" % view_context
   elif view_project:
     wheres.append('project_index=:project_index')
     params['project_index'] = view_project
-    add_url += "?project=%s" % view_project
 
   order, direction = 'created_at', 'ASC'
   if param('order', request.GET) in SORTABLE_LIST_COLUMNS:
@@ -96,7 +93,6 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
     'tasks': tasks,
     'task_list': task_list,
     'filter_title': filter_title,
-    'add_url': add_url,
     'order': order,
     'direction': direction,
     'status': status,
@@ -224,13 +220,14 @@ def task(request, task_id=None):
   if task_id:
     task = Task.get_by_id(int(task_id), parent=user)
     if not task:
-      return access_error_redirect()
+      raise Http404
   else:
     task = Task(parent=user, body='')
     
   force_complete   = param('force_complete', request.POST, None)
   force_uncomplete = param('force_uncomplete', request.POST, None)
   force_delete     = param('delete', request.GET, None)
+  
   
   status = None
   undo = None
@@ -245,47 +242,10 @@ def task(request, task_id=None):
       undo = delete_task(task)
     
   elif request.method == "POST":
-    task.complete = False
-    if param('complete',request.POST) == "true":
-      task.complete = True
-    
-    task.body = param('body',request.POST)
-    
-    raw_project = param('project',request.POST,None)
-    if raw_project:
-      raw_project = raw_project.strip()
-      if len(raw_project) > 0:
-        task.project       = raw_project
-        task.project_index = urlize(raw_project)
-      else:
-        task.project = None
-        task.project_index = None
-    
-    raw_contexts = param('contexts',request.POST,None)
-    if raw_contexts:
-      task.contexts = []
-      raw_contexts = re.findall(r'[A-Za-z_-]+', raw_contexts)
-      for raw_context in raw_contexts:
-        task.contexts.append(urlize(raw_context))
-    
-    raw_due_date = param('due_date', request.POST, None)
-    if raw_due_date:
-      task.due_date = parse_date(raw_due_date)
-      
+    update_task_with_params(task, request.POST)
     task.task_list = task_list
-
     save_task(task)
-    
-  elif request.method == "GET":
-    raw_project = param('project', request.GET, None)
-    if raw_project:
-      task.project = raw_project
-      
-    raw_context = param('context', request.GET, None)
-    if raw_context:
-      task.contexts = [raw_context]
-        
-    task.editing = True
+  
   
   if undo:
     undo = undo.key().id()
@@ -293,6 +253,7 @@ def task(request, task_id=None):
   if not is_ajax(request):
     # TODO: Something useful.
     return default_list_redirect(user)
+    
   else:
     return render_to_response('tasks/tasks/ajax_task.html', {
       'user': user,

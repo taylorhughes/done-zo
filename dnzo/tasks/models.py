@@ -57,7 +57,6 @@ class Task(db.Model):
   @permalink
   def get_absolute_url(self):
     return ('tasks.views.task', None, {
-      'username': self.parent().short_name,
       'task_id': self.key().id()
     })
 

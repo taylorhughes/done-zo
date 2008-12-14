@@ -224,7 +224,7 @@ indexes:
   - name: body
     direction: desc
 
-# Used 2 times in query history.
+# Used 7 times in query history.
 - kind: Task
   ancestor: yes
   properties:
