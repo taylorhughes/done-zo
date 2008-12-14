@@ -59,41 +59,18 @@ def signup(request):
   if not invitation and not is_current_user_admin():
     return HttpResponseRedirect(reverse_url('public.views.closed'))
 
-  if request.method == 'POST':
-    name = param('name',request.POST)
-    message = username_invalid(name)
+  new_user = TasksUser(user=current_user)
+  new_user.put()
+  
+  if invitation:
+    invitation.registered_at = datetime.datetime.now()
+    invitation.put()
+  
+  # Create a default new list for this user
+  tasks_list = add_task_list(new_user, DEFAULT_LIST_NAME)
+  
+  return default_list_redirect(new_user)
 
-    if not message:
-      new_user = TasksUser(
-        key_name=TasksUser.name_to_key_name(name), 
-        user=current_user,
-        short_name = name
-      )
-      new_user.put()
-      
-      if invitation:
-        invitation.registered_at = datetime.datetime.now()
-        invitation.username = new_user.short_name
-        invitation.put()
-      
-      # Create a default new list for this user
-      tasks_list = add_task_list(new_user, DEFAULT_LIST_NAME)
-      
-      return default_list_redirect(new_user)
-
-  else:
-    message = None
-    original = urlize(current_user.nickname())
-    i, name = 1, original
-    while not username_available(name):
-      name = "%s_%s" % (original, i)
-      i += 1
-
-  return render_to_response('public/signup/index.html', {
-    'short_name':  name,
-    'unavailable': message is not None,
-    'message':     message
-  })
   
 
 ### UTILITY METHODS ###
