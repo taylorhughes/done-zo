@@ -6,7 +6,6 @@ from django.db.models import permalink
 
 class TasksUser(db.Model):
   user          = db.UserProperty()
-  short_name    = db.StringProperty()
     
   # Settings
   hide_project  = db.BooleanProperty(default=False)
@@ -17,13 +16,9 @@ class TasksUser(db.Model):
   tasks_count   = db.IntegerProperty(default=0)
   lists_count   = db.IntegerProperty(default=0)
   
-  @classmethod
-  def name_to_key_name(self,name):
-    return "user(%s)" % name
-    
   @permalink
   def get_absolute_url(self):
-    return('tasks.views.redirect', self.short_name)
+    return('tasks.views.redirect')
     
 class TaskList(db.Model):
   name          = db.StringProperty()
