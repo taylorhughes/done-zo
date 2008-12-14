@@ -1,23 +1,22 @@
 from django.conf.urls.defaults import *
 
-username_pattern = r'^(?P<username>[a-z0-9_-]+)/'
-list_pattern = username_pattern + r'l/(?P<task_list_name>[a-z0-9_-]+)/'
+list_pattern = r'^l/(?P<task_list_name>[a-z0-9_-]+)/'
 
 urlpatterns = patterns('',
   
-  (username_pattern + r'account/$', 'tasks.views.settings'),
+  (r'^account/$', 'tasks.views.settings'),
   
   #  /username/t/id => specific task
-  (username_pattern + r't/(?P<task_id>\d+)/$', 'tasks.views.task'),
-  (username_pattern + r't/$', 'tasks.views.task'),
+  (r'^t/(?P<task_id>\d+)/$', 'tasks.views.task'),
+  (r'^t/$', 'tasks.views.task'),
   #  /username/u/id => undo
-  (username_pattern + r'u/(?P<undo_id>\d+)/$', 'tasks.views.undo'),
+  (r'^u/(?P<undo_id>\d+)/$', 'tasks.views.undo'),
 
   #  /username/p/find/ => project
-  (username_pattern + r'p/find/$', 'tasks.views.find_projects'),
+  (r'^p/find/$', 'tasks.views.find_projects'),
   
   #  /username/l/_add/
-  (username_pattern + r'l/_add/$', 'tasks.views.add_list'),
+  (r'^l/_add/$', 'tasks.views.add_list'),
 
   # /username/l/list_name/purge
   (list_pattern + r'purge/$', 'tasks.views.purge_list'),
@@ -30,5 +29,5 @@ urlpatterns = patterns('',
   #  /username/l/list_name
   (list_pattern, 'tasks.views.list_index'),
   
-  (username_pattern, 'tasks.views.redirect'),
+  (r'^/redirect/$', 'tasks.views.redirect'),
 )

@@ -23,11 +23,8 @@ SORTABLE_LIST_COLUMNS = ('project_index', 'body', 'due_date', 'created_at', 'con
 #### VIEWS ####
 
 @never_cache
-def list_index(request, username, task_list_name=None, context_name=None, project_index=None):
-  try:
-    user = verify_current_user(username)
-  except AccessError:
-    return access_error_redirect()
+def list_index(request, task_list_name=None, context_name=None, project_index=None):
+  user = get_dnzo_user()
     
   archived = (task_list_name == ARCHIVED_LIST_NAME)
   if not archived:
@@ -63,7 +60,7 @@ def list_index(request, username, task_list_name=None, context_name=None, projec
     wheres = ['ANCESTOR IS :user AND archived=:archived AND deleted=:deleted'] 
     params = { 'user': user, 'archived': True, 'deleted': False }
 
-  add_url = reverse_url('tasks.views.task',args=[user.short_name])
+  add_url = reverse_url('tasks.views.task')
   if view_context:
     wheres.append('contexts=:context')
     params['context'] = view_context
@@ -114,11 +111,8 @@ def list_index(request, username, task_list_name=None, context_name=None, projec
   return response
 
 @never_cache
-def find_projects(request, username):
-  try:
-    user = verify_current_user(username)
-  except AccessError:
-    return access_error_redirect()
+def find_projects(request):
+  user = get_dnzo_user()
   
   project_name = param('q', request.GET, '')
   projects = find_projects_by_name(user, project_name, 5)
@@ -129,15 +123,12 @@ def find_projects(request, username):
   })
   
 @never_cache
-def purge_list(request, username, task_list_name):
-  try:
-    user = verify_current_user(username)
-  except AccessError:
-    return access_error_redirect()
+def purge_list(request, task_list_name):
+  user = get_dnzo_user()
   
   task_list = get_task_list(user, task_list_name)
-  if not task_list or not users_equal(task_list.parent(), user):
-    return access_error_redirect()
+  if not task_list:
+    raise Http404
   
   undo = None
   if request.method == "POST":
@@ -157,15 +148,12 @@ def purge_list(request, username, task_list_name):
   return redirect
 
 @never_cache
-def delete_list(request, username, task_list_name):
-  try:
-    user = verify_current_user(username)
-  except AccessError:
-    return access_error_redirect()
+def delete_list(request, task_list_name):
+  user = get_dnzo_user()
   
   task_list = get_task_list(user, task_list_name)
-  if not task_list or not users_equal(task_list.parent(), user):
-    return access_error_redirect()
+  if not task_list:
+    raise Http404
   
   undo = None
   if request.method == "POST" and len(get_task_lists(user)) > 1:
@@ -180,11 +168,8 @@ def delete_list(request, username, task_list_name):
   return redirect
 
 @never_cache
-def add_list(request, username):
-  try:
-    user = verify_current_user(username)
-  except AccessError:
-    return access_error_redirect()
+def add_list(request):
+  user = get_dnzo_user()
   
   new_name = param('name', request.POST, '')
   new_list = None
@@ -202,11 +187,8 @@ def add_list(request, username):
     })
 
 @never_cache
-def undo(request, username, undo_id):
-  try:
-    user = verify_current_user(username)
-  except AccessError:
-    return access_error_redirect()
+def undo(request, undo_id):
+  user = get_dnzo_user()
 
   task_list = None
   try:
@@ -228,11 +210,8 @@ def undo(request, username, undo_id):
     return referer_redirect(user, request)
 
 @never_cache
-def task(request, username, task_id=None):
-  try:
-    user = verify_current_user(username)
-  except AccessError:
-    return access_error_redirect()
+def task(request, task_id=None):
+  user = get_dnzo_user()
   
   task_list = param('task_list',request.GET,None)
   if task_list:
@@ -244,7 +223,7 @@ def task(request, username, task_id=None):
   
   if task_id:
     task = Task.get_by_id(int(task_id), parent=user)
-    if not task or not users_equal(task.parent(), user):
+    if not task:
       return access_error_redirect()
   else:
     task = Task(parent=user, body='')
@@ -322,16 +301,14 @@ def task(request, username, task_id=None):
       'undo': undo
     })
     
-def settings(request, username):
-  try:
-    user = verify_current_user(username)
-  except AccessError:
-    return access_error_redirect()
+@never_cache
+def settings(request):
+  user = get_dnzo_user()
     
   if request.method == "POST":
-    user.hide_project  = (param('show_project',  request.POST, None)) is None
-    user.hide_contexts = (param('show_contexts', request.POST, None)) is None
-    user.hide_due_date = (param('show_due_date', request.POST, None)) is None
+    user.hide_project  = param('show_project',  request.POST, None) is None
+    user.hide_contexts = param('show_contexts', request.POST, None) is None
+    user.hide_due_date = param('show_due_date', request.POST, None) is None
     user.put()
     
   elif is_ajax(request):

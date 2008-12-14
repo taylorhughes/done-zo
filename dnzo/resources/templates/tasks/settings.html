@@ -2,7 +2,7 @@
 
   <h2>Account settings</h2>
 
-  <form action="{% url tasks.views.settings user.short_name %}" method="POST">
+  <form action="{% url tasks.views.settings %}" method="POST">
     <ul>
       <li>
         <label>
@@ -24,7 +24,7 @@
       </li>
       <li class="buttons">
         <input type="submit" value="Save changes">
-        <a href="{% url tasks.views.redirect user.short_name %}" class="hide_dialog">cancel</a>
+        <a href="{% url tasks.views.redirect %}" class="hide_dialog">cancel</a>
       </li>
     </ul>
   </form>

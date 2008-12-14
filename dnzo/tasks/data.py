@@ -34,21 +34,12 @@ def users_equal(a,b):
     return a.key().id_or_name() == b.key().id_or_name()
   return False
   
-def get_dnzo_user(name=None):
-  if name:
-    return TasksUser.get_by_key_name(TasksUser.name_to_key_name(name))
-  else:
-    return TasksUser.gql('WHERE user=:user', user=get_current_user()).get()
+def get_dnzo_user():
+  google_user = get_current_user()
+  return TasksUser.gql('WHERE user=:user', user=google_user).get()
   
 def username_available(name):
-  return not get_dnzo_user(name=name)         
-  
-def verify_current_user(short_name):
-  user = get_dnzo_user()
-  if not user or short_name != user.short_name:
-    raise AccessError, 'Attempting to access wrong username'
-  return user
-
+  return not get_dnzo_user(name=name)
 
 ### TASK LISTS ###
 

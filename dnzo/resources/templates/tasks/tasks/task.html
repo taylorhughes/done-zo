@@ -8,7 +8,7 @@
   <td class="project">
     <input type="text" value="{% if task.project %}{{ task.project|escape }}{% endif %}" class="text-input task-project" name="project">
     <div class="project-autocompleter" style="display: none">
-      <a href="{% url tasks.views.find_projects task.parent.short_name %}">Find projects</a>
+      <a href="{% url tasks.views.find_projects %}">Find projects</a>
     </div>
   </td>
   <td class="task">
@@ -39,7 +39,7 @@
   </td>
   <td class="project">
     {% if task.project %}
-    <a href="{% url tasks.views.list_index task.parent.short_name,task.task_list.short_name,project_index=task.project_index %}">{{ task.project|escape }}</a>
+    <a href="{% url tasks.views.list_index task.task_list.short_name,project_index=task.project_index %}">{{ task.project|escape }}</a>
     {% endif %}
   </td>
   <td class="task">
@@ -47,7 +47,7 @@
   </td>
   <td class="context">
     {% for context in task.contexts %}
-    <a href="{% url tasks.views.list_index task.parent.short_name,task.task_list.short_name,context_name=context %}">@{{ context|escape }}</a>
+    <a href="{% url tasks.views.list_index task.task_list.short_name,context_name=context %}">@{{ context|escape }}</a>
     {% endfor %}
   </td>
   <td class="due">

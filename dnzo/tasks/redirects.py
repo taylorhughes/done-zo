@@ -22,7 +22,7 @@ def default_list_redirect(user):
 def list_redirect(user, list):
   return HttpResponseRedirect(
            reverse_url('tasks.views.list_index',
-                       args=[user.short_name,list.short_name]
+                       args=[list.short_name]
            )
          )
          

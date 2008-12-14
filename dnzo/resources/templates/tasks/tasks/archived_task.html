@@ -6,7 +6,7 @@
   </td>
   <td class="project">
     {% if task.project %}
-    <a href="{% url tasks.views.list_index task.owner.short_name,"_archived",project_index=task.project_index %}">
+    <a href="{% url tasks.views.list_index "_archived",project_index=task.project_index %}">
       {{ task.project|escape }}
     </a>
     {% endif %}
@@ -16,7 +16,7 @@
   </td>
   <td class="context">
     {% for context in task.contexts %}
-    <a href="{% url tasks.views.list_index task.owner.short_name,"_archived",context_name=context %}">@{{ context|escape }}</a>
+    <a href="{% url tasks.views.list_index "_archived",context_name=context %}">@{{ context|escape }}</a>
     {% endfor %}
   </td>
   <td class="due">

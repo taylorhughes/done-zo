@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block header %}
-  {% if filter_title %}<a href="{% url tasks.views.list_index user.short_name,task_list.short_name %}">{% endif %}
+  {% if filter_title %}<a href="{% url tasks.views.list_index task_list.short_name %}">{% endif %}
   {{ task_list.name|escape }}{% if filter_title %}</a> / {{ filter_title|escape }}{% endif %}
 {% endblock %}
 
@@ -48,7 +48,7 @@
   </tr>
 </table>
 
-<form method="POST" id="tasks_form" action="{% url tasks.views.task user.short_name %}?task_list={{task_list.short_name|escape}}">
+<form method="POST" id="tasks_form" action="{% url tasks.views.task %}?task_list={{task_list.short_name|escape}}">
   <table id="new_task_table">
   {% for task in new_tasks %}
     {% include "tasks/tasks/task.html" %}
@@ -58,16 +58,16 @@
 {% endblock %}
 
 {% block footer %}
-<form action="{% url tasks.views.purge_list user.short_name,task_list.short_name %}" method="POST">
+<form action="{% url tasks.views.purge_list task_list.short_name %}" method="POST">
 <p id="archive">
     <input type="submit" value="Archive completed tasks">&nbsp;
 </p>
 </form>
 
 <div style="display: none;">{% include "tasks/lists/add.html" %}</div>
-<form action="{% url tasks.views.delete_list user.short_name,task_list.short_name %}" method="POST">
+<form action="{% url tasks.views.delete_list task_list.short_name %}" method="POST">
 <p id="new-delete">
-  <a href="{% url tasks.views.add_list user.short_name %}" id="add_list_link">Add list</a>&nbsp;
+  <a href="{% url tasks.views.add_list %}" id="add_list_link">Add list</a>&nbsp;
   <input type="submit" value="Delete list"{% if task_lists|length_is:1 %} disabled{% endif %}>
 </p>
 </form>

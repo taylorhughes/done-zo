@@ -16,7 +16,7 @@
     </p>
     <p id="user">
       <strong>{{ user.user.nickname|escape }}</strong> -
-      <a href="{% url tasks.views.settings user.short_name %}" class="dialog">Settings</a> -
+      <a href="{% url tasks.views.settings %}" class="dialog">Settings</a> -
       <a href="{{ logout_url }}">Sign out</a>
     </p>
   </div>  <!-- end DIV header -->
