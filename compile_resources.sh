@@ -13,7 +13,6 @@ COMBINE_JS=(
 JAVASCRIPTS=" 
   dnzo/application.js
   dnzo/tasks.js
-  dnzo/signup.js
   ext/combined.js
 "
 CSS_DIR="dnzo/resources/stylesheets"

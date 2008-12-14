@@ -37,18 +37,6 @@ def welcome(request):
 def closed(request):
   return render_to_response("public/signup/closed.html")
 
-def availability(request):
-  name = param('name', request.GET, '')
-  message = username_invalid(name)
-  
-  if is_ajax(request):
-    return render_to_response('public/signup/availability_ajax.html', {
-      'unavailable': message is not None,
-      'message':     message
-    })
-  else:
-    return HttpResponseRedirect(reverse_url('public.views.signup'))
-
 def signup(request):
   current_user = get_dnzo_user()
   if current_user:
@@ -71,24 +59,3 @@ def signup(request):
   
   return default_list_redirect(new_user)
 
-  
-
-### UTILITY METHODS ###
-
-def username_invalid(new_name):
-  message = None
-    
-  if not len(new_name) >= MINIMUM_USER_URL_LENGTH:
-    message = 'URLs must be at least %s character long.' % MINIMUM_USER_URL_LENGTH
-    
-  elif not is_urlized(new_name):
-    message = 'URLs can only contain lowercase letters, numbers, underscores and hyphens.'
-    urlized = urlize(new_name)
-    if len(urlized) >= MINIMUM_USER_URL_LENGTH:
-      message += " How about &ldquo;%s&rdquo;?" % urlized
-    
-  elif not username_available(new_name):
-    message = 'Unfortunately, that URL has been taken.'
-    
-  return message
-  
