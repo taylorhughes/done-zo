@@ -32,7 +32,6 @@ class TaskList(db.Model):
   @permalink
   def get_absolute_url(self):
     return ('tasks.views.list_index', None, {
-      'username': self.parent().short_name,
       'task_list_name': self.short_name
     })
 
