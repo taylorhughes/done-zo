@@ -275,30 +275,26 @@ tr.error td {
     width: 300px;
     height: 100px;
   }
-
-
-/* Settings dialog */
+.dialog_content h2 { 
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+.dialog_content li { 
+  margin-bottom: 10px;
+}
+  .dialog_content li input {
+    vertical-align: -2px;
+  }
+  .dialog_content li.buttons { 
+    margin: 20px 0 0 0;
+  }
+    .dialog_content li.buttons input {
+      vertical-align: 0;
+    }
 
 #settings_dialog, #add_list_dialog { 
   width: 300px;
 }
-  .dialog_content h2 { 
-    font-size: 16px;
-    margin-bottom: 10px;
-  }
-  .dialog_content li { 
-    margin-bottom: 10px;
-  }
-    .dialog_content li input {
-      vertical-align: -2px;
-    }
-    .dialog_content li.buttons { 
-      margin: 20px 0 0 0;
-    }
-      .dialog_content li.buttons input {
-        vertical-align: 0;
-      }
-      
   #new_list_name {
     width: 100%;
     font-size: 16px;
