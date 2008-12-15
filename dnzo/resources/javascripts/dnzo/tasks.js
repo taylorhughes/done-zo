@@ -219,6 +219,8 @@ var TaskRow = Class.create({
   
   initialize: function(viewRow, editRow)
   {
+    this.editEventsWired = false;
+    
     if (viewRow)
     {
       this.viewRow = viewRow;
