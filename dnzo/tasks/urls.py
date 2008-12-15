@@ -29,5 +29,5 @@ urlpatterns = patterns('',
   #  /username/l/list_name
   (list_pattern, 'tasks.views.list_index'),
   
-  (r'^/redirect/$', 'tasks.views.redirect'),
+  (r'^redirect/$', 'tasks.views.redirect'),
 )

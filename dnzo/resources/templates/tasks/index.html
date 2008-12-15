@@ -64,11 +64,12 @@
 </p>
 </form>
 
-<div style="display: none;">{% include "tasks/lists/add.html" %}</div>
-<form action="{% url tasks.views.delete_list task_list.short_name %}" method="POST">
-<p id="new-delete">
-  <a href="{% url tasks.views.add_list %}" id="add_list_link">Add list</a>&nbsp;
-  <input type="submit" value="Delete list"{% if task_lists|length_is:1 %} disabled{% endif %}>
-</p>
+<div id="new-delete">
+<form action="{% url tasks.views.add_list %}" method="GET">
+  <input type="submit" value="Add list" id="add_list">&nbsp;
 </form>
+<form action="{% url tasks.views.delete_list task_list.short_name %}" method="POST">
+  <input type="submit" value="Delete list"{% if task_lists|length_is:1 %} disabled{% endif %}>
+</form>
+</div>
 {% endblock %}

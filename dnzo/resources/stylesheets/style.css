@@ -51,6 +51,10 @@ body,
   #footer #new-delete {
     float: right;
     text-align: right;
+    margin: 20px;
+  }
+  #new-delete form { 
+    display: inline;
   }
   
 #status {
@@ -269,28 +273,33 @@ div.project-autocompleter {
   .dialog_container .loading {
     background: white url(/images/medium_spinner.gif) center no-repeat;
     width: 300px;
-    height: 200px;
+    height: 100px;
   }
 
 
 /* Settings dialog */
 
-#settings { 
+#settings_dialog, #add_list_dialog { 
   width: 300px;
 }
-  #settings h2 { 
+  .dialog_content h2 { 
     font-size: 16px;
     margin-bottom: 10px;
   }
-  #settings li { 
+  .dialog_content li { 
     margin-bottom: 10px;
   }
-    #settings li input {
+    .dialog_content li input {
       vertical-align: -2px;
     }
-    #settings li.buttons { 
+    .dialog_content li.buttons { 
       margin: 20px 0 0 0;
     }
-      #settings li.buttons input {
+      .dialog_content li.buttons input {
         vertical-align: 0;
       }
+      
+  #new_list_name {
+    width: 100%;
+    font-size: 16px;
+  }

@@ -210,7 +210,7 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
-# Used 3 times in query history.
+# Used 4 times in query history.
 - kind: Task
   ancestor: yes
   properties:
@@ -219,7 +219,7 @@ indexes:
   - name: body
   - name: created_at
 
-# Used 2 times in query history.
+# Used 3 times in query history.
 - kind: Task
   ancestor: yes
   properties:
@@ -229,7 +229,7 @@ indexes:
     direction: desc
   - name: created_at
 
-# Used 4 times in query history.
+# Used 6 times in query history.
 - kind: Task
   ancestor: yes
   properties:

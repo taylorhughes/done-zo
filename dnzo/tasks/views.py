@@ -192,13 +192,12 @@ def add_list(request):
       new_list = add_task_list(user, new_name)
       return list_redirect(user, new_list)
       
-    else:
-      return referer_redirect(user,request)
-      
-  else: # GET
-    return render_to_response('tasks/lists/index.html', {
+  elif is_ajax(request): # GET
+    return render_to_response('tasks/lists/add.html', {
       'user': user
     })
+    
+  return referer_redirect(user,request)
 
 @never_cache
 def undo(request, undo_id):

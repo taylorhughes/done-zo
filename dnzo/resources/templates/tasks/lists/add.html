@@ -1,4 +1,17 @@
-<form action="{% url tasks.views.add_list %}" method="POST" id="add_list">
-  <input type="text" value="" name="name">
-  <input type="submit" value="Add list">
-</form>
+<div id="add_list_dialog" class="dialog_content">
+
+  <h2>Add a new list</h2>
+
+  <form action="{% url tasks.views.add_list %}" method="POST">
+    <ul>
+      <li>
+        <input type="text" value="" name="name" id="new_list_name">
+      </li>
+      <li class="buttons">
+        <input type="submit" value="Add list">
+        <a href="{% url tasks.views.redirect %}" class="hide_dialog">cancel</a>
+      </li>
+    </ul>
+  </form>
+
+</div>

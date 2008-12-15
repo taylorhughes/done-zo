@@ -19,11 +19,24 @@ var DNZO = {
 Event.observe(window,'load',DNZO.load);
 
 ModalDialog = Class.create({
-  initialize: function(dialogLink) 
+  initialize: function(element, options) 
   {
+    if (element.match('a'))
+    {
+      this.href = element.href;
+      this.method = 'get';
+    }
+    else if (element.match('input'))
+    {
+      var form = element.up('form');
+      this.href = form.action;
+      this.method = form.method;
+    }
+    element.observe('click', this.onClickShow.bind(this));
+    
     this.createElements();
-    this.href = dialogLink.href;
-    dialogLink.observe('click', this.onClickShow.bind(this));
+    
+    this.options = options || {};
   },
   
   createElements: function()
@@ -109,8 +122,17 @@ ModalDialog = Class.create({
       new Effect.Appear(this.container, { sync: true })
     ], {
       duration: 0.25,
-      afterFinish: (function() { this.effecting = false; }).bind(this)
+      afterFinish: this.afterShown.bind(this)
     });
+  },
+  afterShown: function()
+  {
+    this.effecting = false;
+    
+    if (this.options.afterShown)
+    {
+      this.options.afterShown();
+    }
   },
   
   load: function() 
@@ -118,7 +140,7 @@ ModalDialog = Class.create({
     if (!this.isLoading)
     {
       new Ajax.Request(this.href, {
-        method: 'get',
+        method: this.method,
         onSuccess: this.doLoad.bind(this),
         afterComplete: (function(xhr){this.isLoading=false;}).bind(this)
       });

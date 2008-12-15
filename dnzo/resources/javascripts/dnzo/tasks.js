@@ -7,17 +7,13 @@ var Tasks = {
   
   load: function(event)
   {
-    if (!Prototype.Browser.IE)
-    {
-      var addList = $('add_list_link');
-      if (addList) addList.observe('click', Tasks.onClickAddList);
-    }
+    new ModalDialog($('add_list'), {
+      afterShown: function() {
+        $('new_list_name').activate();
+      }
+    });
     
     Tasks.table = $('tasks_list');
-    if (! Tasks.table || Tasks.table.hasClassName('archived'))
-    {
-      return;
-    }
     
     Tasks.addRow = Tasks.table.select('#add_row')[0];
     Tasks.addLink = Tasks.addRow.select('#add')[0];
@@ -36,21 +32,6 @@ var Tasks = {
     }
     
     Tasks.setHideStatus();
-  },
-  
-  // Add new list
-  onClickAddList: function(event)
-  {
-    event.stop();
-    
-    var form = $$("form#add_list");
-    if (form.length == 0) return;
-    form = form[0];
-    
-    var name = prompt("Enter a name for your new list:");
-    
-    form.select('input[type=text]')[0].setValue(name);
-    form.submit();
   },
   
   onClickAddTask: function(event)
