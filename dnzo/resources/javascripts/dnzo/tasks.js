@@ -227,7 +227,12 @@ var TaskRow = Class.create({
     if (editRow)
     {
       this.editRow = editRow;
-      this.wireEditingEvents(this.editRow);
+      // Delay wiring up the editing events until 
+      // we actually need to
+      if (!viewRow || this.editRow.visible())
+      {
+        this.wireEditingEvents(this.editRow);
+      }
     }
     
     // Need to keep this around so we can unobserve it later in destroy()
@@ -251,7 +256,7 @@ var TaskRow = Class.create({
   },
   
   wireEditingEvents: function(row)
-  {
+  {    
     var save = row.select('.edit>input[type=submit]')[0];
     save.observe('click', this.onClickSave.bind(this));
     
@@ -278,6 +283,8 @@ var TaskRow = Class.create({
       paramName: 'q',
       frequency: 0.2
     });
+    
+    this.editEventsWired = true;
   },
   
   destroy: function()
@@ -377,11 +384,14 @@ var TaskRow = Class.create({
     var td = (element.match('td')) ? element : element.up('td');
     var className = null;
     
-    // Clicking on checkbox should not cause an edit
     if (td)
     {
-      if (td.hasClassName('done') || td.hasClassName('edit')) { return; }
       className = td.classNames().toArray().first();
+      // Double-clicking the edit/delete link or the checkbox should not edit
+      if (['edit','done'].include(className))
+      {
+        return;
+      }
     } 
     
     this.edit();
@@ -415,6 +425,11 @@ var TaskRow = Class.create({
   edit: function()
   {
     this.fire(Tasks.TASK_EDITING_EVENT);
+    
+    if (!this.editEventsWired)
+    {
+      this.wireEditingEvents(this.editRow);
+    }
     
     this.viewRow.hide();
     this.editRow.show();

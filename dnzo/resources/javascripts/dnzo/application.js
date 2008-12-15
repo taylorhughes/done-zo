@@ -18,6 +18,27 @@ var DNZO = {
 
 Event.observe(window,'load',DNZO.load);
 
+/*
+ *  ModalDialog
+ *
+ *  ModalDialog is a class that takes a link or form button and loads
+ *  its target into a modal dialog window. Options are highly limited
+ *  at this point. 
+ *
+ *  This class adds two elements to the DOM: a "blackout" element, 
+ *  which hides the unclickable background in a light black; and the
+ *  actual dialog container, whose contents become whatever is returned
+ *  from the link provided.
+ *
+ *  Usage:
+ *
+ *    new ModalDialog($('link_id'), { afterShown: function() {} });
+ * 
+ *  Options:
+ *
+ *    afterShown: a function to call after the dialog is shown.
+ *
+ */
 ModalDialog = Class.create({
   initialize: function(element, options) 
   {
@@ -177,4 +198,4 @@ ModalDialog = Class.create({
       afterFinish: (function() { this.effecting = false; }).bind(this)
     });
   }
-})
+});

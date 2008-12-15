@@ -229,7 +229,7 @@ indexes:
     direction: desc
   - name: created_at
 
-# Used 6 times in query history.
+# Used 9 times in query history.
 - kind: Task
   ancestor: yes
   properties:
@@ -256,7 +256,7 @@ indexes:
     direction: desc
   - name: created_at
 
-# Used 3 times in query history.
+# Used 4 times in query history.
 - kind: Task
   ancestor: yes
   properties:
@@ -265,7 +265,7 @@ indexes:
   - name: project_index
   - name: created_at
 
-# Used 3 times in query history.
+# Used 4 times in query history.
 - kind: Task
   ancestor: yes
   properties:
