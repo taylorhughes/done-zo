@@ -139,6 +139,23 @@ indexes:
   - name: due_date
     direction: desc
   - name: created_at
+  
+- kind: Task
+  properties:
+  - name: archived
+  - name: project_index
+  - name: task_list
+  - name: complete
+  - name: created_at
+  
+- kind: Task
+  properties:
+  - name: archived
+  - name: project_index
+  - name: task_list
+  - name: complete
+    direction: desc
+  - name: created_at
     
   ### FILTERED BY CONTEXT ###
   
@@ -197,6 +214,23 @@ indexes:
   - name: contexts
   - name: task_list
   - name: project_index
+    direction: desc
+  - name: created_at
+
+- kind: Task
+  properties:
+  - name: archived
+  - name: contexts
+  - name: task_list
+  - name: complete
+  - name: created_at
+  
+- kind: Task
+  properties:
+  - name: archived
+  - name: contexts
+  - name: task_list
+  - name: complete
     direction: desc
   - name: created_at
     
