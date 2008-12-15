@@ -125,9 +125,24 @@ def find_projects(request):
   project_name = param('q', request.GET, '')
   projects = find_projects_by_name(user, project_name, 5)
   
-  return render_to_response('tasks/projects.html', {
-    'projects': projects,
+  return render_to_response('tasks/matches.html', {
+    'matches': projects,
     'query': project_name
+  })
+  
+@never_cache
+def find_contexts(request):
+  user = get_dnzo_user()
+  if not user:
+    return access_error_redirect()
+  
+  context_name = param('q', request.GET, '')
+  contexts = find_contexts_by_name(user, context_name, 5)
+  contexts = map(lambda c: "@%s" % c, contexts)
+  
+  return render_to_response('tasks/matches.html', {
+    'matches': contexts,
+    'query': context_name
   })
   
 @never_cache

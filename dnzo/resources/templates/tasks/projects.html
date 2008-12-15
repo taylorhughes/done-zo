@@ -1,7 +1,0 @@
-{% load tasks_library %}
-
-<ul>
-  {% for project in projects %}
-  <li>{{ project|spans_around:query }}</li>
-  {% endfor %}
-</ul>

@@ -244,23 +244,23 @@ tr.error td {
 
 #tasks_form { display: none; }
 
-div.project-autocompleter {
+.autocompleter {
   background: white;
   border: 1px solid #666;
 }
-  div.project-autocompleter ul, div.project-autocompleter li {
+  .autocompleter ul, .autocompleter li {
     margin: 0;
     padding: 0;
   }
-  div.project-autocompleter li {
+  .autocompleter li {
     padding: 5px;
     list-style-type: none;
   }
     /* Highlighted matches */
-    div.project-autocompleter li span {
+    .autocompleter li span {
       text-decoration: underline;
     }
-    div.project-autocompleter li.selected { background: #ff9; }
+    .autocompleter li.selected { background: #ff9; }
 
 
 /* Modal dialogs */

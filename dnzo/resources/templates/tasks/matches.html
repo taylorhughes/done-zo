@@ -1,0 +1,7 @@
+{% load tasks_library %}
+
+<ul>
+  {% for match in matches %}
+  <li>{{ match|spans_around:query }}</li>
+  {% endfor %}
+</ul>

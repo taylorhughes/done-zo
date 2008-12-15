@@ -14,6 +14,8 @@ urlpatterns = patterns('',
 
   #  /username/p/find/ => project
   (r'^p/find/$', 'tasks.views.find_projects'),
+  #  /username/p/find/ => project
+  (r'^c/find/$', 'tasks.views.find_contexts'),
   
   #  /username/l/_add/
   (r'^l/_add/$', 'tasks.views.add_list'),

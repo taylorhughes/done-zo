@@ -7,7 +7,7 @@
   </td>
   <td class="project">
     <input type="text" value="{% if task.project %}{{ task.project|escape }}{% endif %}" class="text-input task-project" name="project">
-    <div class="project-autocompleter" style="display: none">
+    <div class="project-autocompleter autocompleter" style="display: none">
       <a href="{% url tasks.views.find_projects %}">Find projects</a>
     </div>
   </td>
@@ -16,6 +16,9 @@
   </td>
   <td class="context">
     <input type="text" value="{% for context in task.contexts %}@{{ context|escape }} {% endfor %}" class="text-input" name="contexts">
+    <div class="context-autocompleter autocompleter" style="display: none">
+      <a href="{% url tasks.views.find_contexts %}">Find contexts</a>
+    </div>
   </td>
   <td class="due">
     <input type="text" value="{{ task.due_date|date:"n/j/y" }}" class="text-input" name="due_date">

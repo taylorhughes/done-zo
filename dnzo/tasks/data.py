@@ -144,6 +144,8 @@ def save_task(task):
   
   if task.project_index:
     save_project(task.parent(), task.project)
+  if len(task.contexts) > 0:
+    save_contexts(task.parent(), task.contexts)
   
 def undelete_task(task):
   task.deleted = False
@@ -261,18 +263,7 @@ def find_projects_by_name(user, project_name, limit=5):
     start=indexed_name, end=zpad(indexed_name), user=user
   )
   
-  project_indexes = {}
-  for index in indexes:
-    name, last_used_at = index.name, index.last_used_at
-    if name not in project_indexes or last_used_at > project_indexes[name]:
-      project_indexes[name] = last_used_at
-
-  names = project_indexes.items()
-  names.sort(key=lambda item: item[1])
-  names.reverse()
-  names = map(lambda item: item[0], names)
-
-  return names[0:limit]
+  return sorted_by_last_used(indexes, limit)
   
 def get_project_by_short_name(user, short_name):
   project = Project.gql(
@@ -285,6 +276,40 @@ def get_project_by_short_name(user, short_name):
     return project.name
   return None
   
+  
+### CONTEXTS ###
+
+def get_context(user, context_name):
+  return Context.get_by_key_name(
+    Context.name_to_key_name(context_name),
+    parent=user
+  )
+
+def save_contexts(user, contexts):
+  for context in contexts:
+    save_context(user, context)
+  
+def save_context(user, context_name):
+  context = get_context(user,context_name)
+  if not context:
+    context = Context(
+      parent=user,
+      name=context_name,
+      key_name=Context.name_to_key_name(context_name)
+    )
+  context.last_used_at = datetime.now()
+  context.put()
+  
+def find_contexts_by_name(user, context_name, limit=5):
+  indexed_name = urlize(context_name)
+  
+  contexts = Context.gql(
+    "WHERE name >= :start AND name < :end AND ANCESTOR IS :user",
+    start=indexed_name, end=zpad(indexed_name), user=user
+  )
+  
+  return sorted_by_last_used(contexts, limit)
+
   
 ### UNDOS ###
 
@@ -303,3 +328,18 @@ def do_undo(undo):
   undo.delete()
 
   
+### MISC ###
+
+def sorted_by_last_used(collection, limit):
+  names_last_used = {}
+  for index in collection:
+    name, last_used_at = index.name, index.last_used_at
+    if name not in names_last_used or last_used_at > names_last_used[name]:
+      names_last_used[name] = last_used_at
+
+  names = names_last_used.items()
+  names.sort(key=lambda item: item[1])
+  names.reverse()
+  names = map(lambda item: item[0], names)
+
+  return names[0:limit]

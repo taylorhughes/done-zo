@@ -266,16 +266,22 @@ var TaskRow = Class.create({
     this.boundOnClickCancel = this.onClickCancel.bind(this);
     this.cancelLink.observe('click', this.boundOnClickCancel);
     
+    this.wireProjectAutocomplete(row);
+    this.wireContextAutocomplete(row);
+    
+    this.editEventsWired = true;
+  },
+  
+  wireProjectAutocomplete: function(row)
+  {
     var project = row.select('td.project>input').first();
 
     var autocompleter = row.select('.project-autocompleter').first();
     var autocompleterLink = autocompleter.select('a').first();
   
     project.observe('keyup', function(event) {
-      if (autocompleter.visible())
-      {
-        event.stop(); 
-      }
+      // Don't want <enter> while selecting an item to save the task.
+      if (autocompleter.visible()) { event.stop(); }
     });
   
     new Ajax.Autocompleter(project, autocompleter, autocompleterLink.href, {
@@ -283,8 +289,26 @@ var TaskRow = Class.create({
       paramName: 'q',
       frequency: 0.2
     });
-    
-    this.editEventsWired = true;
+  },
+  
+  wireContextAutocomplete: function(row)
+  {
+    var contexts = row.select('td.context>input').first();
+
+    var autocompleter = row.select('.context-autocompleter').first();
+    var autocompleterLink = autocompleter.select('a').first();
+  
+    contexts.observe('keyup', function(event) {
+      // Don't want <enter> while selecting an item to save the task.
+      if (autocompleter.visible()) { event.stop(); }
+    });
+  
+    new Ajax.Autocompleter(contexts, autocompleter, autocompleterLink.href, {
+      method: 'get',
+      paramName: 'q',
+      frequency: 0.2,
+      tokens: [' ', ',', ';']
+    });
   },
   
   destroy: function()
