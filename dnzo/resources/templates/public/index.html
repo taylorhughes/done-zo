@@ -1,23 +1,17 @@
 {% extends "layouts/public.html" %}
 
-{% block content %}
-    {% if not nickname %}
-    <p>
-      <a href="{% url public.views.signup %}">Sign up</a> for DNZO!
-      You will be asked to log in to your <strong>Google Account</strong> first.
-    </p>
-    <p>
-      Already have a DNZO account?
-      <a href="{% url public.views.signup %}">Log in</a> and we'll move you right along.
-    </p>
-    {% else %}
-    <p>
-      Welcome, {{ nickname|escape }}!
-      <small>(Not {{ nickname|escape }}? <a href="{{ logout_url|escape }}">click here</a>.)</small>
-    </p>
-    <p>
-      If you have been invited to try DNZO, 
-      <a href="{% url public.views.signup %}">click here to sign up</a>.
-    </p>
-    {% endif %}
+{% block title %}
+DNZO - Helps you get things done-zo.
+{% endblock %}
+
+{% block h1 %}
+DNZO
+{% endblock %}
+
+{% block body %}
+<p>Helps you get things done-zo.</p>
+<p>
+  <a href="{% url public.views.signup %}">Register »</a><br/>
+  <a href="{% url public.views.signup %}">Sign in »</a>
+</p>
 {% endblock %}

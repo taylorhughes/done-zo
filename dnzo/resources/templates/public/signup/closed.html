@@ -1,13 +1,20 @@
 {% extends "layouts/public.html" %}
 
-{% block page_title %}DNZO: Sorry!{% endblock %}
+{% block title %}
+DNZO - Helps you get things done-zo.
+{% endblock %}
 
-{% block content %}
-  <p>
-    We&rsquo;re sorry; registration for DNZO is invite-only at the moment.
-    If you are itching to get an account, feel free to contact
-    <a href="http://taylor-hughes.com/">Taylor</a> or
-    <a href="http://johnzeratsky.com/">John</a>.
-  </p>
-  <p>Thanks for visiting!</p>
+{% block h1 %}
+Sorry
+{% endblock %}
+
+{% block body %}
+<p>
+  DNZO registration is currently by invitation only.<br/>
+  Contact Taylor  or John if you are dying to try it out.
+</p>
+{% if nickname %}
+<p>You are signed in to Google Account <em>{{ nickname|escape }}</em> (<a href="{{ logout_url|escape }}">sign out</a>).</p>
+{% endif %}
+
 {% endblock %}

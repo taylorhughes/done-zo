@@ -35,7 +35,15 @@ def welcome(request):
   })
   
 def closed(request):
-  return render_to_response("public/signup/closed.html")
+  nickname = None
+  current_user = get_current_user()
+  if current_user:
+    nickname = current_user.nickname()
+  
+  return render_to_response("public/signup/closed.html", {
+    'nickname': nickname,
+    'logout_url': create_logout_url('/')
+  })
 
 def signup(request):
   current_user = get_dnzo_user()
