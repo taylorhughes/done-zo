@@ -54,9 +54,13 @@ sed -E -e \
     dnzo/app.yaml > dnzo/app.yaml.new
 mv dnzo/app.yaml.new dnzo/app.yaml
 
-echo "Commiting so we know we we're at the head revision ..."
+echo "Commiting the following files for deployment:"
 
-svn commit
+echo
+svn status
+echo
+
+svn commit -m "Commit to deploy r$REV at http://$REV.latest.dnzo.appspot.com/"
 if ! [ $? -eq 0 ]
 then
   echo "Subversion commit failed; exiting."
