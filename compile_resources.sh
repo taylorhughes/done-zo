@@ -18,6 +18,7 @@ JAVASCRIPTS="
 CSS_DIR="dnzo/resources/stylesheets"
 CSS=" 
   style.css
+  public.css
 "
 
 # Location of YUI compressor tool
