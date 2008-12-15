@@ -210,13 +210,13 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
-# Used 29 times in query history.
+# Unused in query history -- copied from input.
 - kind: Context
   ancestor: yes
   properties:
   - name: name
 
-# Used 4 times in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   ancestor: yes
   properties:
@@ -225,7 +225,7 @@ indexes:
   - name: body
   - name: created_at
 
-# Used 3 times in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   ancestor: yes
   properties:
@@ -235,7 +235,7 @@ indexes:
     direction: desc
   - name: created_at
 
-# Used 9 times in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   ancestor: yes
   properties:
@@ -243,7 +243,7 @@ indexes:
   - name: deleted
   - name: created_at
 
-# Used 2 times in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   ancestor: yes
   properties:
@@ -252,7 +252,7 @@ indexes:
   - name: due_date
   - name: created_at
 
-# Used 2 times in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   ancestor: yes
   properties:
@@ -262,7 +262,7 @@ indexes:
     direction: desc
   - name: created_at
 
-# Used 4 times in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   ancestor: yes
   properties:
@@ -271,7 +271,7 @@ indexes:
   - name: project_index
   - name: created_at
 
-# Used 4 times in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   ancestor: yes
   properties:

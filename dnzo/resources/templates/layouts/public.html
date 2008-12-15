@@ -1,0 +1,30 @@
+<!DOCTYPE HTML>
+
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>{% block title %}{% endblock %}</title>
+  <link rel="stylesheet" href="/stylesheets/public.css">
+</head>
+<body>
+  
+  <h1>{% block h1 %}{% endblock %}</h1>
+
+  <div id="body">
+  {% block body %}{% endblock %}
+  </div>  <!-- end DIV body -->
+
+  <p>by <a href="http://taylor-hughes.com">Taylor Hughes</a> and <a href="http://johnzeratsky.com">John Zeratsky</a></p>
+
+  <script type="text/javascript">
+  var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+  document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+  <script type="text/javascript">
+  try {
+  var pageTracker = _gat._getTracker("UA-6679771-1");
+  pageTracker._trackPageview();
+  } catch(err) {}</script>
+
+</body>
+</html>
