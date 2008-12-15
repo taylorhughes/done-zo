@@ -18,18 +18,20 @@ import logging
 
 ARCHIVED_LIST_NAME = '_archived'
 
-SORTABLE_LIST_COLUMNS = ('project_index', 'body', 'due_date', 'created_at', 'context')
+SORTABLE_LIST_COLUMNS = ('complete', 'project_index', 'body', 'due_date', 'created_at', 'context')
 
 #### VIEWS ####
 
 @never_cache
 def list_index(request, task_list_name=None, context_name=None, project_index=None):
   user = get_dnzo_user()
-    
+  if not user:
+    return access_error_redirect()
+  
   archived = (task_list_name == ARCHIVED_LIST_NAME)
   if not archived:
     task_list = get_task_list(user, task_list_name)
-    if not task_list or task_list.deleted:
+    if not task_list:
       return default_list_redirect(user)
   else:
     task_list = None
@@ -67,13 +69,21 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
     wheres.append('project_index=:project_index')
     params['project_index'] = view_project
 
-  order, direction = 'created_at', 'ASC'
+  default_order, default_direction = 'created_at', 'ASC'
+  
   if param('order', request.GET) in SORTABLE_LIST_COLUMNS:
     order = param('order', request.GET)
-  if param('descending', request.GET) == 'true':
-    direction = 'DESC'
+    direction = 'ASC'
+    if param('descending', request.GET) == 'true':
+      direction = 'DESC'
+    
+    order_by = '%s %s, %s %s' % (order, direction, default_order, default_direction)
   
-  gql = 'WHERE %s ORDER BY %s %s' % (' AND '.join(wheres), order, direction)
+  else:
+    order, direction = default_order, default_direction
+    order_by = '%s %s' % (order, direction)
+  
+  gql = 'WHERE %s ORDER BY %s' % (' AND '.join(wheres), order_by)
   tasks = Task.gql(gql, **params).fetch(50)
   
   # SHOW STATUS MESSAGE AND UNDO
@@ -109,6 +119,8 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
 @never_cache
 def find_projects(request):
   user = get_dnzo_user()
+  if not user:
+    return access_error_redirect()
   
   project_name = param('q', request.GET, '')
   projects = find_projects_by_name(user, project_name, 5)
@@ -121,6 +133,8 @@ def find_projects(request):
 @never_cache
 def purge_list(request, task_list_name):
   user = get_dnzo_user()
+  if not user:
+    return access_error_redirect()
   
   task_list = get_task_list(user, task_list_name)
   if not task_list:
@@ -146,6 +160,8 @@ def purge_list(request, task_list_name):
 @never_cache
 def delete_list(request, task_list_name):
   user = get_dnzo_user()
+  if not user:
+    return access_error_redirect()
   
   task_list = get_task_list(user, task_list_name)
   if not task_list:
@@ -166,6 +182,8 @@ def delete_list(request, task_list_name):
 @never_cache
 def add_list(request):
   user = get_dnzo_user()
+  if not user:
+    return access_error_redirect()
   
   new_name = param('name', request.POST, '')
   new_list = None
@@ -185,6 +203,8 @@ def add_list(request):
 @never_cache
 def undo(request, undo_id):
   user = get_dnzo_user()
+  if not user:
+    return access_error_redirect()
 
   task_list = None
   try:
@@ -208,6 +228,8 @@ def undo(request, undo_id):
 @never_cache
 def task(request, task_id=None):
   user = get_dnzo_user()
+  if not user:
+    return access_error_redirect()
   
   task_list = param('task_list',request.GET,None)
   if task_list:
@@ -232,14 +254,13 @@ def task(request, task_id=None):
   status = None
   undo = None
   
-  if force_complete or force_uncomplete or force_delete:
-    if force_complete or force_uncomplete:
-      task.complete = (not force_uncomplete)
-      task.put()
-      
-    elif force_delete:
-      status = "Task deleted successfully."
-      undo = delete_task(task)
+  if force_complete or force_uncomplete:
+    task.complete = (not force_uncomplete)
+    task.put()
+    
+  elif force_delete:
+    status = get_status_message(Statuses.TASK_DELETED)
+    undo = delete_task(task)
     
   elif request.method == "POST":
     update_task_with_params(task, request.POST)
@@ -265,6 +286,8 @@ def task(request, task_id=None):
 @never_cache
 def settings(request):
   user = get_dnzo_user()
+  if not user:
+    return access_error_redirect()
     
   if request.method == "POST":
     user.hide_project  = param('show_project',  request.POST, None) is None

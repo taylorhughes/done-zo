@@ -109,18 +109,22 @@ th {
     text-decoration: none;
     color: #999;
   }	  
-  th a:hover,	  
-  th a.sorted {
+  th a:hover
+  {
     background: #eee url(/images/graphics.gif) no-repeat 100000px 8px;
-  }
-    th a.sorted {
-      background-position: right 8px;
+  }  
+    th.sorted a {
+      background: #eee url(/images/graphics.gif) no-repeat right 8px;
+      color: #666;
     }
-    th a.sorted.descending {
+    th.sorted.descending a { 
       background-position: right -85px;
     }
-    th a.sorted {
-      color: #666;
+    th.sorted a:hover { 
+      background-position: right -85px;
+    }
+    th.sorted.descending a:hover {
+      background-position: right 8px;
     }
 
     
