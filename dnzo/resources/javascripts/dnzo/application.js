@@ -147,8 +147,14 @@ ModalDialog = Class.create({
     });
   },
   afterShown: function()
-  {
+  {    
     this.effecting = false;
+    
+    this.afterShownCallback();
+  },
+  afterShownCallback: function()
+  {
+    if (!this.isLoaded) { return; }
     
     if (this.options.afterShown)
     {
@@ -176,6 +182,8 @@ ModalDialog = Class.create({
     this.position();
     
     this.isLoaded = true;
+    
+    this.afterShownCallback();
   },
   
   hide: function()
