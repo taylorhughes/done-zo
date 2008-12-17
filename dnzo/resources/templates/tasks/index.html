@@ -5,7 +5,6 @@
 {% block page_title %}DNZO / {{ task_list.name|escape }}{% if filter_title %} / {{ filter_title|escape }}{% endif %}{% endblock %}
 
 {% block javascripts %}
-  {% javascript_tag dnzo/application %}
   {% javascript_tag dnzo/tasks %}
 {% endblock %}
 
@@ -35,7 +34,7 @@
   <tr>
     {% sorting_header "<img src=\"/images/checkmark.gif\" alt=\"checkmark\">" "complete" order direction "done" %}
     {% sorting_header "Project" "project_index" order direction "project" %}
-    {% sorting_header "Task" "body" order direction "body" %}
+    {% sorting_header "Task" "body" order direction "task" %}
     <th class="context"><span>Context</span></th>
     {% sorting_header "Due" "due_date" order direction "due" %}
   </tr>

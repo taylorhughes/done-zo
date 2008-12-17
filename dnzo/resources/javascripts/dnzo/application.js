@@ -167,7 +167,7 @@ ModalDialog = Class.create({
   {    
     this.effecting = false;
     
-    this.afterShownCallback();
+    this.afterShown();
   },
   
   afterShown: function()

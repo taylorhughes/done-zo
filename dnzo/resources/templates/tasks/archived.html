@@ -4,27 +4,27 @@
 
 {% block page_title %}DNZO / Archived Tasks{% endblock %}
 
-{% block javascripts %}
-  {% javascript_tag dnzo/application %}
-{% endblock %}
-
 {% block switcher %}
   {% include "tasks/switcher.html" %}
 {% endblock %}
 
 {% block header %}
-  {% if filter_title %}<a href="{% url tasks.views.list_index "_archived" %}">{% endif %}
+  {% if filter_title %}<a href="{% url tasks.views.archived_index %}">{% endif %}
   Archived Tasks{% if filter_title %}</a> / {{ filter_title|escape }}{% endif %}
 {% endblock %}
 
 {% block content %}
+<ul id="filter">
+  <li><a href="#">This week</a>
+</ul>
+
 <table cellspacing="0" cellpadding="0" id="tasks_list" class="archived">
   <tr>
-    <th class="list"><span>List</span></th>
-    {% sorting_header "Project"     "project_index"    order direction "project" %}
-    {% sorting_header "Task"        "body"       order direction "body" %}
-    <th><span>Context</span></th>
-    {% sorting_header "Due"         "due_date"   order direction "due" %}
+    <th class="list">   <span>List</span></th>
+    <th class="project"><span>Project</span></th>
+    <th class="task">   <span>Task</span></th>
+    <th class="context"><span>Context</span></th>
+    <th class="due">    <span>Due</span></th>
   </tr>
   {% for task in tasks %}
     {% include "tasks/tasks/archived_task.html" %}

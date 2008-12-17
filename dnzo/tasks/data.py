@@ -181,9 +181,12 @@ def delete_task(task):
   return undo
 
 def update_task_with_params(user, task, params):
-  task.complete = False
   if param('complete', params) == "true":
     task.complete = True
+    task.completed_at = datetime.utcnow()
+  else:
+    task.complete = False
+    task.completed_at = None
   
   task.body = param('body', params)
   

@@ -4,5 +4,5 @@
   <option value="{{ list.get_absolute_url }}"
           {% ifequal list.key task_list.key %} selected{% endifequal %}>{{ list.name|escape }}</option>
 {% endfor %}
-  <option value="{% url tasks.views.list_index "_archived" %}"{% if not task_list %} selected{% endif %}>Archived tasks</option>
+  <option value="{% url tasks.views.archived_index %}"{% if not task_list %} selected{% endif %}>Archived tasks</option>
 </select>

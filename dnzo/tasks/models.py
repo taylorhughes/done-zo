@@ -44,6 +44,7 @@ class Task(db.Model):
   created_at    = db.DateTimeProperty(auto_now_add=True)
   
   complete      = db.BooleanProperty(default=False)
+  completed_at  = db.DateTimeProperty()
   
   project_index = db.StringProperty()
   project       = db.StringProperty()

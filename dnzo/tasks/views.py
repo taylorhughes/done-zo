@@ -1,21 +1,12 @@
-from google.appengine.api.users import create_logout_url
-
-from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect
+from django.http import Http404
 from django.shortcuts import render_to_response
-from django.core.urlresolvers import reverse as reverse_url
 from django.views.decorators.cache import never_cache
 
-from tasks.models    import *
-from tasks.errors    import *
 from tasks.data      import *
-from tasks.redirects import *
+from tasks.models    import Task
+from tasks.redirects import default_list_redirect, list_redirect, access_error_redirect, referer_redirect
+from util.misc       import param, is_ajax, urlize
 from tasks.statusing import *
-from util.misc       import *
-
-import environment
-import logging
-
-ARCHIVED_LIST_NAME = '_archived'
 
 SORTABLE_LIST_COLUMNS = ('complete', 'project_index', 'body', 'due_date', 'created_at', 'context')
 
@@ -27,14 +18,10 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
   if not user:
     return access_error_redirect()
   
-  archived = (task_list_name == ARCHIVED_LIST_NAME)
-  if not archived:
-    task_list = get_task_list(user, task_list_name)
-    if not task_list:
-      return default_list_redirect(user)
-  else:
-    task_list = None
-      
+  task_list = get_task_list(user, task_list_name)
+  if not task_list:
+    return default_list_redirect(user)
+  
   # FILTER 
   filter_title = None
   view_project = None
@@ -52,14 +39,8 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
     view_context = context_name
     filter_title = "@%s" % context_name
 
-  if not archived:
-    template = 'tasks/index.html'
-    wheres = ['task_list=:task_list AND archived=:archived'] 
-    params = { 'task_list': task_list, 'archived': False }
-  else:
-    template = 'tasks/archived.html'
-    wheres = ['ANCESTOR IS :user AND archived=:archived AND deleted=:deleted'] 
-    params = { 'user': user, 'archived': True, 'deleted': False }
+  wheres = ['task_list=:task_list AND archived=:archived'] 
+  params = { 'task_list': task_list, 'archived': False }
 
   if view_context:
     wheres.append('contexts=:context')
@@ -98,7 +79,7 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
   new_task = Task(**new_task_attrs)
   new_task.editing = True
     
-  response = render_to_response(template, always_includes({
+  response = render_to_response('tasks/index.html', always_includes({
     'tasks': tasks,
     'task_list': task_list,
     'filter_title': filter_title,
@@ -106,7 +87,6 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
     'direction': direction,
     'status': status,
     'undo': undo,
-    'archived': archived,
     'new_tasks': [new_task]
   }, request, user))
   
@@ -114,6 +94,29 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
   reset_undo(response,undo)
   
   return response
+
+@never_cache
+def archived_index(request, task_list_name=None, context_name=None, project_index=None):
+  user = get_dnzo_user()
+  if not user:
+    return access_error_redirect()
+    
+  wheres = ['ANCESTOR IS :user AND archived=:archived AND deleted=:deleted'] 
+  params = { 'user': user, 'archived': True, 'deleted': False }
+
+  if True:
+    from datetime import datetime, timedelta
+    wheres.append('completed_at >= :start AND completed_at < :stop')
+    params['stop']  = datetime.utcnow()
+    params['start'] = datetime.utcnow() - timedelta(days=7)
+
+  gql = 'WHERE %s ORDER BY completed_at DESC' % ' AND '.join(wheres)
+  tasks = Task.gql(gql, **params)
+    
+  return render_to_response('tasks/archived.html', always_includes({
+    'tasks': tasks
+  }, request, user))
+
 
 @never_cache
 def find_projects(request):
@@ -268,7 +271,14 @@ def task(request, task_id=None):
   undo = None
   
   if force_complete or force_uncomplete:
-    task.complete = (not force_uncomplete)
+    if force_complete:
+      from datetime import datetime
+      task.complete = True
+      task.completed_at = datetime.utcnow()
+    if force_uncomplete: 
+      task.complete = False
+      task.completed_at = None
+      
     task.put()
     
   elif force_delete:
@@ -327,9 +337,11 @@ def transparent_settings(request):
       user.timezone_offset_mins = int(offset)
       user.put()
     except:
+      import logging
       logging.error("Couldn't update offset to %s" % offset)
     
   if is_ajax(request):
+    from django.http import HttpResponse
     return HttpResponse("OK")
   else:
     return referer_redirect(user, request)
@@ -340,6 +352,8 @@ def redirect(request, username=None):
   if user:
     return default_list_redirect(user)
   else:
+    from django.core.urlresolvers import reverse as reverse_url
+    from django.http import HttpResponseRedirect
     return HttpResponseRedirect(reverse_url('public.views.signup'))
 
 #### UTILITY METHODS ####
@@ -353,6 +367,9 @@ def always_includes(params=None, request=None, user=None):
   if user:
     params['task_lists']  = get_task_lists(user)
     params['user']        = user
+  
+  import environment
+  from google.appengine.api.users import create_logout_url
   
   params['is_production'] = environment.IS_PRODUCTION
   params['logout_url']    = create_logout_url('/')
