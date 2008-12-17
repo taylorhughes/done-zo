@@ -19,8 +19,8 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
     return access_error_redirect()
   
   task_list = get_task_list(user, task_list_name)
-  if not task_list:
-    return default_list_redirect(user)
+  if not task_list or task_list.deleted:
+    raise Http404
   
   # FILTER 
   filter_title = None
@@ -32,7 +32,7 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
       filter_title = view_project_name
       view_project = project_index
     else:
-      return default_list_redirect(user)
+      return list_redirect(user, task_list)
       
   view_context = None
   if context_name:

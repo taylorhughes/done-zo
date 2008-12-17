@@ -31,10 +31,10 @@ urlpatterns = patterns('',
   (list_pattern + r'at/(?P<context_name>[a-z_-]+)/$', 'tasks.views.list_index'),
   
   # archived list
-  (r'^l/_archived/', 'tasks.views.archived_index'),
+  (r'^l/_archived/$', 'tasks.views.archived_index'),
   
   #  /username/l/list_name
-  (list_pattern, 'tasks.views.list_index'),
+  (list_pattern + r'$', 'tasks.views.list_index'),
   
   
   (r'^redirect/$', 'tasks.views.redirect'),
