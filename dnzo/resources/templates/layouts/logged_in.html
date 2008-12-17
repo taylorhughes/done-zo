@@ -18,7 +18,7 @@
   <div id="header">
     <p id="branding-lists">
       <span>DNZO</span>&nbsp;
-      {% block switcher %}{% endblock %}
+      {% include "tasks/switcher.html" %}
     </p>
     <p id="user">
       <strong>{{ user.user.nickname|escape }}</strong> -
@@ -30,11 +30,9 @@
   {% include "tasks/status.html" %}
   
   <div id="body">
-    
+    {% block preheader %}{% endblock %}
     <h1>{% block header %}{% endblock %}</h1>
-    
     {% block content %}{% endblock %}
-    
   </div>
   
   <div id="footer">

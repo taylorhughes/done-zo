@@ -104,17 +104,23 @@ def archived_index(request, task_list_name=None, context_name=None, project_inde
   wheres = ['ANCESTOR IS :user AND archived=:archived AND deleted=:deleted'] 
   params = { 'user': user, 'archived': True, 'deleted': False }
 
-  if True:
-    from datetime import datetime, timedelta
-    wheres.append('completed_at >= :start AND completed_at < :stop')
-    params['stop']  = datetime.utcnow()
-    params['start'] = datetime.utcnow() - timedelta(days=7)
+  from datetime import datetime, timedelta
+  stop  = datetime.utcnow()
+  start = datetime.utcnow() - timedelta(days=7)
+  filter_title = "This week"
+  
+  wheres.append('completed_at >= :start AND completed_at < :stop')
+  params['stop']  = stop
+  params['start'] = start
 
   gql = 'WHERE %s ORDER BY completed_at DESC' % ' AND '.join(wheres)
   tasks = Task.gql(gql, **params)
     
   return render_to_response('tasks/archived.html', always_includes({
-    'tasks': tasks
+    'tasks': tasks,
+    'stop':  stop,
+    'start': start,
+    'filter_title': filter_title
   }, request, user))
 
 

@@ -4,20 +4,28 @@
 
 {% block page_title %}DNZO / Archived Tasks{% endblock %}
 
-{% block switcher %}
-  {% include "tasks/switcher.html" %}
+{% block header %}
+  Archived Tasks{% if filter_title %} / {{ filter_title }}{% endif %}
 {% endblock %}
 
-{% block header %}
-  {% if filter_title %}<a href="{% url tasks.views.archived_index %}">{% endif %}
-  Archived Tasks{% if filter_title %}</a> / {{ filter_title|escape }}{% endif %}
+{% block preheader %}
+<div id="filter">
+  <p>
+    Show archived tasks from
+    <a href="?t=this_week">this week</a>,
+    <a href="?t=last_week">last week</a>,
+    <a href="?t=today">today</a>,
+    <a href="?t=yesterday">yesterday</a>, <span>or</span>
+  </p>
+  <form>
+    <input type="text" value="{{ start|date:"n/j/y" }}" class="date"> to
+    <input type="text" value="{{ stop|date:"n/j/y" }}" class="date">
+    <input type="submit" value="go">
+  </form>
+</div>
 {% endblock %}
 
 {% block content %}
-<ul id="filter">
-  <li><a href="#">This week</a>
-</ul>
-
 <table cellspacing="0" cellpadding="0" id="tasks_list" class="archived">
   <tr>
     <th class="list">   <span>List</span></th>

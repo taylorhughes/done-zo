@@ -8,10 +8,6 @@
   {% javascript_tag dnzo/tasks %}
 {% endblock %}
 
-{% block switcher %}
-  {% include "tasks/switcher.html" %}
-{% endblock %}
-
 {% block header %}
   {% if filter_title %}<a href="{% url tasks.views.list_index task_list.short_name %}">{% endif %}
   {{ task_list.name|escape }}{% if filter_title %}</a> / {{ filter_title|escape }}{% endif %}
