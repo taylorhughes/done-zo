@@ -16,7 +16,7 @@ def short_date(my_date):
     return ""
   
   format = "b j"
-  if my_date.year != datetime.now().year:
+  if my_date.year != datetime.utcnow().year:
     format += " y"
   # utilize the default django date filter
   return date(my_date, format)

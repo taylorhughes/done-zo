@@ -12,6 +12,10 @@ class TasksUser(db.Model):
   hide_contexts = db.BooleanProperty(default=False)
   hide_due_date = db.BooleanProperty(default=False)
   
+  # Timezone offset in minutes from UTC/GMT
+  # CST in the winter = 360, aka UTC/GMT -600
+  timezone_offset_mins = db.IntegerProperty(default=0)
+  
   # Counts
   tasks_count   = db.IntegerProperty(default=0)
   lists_count   = db.IntegerProperty(default=0)

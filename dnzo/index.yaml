@@ -269,7 +269,7 @@ indexes:
     direction: desc
   - name: created_at
 
-# Used once in query history.
+# Unused in query history -- copied from input.
 - kind: Task
   ancestor: yes
   properties:

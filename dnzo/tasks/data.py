@@ -180,7 +180,7 @@ def delete_task(task):
 
   return undo
 
-def update_task_with_params(task, params):
+def update_task_with_params(user, task, params):
   task.complete = False
   if param('complete', params) == "true":
     task.complete = True
@@ -206,7 +206,7 @@ def update_task_with_params(task, params):
   
   raw_due_date = param('due_date', params, None)
   if raw_due_date:
-    task.due_date = parse_date(raw_due_date)
+    task.due_date = parse_date(raw_due_date, user.timezone_offset_mins)
     
   
 
@@ -227,7 +227,7 @@ def save_project(user, project_name):
   else:
     for index in project.indexes:
       # TODO: update in a transaction?
-      index.last_used_at = datetime.now()
+      index.last_used_at = datetime.utcnow()
       index.put()
     
   return project
@@ -297,7 +297,7 @@ def save_context(user, context_name):
       name=context_name,
       key_name=Context.name_to_key_name(context_name)
     )
-  context.last_used_at = datetime.now()
+  context.last_used_at = datetime.utcnow()
   context.put()
   
 def find_contexts_by_name(user, context_name, limit=5):

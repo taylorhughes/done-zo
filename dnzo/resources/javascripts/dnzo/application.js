@@ -8,15 +8,32 @@ var DNZO = {
     $$('a.dialog').each(function(dialogLink) {
       new ModalDialog(dialogLink);
     });
+    
+    DNZO.verifyTimezone();
   },
   
   onSwitchList: function(event)
   {
     document.location.href = $F(event.element());
-  }  
+  },
+  
+  verifyTimezone: function()
+  {
+    if (typeof TimezoneInfo == 'undefined' || TimezoneInfo.updateUrl.length == 0) { return; }
+    
+    var currentOffset = (new Date()).getTimezoneOffset();
+    if (TimezoneInfo.offset != currentOffset)
+    {
+      new Ajax.Request(TimezoneInfo.updateUrl, {
+        parameters: { offset: currentOffset },
+        method: 'post'
+      });
+    }
+  }
 };
 
 Event.observe(window,'load',DNZO.load);
+
 
 /*
  *  ModalDialog
@@ -143,16 +160,17 @@ ModalDialog = Class.create({
       new Effect.Appear(this.container, { sync: true })
     ], {
       duration: 0.25,
-      afterFinish: this.afterShown.bind(this)
+      afterFinish: this.doShow.bind(this)
     });
   },
-  afterShown: function()
+  doShow: function()
   {    
     this.effecting = false;
     
     this.afterShownCallback();
   },
-  afterShownCallback: function()
+  
+  afterShown: function()
   {
     if (!this.isLoaded) { return; }
     
@@ -183,7 +201,7 @@ ModalDialog = Class.create({
     
     this.isLoaded = true;
     
-    this.afterShownCallback();
+    this.afterShown();
   },
   
   hide: function()

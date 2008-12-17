@@ -6,6 +6,12 @@
 	<title>{% block page_title %}{% endblock %}</title>
 	
   {% css_tag style %}
+  <script type="text/javascript">
+    var TimezoneInfo = { 
+      offset:    parseInt("{{ user.timezone_offset_mins }}") || 0,
+      updateUrl: "{% url tasks.views.transparent_settings %}"
+    };
+  </script>
 </head>
 <body>
   
@@ -34,7 +40,7 @@
   <div id="footer">
   {% block footer %}{% endblock %}
   </div>  <!-- end DIV footer -->
-  
+
   {% combined_javascript_tag ext/combined ext/prototype ext/scriptaculous ext/effects ext/controls %}
   {% block javascripts %}{% endblock %}
 </body>

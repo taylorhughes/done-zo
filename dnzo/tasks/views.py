@@ -11,7 +11,6 @@ from tasks.data      import *
 from tasks.redirects import *
 from tasks.statusing import *
 from util.misc       import *
-from util.parsing    import parse_date
 
 import environment
 import logging
@@ -277,7 +276,7 @@ def task(request, task_id=None):
     undo = delete_task(task)
     
   elif request.method == "POST":
-    update_task_with_params(task, request.POST)
+    update_task_with_params(user, task, request.POST)
     task.task_list = task_list
     save_task(task)
   
@@ -315,6 +314,25 @@ def settings(request):
     })
 
   return referer_redirect(user, request)
+
+@never_cache
+def transparent_settings(request):
+  user = get_dnzo_user()
+  if not user:
+    return access_error_redirect()
+    
+  if request.method == "POST":
+    offset = param('offset', request.POST, None)
+    try:
+      user.timezone_offset_mins = int(offset)
+      user.put()
+    except:
+      logging.error("Couldn't update offset to %s" % offset)
+    
+  if is_ajax(request):
+    return HttpResponse("OK")
+  else:
+    return referer_redirect(user, request)
 
 @never_cache
 def redirect(request, username=None):
