@@ -5,6 +5,7 @@
 #
 
 from google.appengine.api.users import get_current_user
+from google.appengine.api import memcache
 
 from tasks.errors import *
 from tasks.models import *
@@ -44,6 +45,9 @@ def get_dnzo_user():
 def get_task_list(user, name):
   return TaskList.get_by_key_name(TaskList.name_to_key_name(name), parent=user)
 
+def user_lists_key(user):
+  return "%s-lists" % str(user.key())
+
 def add_task_list(user, list_name):
   def txn(user, list_name):
     short_name = get_new_list_name(user, list_name)
@@ -57,6 +61,8 @@ def add_task_list(user, list_name):
     return short_name
     
   short_name = db.run_in_transaction(txn, user, list_name)
+  
+  memcache.delete(key=user_lists_key(user))
   
   return get_task_list(user, short_name)
 
@@ -89,10 +95,12 @@ def delete_task_list(user, task_list):
   deleted_tasks = Task.gql("WHERE task_list=:list AND archived=:archived AND deleted=:deleted",
                            list=task_list, archived=False, deleted=False).fetch(100)
   undo = db.run_in_transaction(txn, task_list, deleted_tasks)
-  
+
+  memcache.delete(key=user_lists_key(user))
+
   return undo
   
-def undelete_task_list(task_list):
+def undelete_task_list(user, task_list):
   def txn(task_list, deleted_tasks):
     task_list = db.get(task_list.key())
     if not task_list.deleted:
@@ -112,13 +120,20 @@ def undelete_task_list(task_list):
                            list=task_list, archived=False, deleted=False).fetch(100)
 
   db.run_in_transaction(txn, task_list, deleted_tasks)
+  memcache.delete(key=user_lists_key(user))
   
 def get_task_lists(user, limit=10):
-  query = TaskList.gql(
-    'WHERE ANCESTOR IS :user AND deleted=:deleted ORDER BY name ASC', 
-    user=user, deleted=False
-  )
-  return query.fetch(limit)
+  lists_key = user_lists_key(user)
+  task_lists = memcache.get(key=lists_key)
+  if not task_lists:
+    query = TaskList.gql(
+      'WHERE ANCESTOR IS :user AND deleted=:deleted ORDER BY name ASC', 
+      user=user, deleted=False
+    )
+    task_lists = query.fetch(limit)
+    memcache.set(key=lists_key, value=task_lists)
+    
+  return task_lists
   
 def get_new_list_name(user, new_name):
   new_name = urlize(new_name)
@@ -338,7 +353,7 @@ def find_contexts_by_name(user, context_name, limit=5):
   
 ### UNDOS ###
 
-def do_undo(undo):
+def do_undo(user, undo):
   for task in undo.find_deleted():
     undelete_task(task, undo.task_list)
     
@@ -347,7 +362,7 @@ def do_undo(undo):
     task.put()
     
   if undo.list_deleted:
-    undelete_task_list(undo.task_list)
+    undelete_task_list(user, undo.task_list)
     
   undo.delete()
 

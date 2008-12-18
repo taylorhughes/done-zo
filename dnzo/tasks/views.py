@@ -235,7 +235,7 @@ def undo(request, undo_id):
     if undo:
       if not users_equal(undo.parent(), user):
         return access_error_redirect()
-      do_undo(undo)
+      do_undo(user, undo)
       task_list = undo.task_list
       
   except RuntimeError, (errno, strerror):
