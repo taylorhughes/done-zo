@@ -38,7 +38,15 @@ def users_equal(a,b):
   
 def get_dnzo_user():
   google_user = get_current_user()
-  return TasksUser.gql('WHERE user=:user', user=google_user).get()
+  if not google_user:
+    return None
+    
+  dnzo_user = memcache.get(key=google_user.email())
+  if not dnzo_user:
+    dnzo_user = TasksUser.gql('WHERE user=:user', user=google_user).get()
+    memcache.set(key=google_user.email(), value=dnzo_user)
+
+  return dnzo_user
   
 ### TASK LISTS ###
 
