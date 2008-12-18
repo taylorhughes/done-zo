@@ -323,6 +323,7 @@ def settings(request):
     user.hide_contexts = param('show_contexts', request.POST, None) is None
     user.hide_due_date = param('show_due_date', request.POST, None) is None
     user.put()
+    set_user_memcache(user)
     
   elif is_ajax(request):
     return render_to_response('tasks/settings.html', {
@@ -342,6 +343,7 @@ def transparent_settings(request):
     try:
       user.timezone_offset_mins = int(offset)
       user.put()
+      set_user_memcache(user)
     except:
       import logging
       logging.error("Couldn't update offset to %s" % offset)

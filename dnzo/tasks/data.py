@@ -55,6 +55,12 @@ def get_task_list(user, name):
 
 def user_lists_key(user):
   return "%s-lists" % str(user.key())
+def clear_lists_memcache(user):
+  memcache.delete(key=user_lists_key(user))
+def clear_user_memcache(user):
+  memcache.delete(key=user.user.email())
+def set_user_memcache(user):
+  memcache.set(key=user.user.email(), value=user)
 
 def add_task_list(user, list_name):
   def txn(user, list_name):
@@ -64,13 +70,18 @@ def add_task_list(user, list_name):
       short_name=short_name,
       name=list_name)
     new_list.put()
+    
+    user = db.get(user.key())
     user.lists_count += 1
     user.put()
+    
+    set_user_memcache(user)
+    
     return short_name
     
   short_name = db.run_in_transaction(txn, user, list_name)
   
-  memcache.delete(key=user_lists_key(user))
+  clear_lists_memcache(user)
   
   return get_task_list(user, short_name)
 
@@ -96,6 +107,8 @@ def delete_task_list(user, task_list):
     user.lists_count -= 1
     user.put()
     
+    set_user_memcache(user)
+    
     return undo
     
   # TODO: Remove possible data inconsistency if the count between 
@@ -104,7 +117,7 @@ def delete_task_list(user, task_list):
                            list=task_list, archived=False, deleted=False).fetch(100)
   undo = db.run_in_transaction(txn, task_list, deleted_tasks)
 
-  memcache.delete(key=user_lists_key(user))
+  clear_lists_memcache(user)
 
   return undo
   
@@ -121,6 +134,8 @@ def undelete_task_list(user, task_list):
     user.lists_count += 1
     user.tasks_count += len(deleted_tasks)
     user.put()
+    
+    set_user_memcache(user)
 
   # TODO: Remove possible data inconsistency if the count between 
   # when we execute this query and when the count is changed changes.
@@ -128,7 +143,8 @@ def undelete_task_list(user, task_list):
                            list=task_list, archived=False, deleted=False).fetch(100)
 
   db.run_in_transaction(txn, task_list, deleted_tasks)
-  memcache.delete(key=user_lists_key(user))
+  
+  clear_lists_memcache(user)
   
 def get_task_lists(user, limit=10):
   lists_key = user_lists_key(user)
@@ -183,6 +199,8 @@ def add_task(task):
     user.tasks_count += 1
     user.put()
     
+    set_user_memcache(user)
+    
   db.run_in_transaction(txn, task)
 
 def delete_task(user, task):
@@ -200,6 +218,8 @@ def delete_task(user, task):
     user.put()
 
     undo.put()
+    
+    set_user_memcache(user)
 
   undo = Undo(task_list=task.task_list, parent=user)
   undo.deleted_tasks.append(task.key())
@@ -222,6 +242,8 @@ def undelete_task(task, task_list):
     user = task.parent()
     user.tasks_count += 1
     user.put()
+    
+    set_user_memcache(user)
     
   db.run_in_transaction(txn, task, task_list)
 
