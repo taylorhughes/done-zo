@@ -192,7 +192,7 @@ def delete_list(request, task_list_name):
   
   undo = None
   if request.method == "POST" and len(get_task_lists(user)) > 1:
-    undo = delete_task_list(task_list)
+    undo = delete_task_list(user, task_list)
   
   redirect = default_list_redirect(user)
   
@@ -289,12 +289,12 @@ def task(request, task_id=None):
     
   elif force_delete:
     status = get_status_message(Statuses.TASK_DELETED)
-    undo = delete_task(task)
+    undo = delete_task(user,task)
     
   elif request.method == "POST":
     update_task_with_params(user, task, request.POST)
     task.task_list = task_list
-    save_task(task)
+    save_task(user, task)
   
   
   if undo:

@@ -39,9 +39,6 @@ def get_dnzo_user():
   google_user = get_current_user()
   return TasksUser.gql('WHERE user=:user', user=google_user).get()
   
-def username_available(name):
-  return not get_dnzo_user(name=name)
-
 ### TASK LISTS ###
 
 def get_task_list(user, name):
@@ -63,8 +60,8 @@ def add_task_list(user, list_name):
   
   return get_task_list(user, short_name)
 
-def delete_task_list(task_list):
-  def txn(task_list, deleted_tasks, undo):
+def delete_task_list(user, task_list):
+  def txn(task_list, deleted_tasks):
     # Make sure we do not double count
     task_list = db.get(task_list.key())
     if task_list.deleted:
@@ -73,31 +70,30 @@ def delete_task_list(task_list):
     task_list.deleted = True
     task_list.put()
     
-    for task in deleted_tasks:
-      task = db.get(task.key())
-      if not task.deleted:
-        task.deleted = True
-        task.put()
-        undo.deleted_tasks.append(task.key())
-    
     user = task_list.parent()
-    user.tasks_count -= len(undo.deleted_tasks)
+    undo = Undo(task_list=task_list, parent=user)
+    undo.list_deleted = True
+    
+    for task in deleted_tasks:
+      undo.deleted_tasks.append(task.key())
+    undo.put()
+    
+    user.tasks_count -= len(deleted_tasks)
     user.lists_count -= 1
     user.put()
     
-    undo.put()
+    return undo
     
-  deleted_tasks = Task.gql("WHERE task_list=:list AND archived=:archived",
-                           list=task_list, archived=False).fetch(100)
-  undo = Undo(task_list=task_list, parent=task_list.parent())
-  undo.list_deleted = True
-  
-  db.run_in_transaction(txn, task_list, deleted_tasks, undo)
+  # TODO: Remove possible data inconsistency if the count between 
+  # when we execute this query and when the count is changed changes.
+  deleted_tasks = Task.gql("WHERE task_list=:list AND archived=:archived AND deleted=:deleted",
+                           list=task_list, archived=False, deleted=False).fetch(100)
+  undo = db.run_in_transaction(txn, task_list, deleted_tasks)
   
   return undo
   
 def undelete_task_list(task_list):
-  def txn(task_list):
+  def txn(task_list, deleted_tasks):
     task_list = db.get(task_list.key())
     if not task_list.deleted:
       return
@@ -107,9 +103,15 @@ def undelete_task_list(task_list):
     
     user = task_list.parent()
     user.lists_count += 1
+    user.tasks_count += len(deleted_tasks)
     user.put()
 
-  db.run_in_transaction(txn, task_list)
+  # TODO: Remove possible data inconsistency if the count between 
+  # when we execute this query and when the count is changed changes.
+  deleted_tasks = Task.gql("WHERE task_list=:list AND archived=:archived AND deleted=:deleted",
+                           list=task_list, archived=False, deleted=False).fetch(100)
+
+  db.run_in_transaction(txn, task_list, deleted_tasks)
   
 def get_task_lists(user, limit=10):
   query = TaskList.gql(
@@ -136,33 +138,36 @@ def get_completed_tasks(task_list, limit=100):
   
 ### TASKS ###
 
-def save_task(task):
+def save_task(user,task):
   if not task.is_saved():
-    save_uncounted_task(task)
+    add_task(task)
   else:
     task.put()
   
   if task.project_index:
-    save_project(task.parent(), task.project)
+    save_project(user, task.project)
   if len(task.contexts) > 0:
-    save_contexts(task.parent(), task.contexts)
+    save_contexts(user, task.contexts)
   
-def undelete_task(task):
-  task.deleted = False
-  save_uncounted_task(task)
-  
-def save_uncounted_task(task):
+def add_task(task):
   def txn(task):
+    if task.is_saved():
+      return
+    
     task.put()
     
     user = task.parent()
     user.tasks_count += 1
-    user.save()
+    user.put()
     
   db.run_in_transaction(txn, task)
 
-def delete_task(task):
+def delete_task(user, task):
   def txn(task, undo):
+    task = db.get(task.key())
+    if task.deleted:
+      return
+      
     task.deleted = True
     task.task_list = None
     task.put()
@@ -173,12 +178,29 @@ def delete_task(task):
 
     undo.put()
 
-  undo = Undo(task_list=task.task_list, parent=task.parent())
+  undo = Undo(task_list=task.task_list, parent=user)
   undo.deleted_tasks.append(task.key())
       
   db.run_in_transaction(txn, task, undo)
 
   return undo
+
+def undelete_task(task, task_list):
+  def txn(task, task_list):
+    task = db.get(task.key())
+    was_deleted = task.deleted
+    task.deleted = False
+    task.task_list = task_list
+    task.put()
+    
+    if not was_deleted:
+      return
+    
+    user = task.parent()
+    user.tasks_count += 1
+    user.put()
+    
+  db.run_in_transaction(txn, task, task_list)
 
 def update_task_with_params(user, task, params):
   if param('complete', params) == "true":
@@ -318,8 +340,7 @@ def find_contexts_by_name(user, context_name, limit=5):
 
 def do_undo(undo):
   for task in undo.find_deleted():
-    task.task_list = undo.task_list
-    undelete_task(task)
+    undelete_task(task, undo.task_list)
     
   for task in undo.find_archived():
     task.archived = False

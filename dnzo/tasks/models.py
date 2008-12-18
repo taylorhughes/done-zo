@@ -124,7 +124,6 @@ class Undo(db.Model):
   @permalink
   def get_absolute_url(self):
     return ('tasks.views.undo', None, {
-      'username': self.parent().short_name,
       'undo_id': self.key().id()
     })
 
