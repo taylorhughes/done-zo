@@ -25,6 +25,16 @@ import re
 #
 MAX_INDEX_LENGTH = 50
 
+### MEMCACHING ###
+
+def user_lists_key(user):
+  return "%s-lists" % str(user.key())
+def clear_lists_memcache(user):
+  memcache.delete(key=user_lists_key(user))
+  
+def set_user_memcache(user):
+  memcache.set(key=user.user.email(), value=user)
+  
 ### USERS ###
 
 def users_equal(a,b):
@@ -48,19 +58,14 @@ def get_dnzo_user():
 
   return dnzo_user
   
+def save_user(user):
+  user.put()
+  set_user_memcache(user)
+  
 ### TASK LISTS ###
 
 def get_task_list(user, name):
   return TaskList.get_by_key_name(TaskList.name_to_key_name(name), parent=user)
-
-def user_lists_key(user):
-  return "%s-lists" % str(user.key())
-def clear_lists_memcache(user):
-  memcache.delete(key=user_lists_key(user))
-def clear_user_memcache(user):
-  memcache.delete(key=user.user.email())
-def set_user_memcache(user):
-  memcache.set(key=user.user.email(), value=user)
 
 def add_task_list(user, list_name):
   def txn(user, list_name):
@@ -73,9 +78,8 @@ def add_task_list(user, list_name):
     
     user = db.get(user.key())
     user.lists_count += 1
-    user.put()
-    
-    set_user_memcache(user)
+
+    save_user(user)
     
     return short_name
     
@@ -105,9 +109,8 @@ def delete_task_list(user, task_list):
     
     user.tasks_count -= len(deleted_tasks)
     user.lists_count -= 1
-    user.put()
-    
-    set_user_memcache(user)
+
+    save_user(user)
     
     return undo
     
@@ -133,9 +136,8 @@ def undelete_task_list(user, task_list):
     user = task_list.parent()
     user.lists_count += 1
     user.tasks_count += len(deleted_tasks)
-    user.put()
-    
-    set_user_memcache(user)
+
+    save_user(user)
 
   # TODO: Remove possible data inconsistency if the count between 
   # when we execute this query and when the count is changed changes.
@@ -197,9 +199,8 @@ def add_task(task):
     
     user = task.parent()
     user.tasks_count += 1
-    user.put()
-    
-    set_user_memcache(user)
+
+    save_user(user)
     
   db.run_in_transaction(txn, task)
 
@@ -215,11 +216,10 @@ def delete_task(user, task):
     
     user = task.parent()
     user.tasks_count -= 1
-    user.put()
+
+    save_user(user)
 
     undo.put()
-    
-    set_user_memcache(user)
 
   undo = Undo(task_list=task.task_list, parent=user)
   undo.deleted_tasks.append(task.key())
@@ -241,9 +241,8 @@ def undelete_task(task, task_list):
     
     user = task.parent()
     user.tasks_count += 1
-    user.put()
-    
-    set_user_memcache(user)
+
+    save_user(user)
     
   db.run_in_transaction(txn, task, task_list)
 
@@ -255,10 +254,10 @@ def update_task_with_params(user, task, params):
     task.complete = False
     task.completed_at = None
   
-  task.body = param('body', params)
+  task.body = param('body', params, '')
   
-  raw_project = param('project',params,None)
-  if raw_project:
+  raw_project = param('project', params, None)
+  if raw_project is not None:
     raw_project = raw_project.strip()
     if len(raw_project) > 0:
       task.project       = raw_project
@@ -267,12 +266,15 @@ def update_task_with_params(user, task, params):
       task.project = None
       task.project_index = None
   
-  raw_contexts = param('contexts', params,None)
-  if raw_contexts:
+  raw_contexts = param('contexts', params, None)
+  if raw_contexts is not None:
     task.contexts = []
     raw_contexts = re.findall(r'[A-Za-z_-]+', raw_contexts)
     for raw_context in raw_contexts:
       task.contexts.append(urlize(raw_context))
+  else:
+    import logging
+    logging.info("NO CONTEXTS %s" % raw_contexts)
   
   raw_due_date = param('due_date', params, None)
   if raw_due_date:
