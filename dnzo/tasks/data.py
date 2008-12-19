@@ -148,7 +148,7 @@ def undelete_task_list(user, task_list):
   
   clear_lists_memcache(user)
   
-def get_task_lists(user, limit=10):
+def get_task_lists(user):
   lists_key = user_lists_key(user)
   task_lists = memcache.get(key=lists_key)
   if not task_lists:
@@ -156,7 +156,7 @@ def get_task_lists(user, limit=10):
       'WHERE ANCESTOR IS :user AND deleted=:deleted ORDER BY name ASC', 
       user=user, deleted=False
     )
-    task_lists = query.fetch(limit)
+    task_lists = map(lambda row: row, query)
     memcache.set(key=lists_key, value=task_lists)
     
   return task_lists

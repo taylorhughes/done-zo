@@ -12,9 +12,9 @@ def access_error_redirect():
 
 def default_list_redirect(user):
   '''Redirect a user to his defalt task list.'''
-  default_list = get_task_lists(user,1)
-  if default_list and len(default_list) > 0:
-    return list_redirect(user, default_list[0])
+  lists = get_task_lists(user)
+  if lists and len(lists) > 0:
+    return list_redirect(user, lists[0])
   else:
     logging.error("Somehow this user does not have any task lists.")
     return HttpResponseRedirect("/")
