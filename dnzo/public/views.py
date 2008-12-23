@@ -1,23 +1,12 @@
 from google.appengine.api.users import create_logout_url, get_current_user, is_current_user_admin
 
-from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect
 from django.shortcuts import render_to_response
-from django.core.urlresolvers import reverse as reverse_url
 
-from tasks.models    import *
-from tasks.data      import *
-from tasks.redirects import *
-from util.misc       import *
+from tasks.redirects import default_list_redirect
 
-from public.data     import *
-
-import environment
-import logging
-import datetime
-import re
+from data.users import get_dnzo_user
 
 DEFAULT_LIST_NAME = 'Tasks'
-MINIMUM_USER_URL_LENGTH = 1
 
 def welcome(request):
   dnzo_user = get_dnzo_user()
@@ -50,16 +39,22 @@ def signup(request):
   if current_user:
     return default_list_redirect(current_user)
   
+  from data.misc import get_invitation_by_address
+  from data.task_lists import add_task_list
+  
   current_user = get_current_user()
   invitation = get_invitation_by_address(current_user.email())
   if not invitation and not is_current_user_admin():
+    from django.core.urlresolvers import reverse as reverse_url
+    from django.http import HttpResponseRedirect
     return HttpResponseRedirect(reverse_url('public.views.closed'))
 
   new_user = TasksUser(user=current_user)
   new_user.put()
   
   if invitation:
-    invitation.registered_at = datetime.datetime.now()
+    from datetime import datetime
+    invitation.registered_at = datetime.now()
     invitation.put()
   
   # Create a default new list for this user

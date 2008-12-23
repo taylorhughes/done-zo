@@ -1,22 +1,16 @@
 from google.appengine.api.users import create_logout_url, get_current_user, is_current_user_admin
 
-from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect
 from django.shortcuts import render_to_response
-from django.core.urlresolvers import reverse as reverse_url
 
-from public.models import *
-from public.data   import *
-from util.misc     import *
-
-import environment
-import logging
-import datetime
-import re
+from data.models import Invitation
+from data.misc import get_invitation_by_address
+from util.misc import param
   
 def add_invitation(request):
   invitations = []
   
   if request.method == "POST":
+    import re
     current_user = get_current_user()
     addresses = param('addresses', request.POST, '')
     addresses = re.split(r'\s+',addresses)

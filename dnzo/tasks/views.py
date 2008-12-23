@@ -2,11 +2,14 @@ from django.http import Http404
 from django.shortcuts import render_to_response
 from django.views.decorators.cache import never_cache
 
-from tasks.data      import *
-from tasks.models    import Task
+from data.models     import Task
+from data.users      import get_dnzo_user
+from data.task_lists import get_task_list
+
 from tasks.redirects import default_list_redirect, list_redirect, access_error_redirect, referer_redirect
-from util.misc       import param, is_ajax, urlize
 from tasks.statusing import *
+
+from util.misc       import param, is_ajax, urlize
 
 SORTABLE_LIST_COLUMNS = ('complete', 'project_index', 'body', 'due_date', 'created_at', 'context')
 
@@ -129,6 +132,8 @@ def find_projects(request):
   user = get_dnzo_user()
   if not user:
     return access_error_redirect()
+    
+  from data.misc import find_projects_by_name
   
   project_name = param('q', request.GET, '')
   projects = find_projects_by_name(user, project_name, 5)
@@ -143,6 +148,8 @@ def find_contexts(request):
   user = get_dnzo_user()
   if not user:
     return access_error_redirect()
+  
+  from data.misc import find_contexts_by_name
   
   context_name = param('q', request.GET, '')
   contexts = find_contexts_by_name(user, context_name, 5)
@@ -162,15 +169,12 @@ def purge_list(request, task_list_name):
   task_list = get_task_list(user, task_list_name)
   if not task_list:
     raise Http404
+    
+  from data.task_lists import archive_tasks
   
   undo = None
   if request.method == "POST":
-    undo = Undo(task_list=task_list, parent=user)
-    for task in get_completed_tasks(task_list):
-      task.archived = True
-      task.put()
-      undo.archived_tasks.append(task.key())
-    undo.put()
+    undo = archive_tasks(task_list)
   
   redirect = referer_redirect(user,request)
   
@@ -190,6 +194,8 @@ def delete_list(request, task_list_name):
   if not task_list:
     raise Http404
   
+  from data.task_lists import delete_task_list
+  
   undo = None
   if request.method == "POST" and len(get_task_lists(user)) > 1:
     undo = delete_task_list(user, task_list)
@@ -207,6 +213,8 @@ def add_list(request):
   user = get_dnzo_user()
   if not user:
     return access_error_redirect()
+  
+  from data.task_lists import add_task_list
   
   new_name = param('name', request.POST, '')
   new_list = None
@@ -227,6 +235,9 @@ def undo(request, undo_id):
   user = get_dnzo_user()
   if not user:
     return access_error_redirect()
+
+  from data.misc import do_undo
+  from data.users import users_equal
 
   task_list = None
   try:
@@ -268,10 +279,11 @@ def task(request, task_id=None):
   else:
     task = Task(parent=user, body='')
     
+  from data.tasks import update_task_with_params, save_task
+    
   force_complete   = param('force_complete', request.POST, None)
   force_uncomplete = param('force_uncomplete', request.POST, None)
   force_delete     = param('delete', request.GET, None)
-  
   
   status = None
   undo = None
@@ -285,9 +297,10 @@ def task(request, task_id=None):
       task.complete = False
       task.completed_at = None
       
-    task.put()
+    save_task(user, task)
     
   elif force_delete:
+    from data.tasks import delete_tasks
     status = get_status_message(Statuses.TASK_DELETED)
     undo = delete_task(user,task)
     
@@ -295,7 +308,6 @@ def task(request, task_id=None):
     update_task_with_params(user, task, request.POST)
     task.task_list = task_list
     save_task(user, task)
-  
   
   if undo:
     undo = undo.key().id()
@@ -319,6 +331,8 @@ def settings(request):
     return access_error_redirect()
     
   if request.method == "POST":
+    from data.users import save_user
+    
     user.hide_project  = param('show_project',  request.POST, None) is None
     user.hide_contexts = param('show_contexts', request.POST, None) is None
     user.hide_due_date = param('show_due_date', request.POST, None) is None
@@ -339,6 +353,8 @@ def transparent_settings(request):
     return access_error_redirect()
     
   if request.method == "POST":
+    from data.users import save_user
+    
     offset = param('offset', request.POST, None)
     try:
       user.timezone_offset_mins = int(offset)
@@ -346,7 +362,7 @@ def transparent_settings(request):
       
     except:
       import logging
-      logging.error("Couldn't update offset to %s" % offset)
+      logging.error("Couldn't update timezone offset to %s" % offset)
     
   if is_ajax(request):
     from django.http import HttpResponse

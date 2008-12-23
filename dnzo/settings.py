@@ -28,20 +28,7 @@ SITE_ID = 1
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
-USE_I18N = True
-
-# Absolute path to the directory that holds media.
-# Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = ''
-
-# URL that handles the media served from MEDIA_ROOT.
-# Example: "http://media.lawrence.com"
-MEDIA_URL = ''
-
-# URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
-# trailing slash.
-# Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/media/'
+USE_I18N = False
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = '1u#s89y*!8809d&ogmw^c@*9sz+$8_rlxfmk-s6&*uv9&t2fz%'
@@ -54,17 +41,12 @@ TEMPLATE_LOADERS = (
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
-#    'django.core.context_processors.auth',
     'django.core.context_processors.debug',
-    'django.core.context_processors.i18n',
-#    'django.core.context_processors.media',  # 0.97 only.
-#    'django.core.context_processors.request',
+#    'django.core.context_processors.i18n',
 ) 
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
-#    'django.contrib.sessions.middleware.SessionMiddleware',
-#    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.doc.XViewMiddleware',
 )
 
@@ -79,12 +61,8 @@ TEMPLATE_DIRS = (
 )
 
 INSTALLED_APPS = (
-#    'django.contrib.auth',
     'django.contrib.contenttypes',
-#    'django.contrib.sessions',
     'django.contrib.sites',
-#    'django.contrib.admin',
-    'django.contrib.markup',
     'tasks',
     'public',
     'admin',

@@ -2,8 +2,6 @@
 #  Some methods for passing status messages between views. 
 #
 
-from util.misc import param
-
 class Statuses:
   TASKS_PURGED = 'archived'
   TASK_DELETED = 'deleted'
@@ -23,6 +21,7 @@ COOKIE_STATUS = 'dnzo-status'
 COOKIE_UNDO   = 'dnzo-undo'
 
 def get_status(request):
+  from util.misc import param
   status = param(COOKIE_STATUS, request.COOKIES, None)
   return get_status_message(status)
   
@@ -35,6 +34,7 @@ def reset_status(response, status):
   
 def get_undo(request):
   try:
+    from util.misc import param
     undo = int(param(COOKIE_UNDO, request.COOKIES, None))
   except:
     undo = None

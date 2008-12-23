@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import *
+from django.conf.urls.defaults import patterns
 
 list_pattern = r'^l/(?P<task_list_name>[a-z0-9_-]+)/'
 
