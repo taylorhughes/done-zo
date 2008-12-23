@@ -4,7 +4,7 @@ from django.shortcuts import render_to_response
 
 from tasks.redirects import default_list_redirect
 
-from data.users import get_dnzo_user
+from tasks_data.users import get_dnzo_user
 
 DEFAULT_LIST_NAME = 'Tasks'
 
@@ -39,8 +39,8 @@ def signup(request):
   if current_user:
     return default_list_redirect(current_user)
   
-  from data.misc import get_invitation_by_address
-  from data.task_lists import add_task_list
+  from tasks_data.misc import get_invitation_by_address
+  from tasks_data.task_lists import add_task_list
   
   current_user = get_current_user()
   invitation = get_invitation_by_address(current_user.email())
@@ -49,6 +49,8 @@ def signup(request):
     from django.http import HttpResponseRedirect
     return HttpResponseRedirect(reverse_url('public.views.closed'))
 
+  from tasks_data.models import TasksUser
+  
   new_user = TasksUser(user=current_user)
   new_user.put()
   

@@ -1,6 +1,8 @@
 from google.appengine.api import memcache
+from google.appengine.ext import db
 
-from data.models import TaskList, Undo, Task
+from tasks_data.models import TaskList, Undo, Task
+from tasks_data.users import save_user
 
 ### MEMCACHING ###
 
@@ -126,7 +128,7 @@ def get_completed_tasks(task_list, limit=100):
                    list=task_list, archived=False, complete=True)
   return tasks.fetch(limit)
   
-def archive_tasks(task_list):
+def archive_tasks(task_list, user):
   undo = Undo(task_list=task_list, parent=user)
   for task in get_completed_tasks(task_list):
     task.archived = True

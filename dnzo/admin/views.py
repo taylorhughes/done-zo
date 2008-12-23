@@ -2,8 +2,8 @@ from google.appengine.api.users import create_logout_url, get_current_user, is_c
 
 from django.shortcuts import render_to_response
 
-from data.models import Invitation
-from data.misc import get_invitation_by_address
+from tasks_data.models import Invitation
+from tasks_data.misc import get_invitation_by_address
 from util.misc import param
   
 def add_invitation(request):

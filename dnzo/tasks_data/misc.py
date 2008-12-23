@@ -1,4 +1,6 @@
-from data.models import Project, ProjectIndex, Context, Invitation
+from google.appengine.ext import db
+
+from tasks_data.models import Project, ProjectIndex, Context, Invitation
 
 ### Invitations ###
 
@@ -31,6 +33,7 @@ def save_project(user, project_name):
 def create_project(user, project_name):
   def txn(user, project):
     from util.misc import indexize
+    from tasks_data.tasks import MAX_INDEX_LENGTH
     import re
     
     project.put()
@@ -120,6 +123,7 @@ def find_contexts_by_name(user, context_name, limit=5):
 
 def do_undo(user, undo):
   for task in undo.find_deleted():
+    from tasks_data.tasks import undelete_task
     undelete_task(task, undo.task_list)
     
   for task in undo.find_archived():
@@ -127,6 +131,7 @@ def do_undo(user, undo):
     task.put()
     
   if undo.list_deleted:
+    from tasks_data.task_lists import undelete_task_list
     undelete_task_list(user, undo.task_list)
     
   undo.delete()

@@ -1,7 +1,7 @@
 from google.appengine.api.users import get_current_user
 from google.appengine.api import memcache
 
-from data.models import TasksUser
+from tasks_data.models import TasksUser
 
 def set_user_memcache(user):
   memcache.set(key=user.user.email(), value=user)

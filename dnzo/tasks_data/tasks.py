@@ -1,9 +1,10 @@
 
+from google.appengine.ext import db
 
-from data.models import Task, Undo
+from tasks_data.models import Task, Undo
 
-from data.users import save_user
-from data.misc import save_project, save_contexts
+from tasks_data.users import save_user
+from tasks_data.misc import save_project, save_contexts
 
 #
 #  This specifies how long the maximum indexized value can be.
@@ -85,6 +86,8 @@ def undelete_task(task, task_list):
   db.run_in_transaction(txn, task, task_list)
 
 def update_task_with_params(user, task, params):
+  from util.misc import param, urlize
+  
   if param('complete', params) == "true":
     task.complete = True
     task.completed_at = datetime.utcnow()
@@ -107,12 +110,14 @@ def update_task_with_params(user, task, params):
   raw_contexts = param('contexts', params, None)
   if raw_contexts is not None:
     task.contexts = []
+    import re
     raw_contexts = re.findall(r'[A-Za-z_-]+', raw_contexts)
     for raw_context in raw_contexts:
       task.contexts.append(urlize(raw_context))
   
   raw_due_date = param('due_date', params, None)
   if raw_due_date:
+    from util.parsing import parse_date
     task.due_date = parse_date(raw_due_date, user.timezone_offset_mins)
     
   
