@@ -57,13 +57,9 @@ import django.core.signals
 import django.db
 import django.dispatch.dispatcher
 
-# Import the part of Django that we use here.
-import django.core.handlers.wsgi
-
 # Force Django to reload its settings. 
 from django.conf import settings 
 settings._target = None 
-
 
 def log_exception(*args, **kwds):
   logging.exception('Exception in request:')

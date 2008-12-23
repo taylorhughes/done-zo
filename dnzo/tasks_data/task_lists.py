@@ -100,7 +100,13 @@ def undelete_task_list(user, task_list):
   
 def get_task_lists(user):
   lists_key = user_lists_key(user)
-  task_lists = memcache.get(key=lists_key)
+  try:
+    task_lists = memcache.get(key=lists_key)
+  except:
+    import logging
+    logging.exception("Could not retrieve memcached task_lists.")
+    task_lists = None
+    
   if not task_lists:
     query = TaskList.gql(
       'WHERE ANCESTOR IS :user AND deleted=:deleted ORDER BY name ASC', 

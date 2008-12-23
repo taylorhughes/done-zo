@@ -19,8 +19,14 @@ def get_dnzo_user():
   google_user = get_current_user()
   if not google_user:
     return None
+  
+  try:
+    dnzo_user = memcache.get(key=google_user.email())
+  except:
+    import logging
+    logging.exception("Could not retrieve memcached user.")
+    dnzo_user = None
     
-  dnzo_user = memcache.get(key=google_user.email())
   if not dnzo_user:
     dnzo_user = TasksUser.gql('WHERE user=:user', user=google_user).get()
     memcache.set(key=google_user.email(), value=dnzo_user)
