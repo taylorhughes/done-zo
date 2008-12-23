@@ -190,7 +190,8 @@ var Tasks = {
     duplicateBySelector(row, Tasks.tasksForm, 'input[type=hidden]');
     var chk = 'input[type=checkbox]';
     Tasks.tasksForm.select(chk)[0].checked = row.select(chk)[0].checked;
-    Tasks.tasksForm.request(options);
+    //Tasks.tasksForm.request(options);
+    Tasks.tasksForm.submit();
   },
   
   getNewTaskRow: function()
