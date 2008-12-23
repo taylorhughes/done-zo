@@ -202,7 +202,7 @@ def delete_list(request, task_list_name):
   redirect = default_list_redirect(user)
   
   if undo and undo.is_saved():
-    from statuses import Statuses
+    from statusing import Statuses
     set_status_undo(redirect,Statuses.LIST_DELETED,undo)
   
   return redirect
