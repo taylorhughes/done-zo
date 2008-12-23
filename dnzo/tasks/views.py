@@ -1,5 +1,5 @@
-from django.http import Http404
 from django.shortcuts import render_to_response
+from django.http import Http404
 from django.views.decorators.cache import never_cache
 
 from tasks_data.models     import Task
@@ -7,7 +7,7 @@ from tasks_data.users      import get_dnzo_user
 from tasks_data.task_lists import get_task_list, get_task_lists
 
 from tasks.redirects import default_list_redirect, list_redirect, access_error_redirect, referer_redirect
-from tasks.statusing import *
+from tasks.statusing import get_status_undo, set_status_undo, reset_status_undo
 
 from util.misc       import param, is_ajax, urlize
 
@@ -30,6 +30,7 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
   view_project = None
   view_project_name = None
   if project_index:
+    from tasks_data.misc import get_project_by_short_name
     view_project_name = get_project_by_short_name(user, project_index)
     if view_project_name:
       filter_title = view_project_name
@@ -70,8 +71,7 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
   tasks = Task.gql(gql, **params).fetch(50)
   
   # SHOW STATUS MESSAGE AND UNDO
-  status = get_status(request)
-  undo = get_undo(request)
+  status, undo = get_status_undo(request)
   
   new_task_attrs = {'body': '', 'parent': user}
   if view_context:
@@ -93,8 +93,7 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
     'new_tasks': [new_task]
   }, request, user))
   
-  reset_status(response,status)
-  reset_undo(response,undo)
+  reset_status_undo(response,status,undo)
   
   return response
 
@@ -179,8 +178,8 @@ def purge_list(request, task_list_name):
   redirect = referer_redirect(user,request)
   
   if undo and undo.is_saved():
-    set_status(redirect,Statuses.TASKS_PURGED)
-    set_undo(redirect,undo)
+    from statusing import Statuses
+    set_status_undo(redirect,Statuses.TASKS_PURGED,undo)
   
   return redirect
 
@@ -203,8 +202,8 @@ def delete_list(request, task_list_name):
   redirect = default_list_redirect(user)
   
   if undo and undo.is_saved():
-    set_status(redirect,Statuses.LIST_DELETED)
-    set_undo(redirect,undo)
+    from statuses import Statuses
+    set_status_undo(redirect,Statuses.LIST_DELETED,undo)
   
   return redirect
 
@@ -302,6 +301,7 @@ def task(request, task_id=None):
     
   elif force_delete:
     from tasks_data.tasks import delete_task
+    from tasks.statusing import get_status_message, Statuses
     status = get_status_message(Statuses.TASK_DELETED)
     undo = delete_task(user,task)
     
