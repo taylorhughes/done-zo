@@ -23,11 +23,11 @@ ROOT_URLCONF = 'urls'
 import os
 ROOT_PATH = os.path.dirname(__file__)
 TEMPLATE_DIRS = (
-    ROOT_PATH + '/resources/templates'
+  ROOT_PATH + '/resources/templates'
 )
 
 INSTALLED_APPS = (
-    'tasks',
-    'public',
-    'admin',
+  'tasks',
+  'public',
+  'admin',
 )

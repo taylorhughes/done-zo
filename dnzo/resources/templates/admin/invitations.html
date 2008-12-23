@@ -11,8 +11,8 @@
       {{ invitation.email_address|escape }}, 
       invited by {{ invitation.added_by.email|escape }}.
       
-      {% if invitation.username %}
-        [REGISTERED] as {{ invitation.username|escape }}
+      {% if invitation.registered_at %}
+        [REGISTERED] on {{ invitation.registered_at|date:"n/j/Y" }}
       {% else %}
         [unregistered]
       {% endif %}
