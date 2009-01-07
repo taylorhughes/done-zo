@@ -130,6 +130,10 @@ th {
     th.sorted.descending a:hover {
       background-position: right 8px;
     }
+    
+    th.done.sorted a {
+      background-image: none;
+    }
 
     
 td {
