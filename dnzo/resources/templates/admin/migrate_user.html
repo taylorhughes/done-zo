@@ -1,0 +1,34 @@
+{% extends "layouts/admin.html" %}
+
+{% block page_title %}DNZO Admin: Migrate user{% endblock %}
+
+{% block content %}
+  <h2>Migrate user</h2>
+  
+  {% if error %}
+  <p style="color: red; text-align: center">
+    {{ error|escape }}
+  </p>
+  {% endif %}
+  {% if success %}
+  <p style="color: green; text-align: center">
+    {{ success|escape }}
+  </p>
+  {% endif %}
+  
+  <p>
+    This utility should only be used when a user changes the e-mail address
+    associated with his Google account. This occasion is rare, and thus
+    this utility should be treated with <strong>extreme caution</strong>.
+  </p>
+  
+  <form action="{% url admin.views.migrate_user %}" method="POST">
+  <p>
+    Change user
+    <input type="text" name="user_from" size="30">
+    into user
+    <input type="text" name="user_to" size="30">
+    <input type="submit" value="Switch" onclick="return confirm('Are you sure? This could royally screw everything up for someone.');">
+  </p>
+  </form>
+{% endblock %}

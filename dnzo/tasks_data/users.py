@@ -3,6 +3,9 @@ from google.appengine.api import memcache
 
 from tasks_data.models import TasksUser
 
+def clear_user_memcache(user):
+  memcache.delete(key=user.user.email())
+  
 def set_user_memcache(user):
   memcache.set(key=user.user.email(), value=user)
 
@@ -15,10 +18,11 @@ def users_equal(a,b):
     return a.key().id_or_name() == b.key().id_or_name()
   return False
   
-def get_dnzo_user():
-  google_user = get_current_user()
-  if not google_user:
-    return None
+def get_dnzo_user(invalidate_cache=False, google_user=None):
+  if google_user is None:
+    google_user = get_current_user()
+    if not google_user:
+      return None
   
   try:
     dnzo_user = memcache.get(key=google_user.email())
@@ -27,7 +31,7 @@ def get_dnzo_user():
     logging.exception("Could not retrieve memcached user.")
     dnzo_user = None
     
-  if not dnzo_user:
+  if not dnzo_user or invalidate_cache:
     dnzo_user = TasksUser.gql('WHERE user=:user', user=google_user).get()
     memcache.set(key=google_user.email(), value=dnzo_user)
 
