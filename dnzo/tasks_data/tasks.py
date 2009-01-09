@@ -90,6 +90,7 @@ def update_task_with_params(user, task, params):
   
   if param('complete', params) == "true":
     task.complete = True
+    from datetime import datetime
     task.completed_at = datetime.utcnow()
   else:
     task.complete = False

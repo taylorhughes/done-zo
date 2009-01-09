@@ -171,7 +171,7 @@ var Tasks = {
     Tasks.loadStatus(Tasks.containerFromResponse(xhr));
   },
   
-  saveTask: function(row, options)
+  saveTask: function(action, row, options)
   {
     var duplicateBySelector = function(from,to,selector) {
       var fromFields = from.select(selector);
@@ -187,10 +187,15 @@ var Tasks = {
     }
     
     duplicateBySelector(row, Tasks.tasksForm, 'input[type=text]');
-    duplicateBySelector(row, Tasks.tasksForm, 'input[type=hidden]');
     var chk = 'input[type=checkbox]';
+    
     Tasks.tasksForm.select(chk)[0].checked = row.select(chk)[0].checked;
+     
+    var oldAction = Tasks.tasksForm.action;
+
+    Tasks.tasksForm.action = action ? action : oldAction;
     Tasks.tasksForm.request(options);
+    Tasks.tasksForm.action = oldAction;
   },
   
   getNewTaskRow: function()
@@ -503,7 +508,13 @@ var TaskRow = Class.create({
     {
       this.isSaving = true;
       
-      Tasks.saveTask(this.editRow,{
+      var action = null;
+      if (this.viewRow)
+      {
+        action = this.editLink.href;
+      }
+      
+      Tasks.saveTask(action, this.editRow,{
         onSuccess: this.doSave.bind(this),
         onFailure: this.doFail.bind(this),
         onComplete: (function(xhr){this.isSaving=false;}).bind(this)

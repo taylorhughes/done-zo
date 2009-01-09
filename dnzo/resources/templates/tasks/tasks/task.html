@@ -25,10 +25,8 @@
   </td>
   <td class="edit">
   {% if task.is_saved %}
-    <input type="hidden" name="task_id" value="{{ task.key.id }}">
     <input type="submit" value="Save"> 
   {% else %}
-    <input type="hidden" name="task_id" value="">
     <input type="submit" value="Add">
   {% endif %}
   <a href="{{ request_uri }}" class="cancel">x</a>

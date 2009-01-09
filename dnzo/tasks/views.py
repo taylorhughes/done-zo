@@ -264,14 +264,6 @@ def task(request, task_id=None):
   if not user:
     return access_error_redirect()
   
-  task_list = param('task_list',request.GET,None)
-  if task_list:
-    task_list = get_task_list(user, task_list)
-  
-  # We can't change the URL for the enclosing form element. Ugh.
-  if not task_id and request.method == "POST":
-    task_id = param('task_id',request.POST)
-  
   if task_id:
     task = Task.get_by_id(int(task_id), parent=user)
     if not task:
@@ -307,7 +299,11 @@ def task(request, task_id=None):
     
   elif request.method == "POST":
     update_task_with_params(user, task, request.POST)
-    task.task_list = task_list
+
+    task_list = param('task_list',request.GET,None)
+    if task_list:
+      task.task_list = get_task_list(user, task_list)
+
     save_task(user, task)
   
   if undo:
