@@ -196,7 +196,7 @@ def delete_list(request, task_list_name):
   from tasks_data.task_lists import delete_task_list
   
   undo = None
-  if request.method == "POST" and len(get_task_lists(user)) > 1:
+  if len(get_task_lists(user)) > 1:
     undo = delete_task_list(user, task_list)
   
   redirect = default_list_redirect(user)

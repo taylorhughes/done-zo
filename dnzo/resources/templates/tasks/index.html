@@ -60,11 +60,12 @@
 </form>
 
 <div id="new-delete">
+{% if not task_lists|length_is:1 %}
+<p><a href="{% url tasks.views.delete_list task_list.short_name %}">Delete list</a></p>
+{% endif %}
 <form action="{% url tasks.views.add_list %}" method="GET">
   <input type="submit" value="Add list" id="add_list">&nbsp;
 </form>
-<form action="{% url tasks.views.delete_list task_list.short_name %}" method="POST">
-  <input type="submit" value="Delete list"{% if task_lists|length_is:1 %} disabled{% endif %}>
-</form>
+
 </div>
 {% endblock %}
