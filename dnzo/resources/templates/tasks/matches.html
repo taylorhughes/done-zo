@@ -1,9 +1,7 @@
 {% load tasks_library %}
 
 <ul>
-{% autoescape off %}
   {% for match in matches %}
-  <li>{{ match|spans_around:query }}</li>
+  <li>{{ match }}</li>
   {% endfor %}
-{% endautoescape %}
 </ul>
