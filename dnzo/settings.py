@@ -3,6 +3,8 @@ import environment
 DEBUG          = environment.IS_DEVELOPMENT
 TEMPLATE_DEBUG = environment.IS_DEVELOPMENT
 
+DATABASE_ENGINE = 'appengine'
+
 USE_I18N = False
 
 TEMPLATE_LOADERS = (

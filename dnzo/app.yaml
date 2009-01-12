@@ -19,12 +19,12 @@ handlers:
   expiration: 30d
   
 - url: /admin/.+
-  script: main.py
+  script: common/appenginepatch/main.py
   login:  admin
   
 - url: /
-  script: main.py
+  script: common/appenginepatch/main.py
   
 - url: /.+
-  script: main.py
+  script: common/appenginepatch/main.py
   login:  required
