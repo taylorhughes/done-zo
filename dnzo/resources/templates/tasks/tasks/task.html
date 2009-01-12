@@ -6,16 +6,16 @@
     <input type="checkbox"{% if task.complete %} checked{% endif %} name="complete" value="true" class="complete editing">
   </td>
   <td class="project">
-    <input type="text" value="{% if task.project %}{{ task.project|escape }}{% endif %}" class="text-input task-project" name="project">
+    <input type="text" value="{% if task.project %}{{ task.project }}{% endif %}" class="text-input task-project" name="project">
     <div class="project-autocompleter autocompleter" style="display: none">
       <a href="{% url tasks.views.find_projects %}">Find projects</a>
     </div>
   </td>
   <td class="task">
-    <input type="text" value="{{ task.body|escape }}" class="text-input task-body" name="body">
+    <input type="text" value="{{ task.body }}" class="text-input task-body" name="body">
   </td>
   <td class="context">
-    <input type="text" value="{% for context in task.contexts %}@{{ context|escape }} {% endfor %}" class="text-input" name="contexts">
+    <input type="text" value="{% for context in task.contexts %}@{{ context }} {% endfor %}" class="text-input" name="contexts">
     <div class="context-autocompleter autocompleter" style="display: none">
       <a href="{% url tasks.views.find_contexts %}">Find contexts</a>
     </div>
@@ -40,15 +40,15 @@
   </td>
   <td class="project">
     {% if task.project %}
-    <a href="{% url tasks.views.list_index task_list_name=task.task_list.short_name,project_index=task.project_index %}">{{ task.project|escape }}</a>
+    <a href="{% url tasks.views.list_index task_list_name=task.task_list.short_name,project_index=task.project_index %}">{{ task.project }}</a>
     {% endif %}
   </td>
   <td class="task">
-    {{ task.body|escape }}
+    {{ task.body|urlize }}
   </td>
   <td class="context">
     {% for context in task.contexts %}
-    <a href="{% url tasks.views.list_index task_list_name=task.task_list.short_name,context_name=context %}">@{{ context|escape }}</a>
+    <a href="{% url tasks.views.list_index task_list_name=task.task_list.short_name,context_name=context %}">@{{ context }}</a>
     {% endfor %}
   </td>
   <td class="due">

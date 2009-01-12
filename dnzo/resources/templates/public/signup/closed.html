@@ -14,7 +14,7 @@ Sorry
   Contact Taylor  or John if you are dying to try it out.
 </p>
 {% if nickname %}
-<p>You are signed in to Google Account <em>{{ nickname|escape }}</em> (<a href="{{ logout_url|escape }}">sign out</a>).</p>
+<p>You are signed in to Google Account <em>{{ nickname }}</em> (<a href="{{ logout_url }}">sign out</a>).</p>
 {% endif %}
 
 {% endblock %}

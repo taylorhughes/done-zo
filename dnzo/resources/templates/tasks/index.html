@@ -2,7 +2,7 @@
 
 {% load tasks_library %}
 
-{% block page_title %}DNZO / {{ task_list.name|escape }}{% if filter_title %} / {{ filter_title|escape }}{% endif %}{% endblock %}
+{% block page_title %}DNZO / {{ task_list.name }}{% if filter_title %} / {{ filter_title }}{% endif %}{% endblock %}
 
 {% block javascripts %}
   {% javascript_tag dnzo/tasks %}
@@ -10,7 +10,7 @@
 
 {% block header %}
   {% if filter_title %}<a href="{% url tasks.views.list_index task_list.short_name %}">{% endif %}
-  {{ task_list.name|escape }}{% if filter_title %}</a> / {{ filter_title|escape }}{% endif %}
+  {{ task_list.name }}{% if filter_title %}</a> / {{ filter_title }}{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -43,11 +43,11 @@
   </tr>
 </table>
 
-<form method="POST" id="tasks_form" action="{% url tasks.views.task %}?task_list={{task_list.short_name|escape}}">
+<form method="POST" id="tasks_form" action="{% url tasks.views.task %}?task_list={{task_list.short_name}}">
   <table id="new_task_table">
-  {% for task in new_tasks %}
+  {% with new_task as task %}
     {% include "tasks/tasks/task.html" %}
-  {% endfor %}
+  {% endwith %}
   </table>
 </form>
 {% endblock %}

@@ -90,7 +90,7 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
     'direction': direction,
     'status': status,
     'undo': undo,
-    'new_tasks': [new_task]
+    'new_task': new_task
   }, request, user))
   
   reset_status_undo(response,status,undo)

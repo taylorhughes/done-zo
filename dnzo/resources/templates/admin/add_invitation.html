@@ -9,7 +9,7 @@
     <p>Successfully added invitations for the following e-mail addresses:</p>
     <ul>
       {% for address in invitations %}
-      <li>{{ address|escape }}</li>
+      <li>{{ address }}</li>
       {% endfor %}
     </ul>
     <p>Why not <a href="{% url admin.views.add_invitation %}">add some more</a>?</p>

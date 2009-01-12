@@ -8,8 +8,8 @@
   <ul>
     {% for invitation in invitations %}
     <li>
-      {{ invitation.email_address|escape }}, 
-      invited by {{ invitation.added_by.email|escape }}.
+      {{ invitation.email_address }}, 
+      invited by {{ invitation.added_by.email }}.
       
       {% if invitation.registered_at %}
         [REGISTERED] on {{ invitation.registered_at|date:"n/j/Y" }}
