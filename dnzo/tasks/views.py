@@ -254,9 +254,10 @@ def undo(request, undo_id):
         return access_error_redirect()
       do_undo(user, undo)
       task_list = undo.task_list
-      
-  except RuntimeError, (errno, strerror):
-    logger.error("Error undoing: " + strerror)
+          
+  except:
+    import logging
+    logging.exception("Error undoing!")
   
   if undo.return_uri:
     from django.http import HttpResponseRedirect
