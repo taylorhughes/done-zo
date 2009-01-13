@@ -104,27 +104,42 @@ def archived_index(request, task_list_name=None, context_name=None, project_inde
   user = get_dnzo_user()
   if not user:
     return access_error_redirect()
-    
-  wheres = ['ANCESTOR IS :user AND archived=:archived AND deleted=:deleted'] 
-  params = { 'user': user, 'archived': True, 'deleted': False }
-
-  from datetime import datetime, timedelta
-  stop  = datetime.utcnow()
-  start = datetime.utcnow() - timedelta(days=7)
-  filter_title = "This week"
   
-  wheres.append('completed_at >= :start AND completed_at < :stop')
-  params['stop']  = stop
-  params['start'] = start
+  from util.human_time import HUMAN_RANGES
+  
+  given_range = param('range', request.GET, 'this-week')
+  chosen_range = HUMAN_RANGES[0]
+  for r in HUMAN_RANGES:
+    if r['slug'] == given_range:
+      chosen_range = r
+      break
+  
+  import logging
 
-  gql = 'WHERE %s ORDER BY completed_at DESC' % ' AND '.join(wheres)
-  tasks = Task.gql(gql, **params)
+  offset=0
+  if user.timezone_offset_mins:
+    offset = user.timezone_offset_mins
+
+  start, stop = chosen_range['range'](offset)
+    
+  gql = 'WHERE ANCESTOR IS :user AND archived=:archived AND deleted=:deleted ' + \
+        'AND completed_at >= :start AND completed_at < :stop ORDER BY completed_at DESC'
+  logging.info("Start: %s to stop: %s" % (start, stop))
+  tasks = Task.gql(gql, 
+    user=user,
+    archived=True,
+    deleted=False,
+    start=start,
+    stop=stop
+  )
     
   return render_to_response('tasks/archived.html', always_includes({
     'tasks': tasks,
     'stop':  stop,
     'start': start,
-    'filter_title': filter_title
+    'ranges': HUMAN_RANGES,
+    'chosen_range': chosen_range['slug'],
+    'filter_title': chosen_range['name']
   }, request, user))
 
 

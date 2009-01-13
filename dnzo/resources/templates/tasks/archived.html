@@ -12,10 +12,10 @@
 <div id="filter">
   <p>
     Show archived tasks from
-    <a href="?t=this_week">this week</a>,
-    <a href="?t=last_week">last week</a>,
-    <a href="?t=today">today</a>,
-    <a href="?t=yesterday">yesterday</a>, <span>or</span>
+    {% for range in ranges %}
+    <a href="?range={{ range.slug }}">{{ range.name|lower }}</a>,
+    {% endfor %}
+    <span>or</span>
   </p>
   <form>
     <input type="text" value="{{ start|date:"n/j/y" }}" class="date"> to

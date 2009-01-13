@@ -114,7 +114,7 @@ def update_task_with_params(user, task, params):
   
   raw_due_date = param('due_date', params, None)
   if raw_due_date is not None:
-    from util.parsing import parse_date
+    from util.human_time import parse_date
     task.due_date = None
     task.due_date = parse_date(raw_due_date, user.timezone_offset_mins)
     
