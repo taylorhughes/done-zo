@@ -48,7 +48,7 @@
   </td>
   <td class="context">
     {% for context in task.contexts %}
-    <a href="{% url tasks.views.list_index task_list_name=task.task_list.short_name,context_name=context %}">@{{ context }}</a>
+      <a href="{% url tasks.views.list_index task_list_name=task.task_list.short_name,context_name=context %}">@{{ context }}</a>
     {% endfor %}
   </td>
   <td class="due">

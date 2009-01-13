@@ -118,8 +118,8 @@ def get_task_lists(user):
   return task_lists
   
 def get_new_list_name(user, new_name):
-  from util.misc import urlize
-  new_name = urlize(new_name)
+  from util.misc import slugify
+  new_name = slugify(new_name)
   appendage = ''
   i = 1
   while get_task_list(user, new_name + appendage) is not None:

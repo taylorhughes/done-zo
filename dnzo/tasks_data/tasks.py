@@ -86,7 +86,7 @@ def undelete_task(task, task_list):
   db.run_in_transaction(txn, task, task_list)
 
 def update_task_with_params(user, task, params):
-  from util.misc import param, urlize
+  from util.misc import param, slugify
   
   if param('complete', params) == "true":
     task.complete = True
@@ -103,18 +103,20 @@ def update_task_with_params(user, task, params):
     raw_project = raw_project.strip()
     if len(raw_project) > 0:
       task.project       = raw_project
-      task.project_index = urlize(raw_project)
+      task.project_index = slugify(raw_project)
     else:
       task.project = None
       task.project_index = None
   
   raw_contexts = param('contexts', params, None)
   if raw_contexts is not None:
-    task.contexts = []
     import re
-    raw_contexts = re.findall(r'[A-Za-z_-]+', raw_contexts)
+    task.contexts = []
+    raw_contexts = re.split(r'[,;\s]+', raw_contexts)
     for raw_context in raw_contexts:
-      task.contexts.append(urlize(raw_context))
+      slug = slugify(raw_context)
+      if len(slug) > 0:
+        task.contexts.append(slug)
   
   raw_due_date = param('due_date', params, None)
   if raw_due_date is not None:

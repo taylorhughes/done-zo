@@ -45,8 +45,8 @@ def create_project(user, project_name):
       index.put()
     
   
-  from util.misc import urlize
-  short_name = urlize(project_name)
+  from util.misc import slugify
+  short_name = slugify(project_name)
   key_name = Project.name_to_key_name(project_name)
   project = Project(
     parent=user, 
@@ -108,8 +108,8 @@ def save_context(user, context_name):
   context.put()
   
 def find_contexts_by_name(user, context_name, limit=5):
-  from util.misc import urlize, zpad
-  indexed_name = urlize(context_name)
+  from util.misc import zpad, slugify
+  indexed_name = slugify(context_name)
   
   contexts = Context.gql(
     "WHERE name >= :start AND name < :end AND ANCESTOR IS :user",

@@ -9,7 +9,7 @@ from tasks_data.task_lists import get_task_list, get_task_lists
 from tasks.redirects import default_list_redirect, most_recent_redirect, list_redirect, access_error_redirect, referer_redirect
 from tasks.statusing import get_status_undo, set_status_undo, reset_status_undo
 
-from util.misc       import param, is_ajax, urlize
+from util.misc       import param, is_ajax, slugify
 
 SORTABLE_LIST_COLUMNS = ('complete', 'project_index', 'body', 'due_date', 'created_at', 'context')
 
@@ -220,7 +220,7 @@ def add_list(request):
   new_name = param('name', request.POST, '')
   new_list = None
   if request.method == "POST":
-    if len(urlize(new_name)) > 0:
+    if len(slugify(new_name)) > 0:
       new_list = add_task_list(user, new_name)
       return list_redirect(user, new_list)
       
@@ -312,7 +312,6 @@ def task(request, task_id=None):
     undo = undo.key().id()
   
   if not is_ajax(request):
-    # TODO: Something useful.
     return referer_redirect(user)
     
   else:
