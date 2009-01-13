@@ -25,6 +25,11 @@ def indexize(string):
   string = re.sub(r'[^0-9a-z\s]+', '', string)
   return string
   
+def get_referer(request):
+  if 'HTTP_REFERER' in request.META:
+    return request.META['HTTP_REFERER']
+  return None
+  
 def zpad(string):
   if not string:
     string = ''

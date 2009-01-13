@@ -1,6 +1,6 @@
 from google.appengine.ext import db
 
-from tasks_data.models import Project, ProjectIndex, Context, Invitation
+from tasks_data.models import Project, ProjectIndex, Context, Invitation, Undo
 
 ### Invitations ###
 
@@ -120,6 +120,39 @@ def find_contexts_by_name(user, context_name, limit=5):
 
   
 ### UNDOS ###
+
+def create_undo(user,
+                request=None, 
+                task_list=None,
+                list_deleted=False, 
+                deleted_tasks=None,
+                archived_tasks=None,
+                return_uri=None,
+                return_to_referer=False):
+                
+  undo = Undo(parent=user)
+  
+  if deleted_tasks and len(deleted_tasks) > 0:
+    for task in deleted_tasks:
+      undo.deleted_tasks.append(task.key())
+
+  if archived_tasks and len(archived_tasks) > 0:
+    for task in archived_tasks:
+      undo.archived_tasks.append(task.key())
+
+  if task_list:
+    undo.task_list = task_list
+    undo.list_deleted = list_deleted
+  
+  if return_uri is None and request and return_to_referer:
+    from util.misc import get_referer
+    return_uri = get_referer(request)
+  undo.return_uri = return_uri
+
+  undo.put()
+  
+  return undo
+  
 
 def do_undo(user, undo):
   for task in undo.find_deleted():

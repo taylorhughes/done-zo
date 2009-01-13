@@ -1,7 +1,7 @@
 
 from google.appengine.ext import db
 
-from tasks_data.models import Task, Undo
+from tasks_data.models import Task
 
 from tasks_data.users import save_user
 from tasks_data.misc import save_project, save_contexts
@@ -44,7 +44,7 @@ def add_task(task):
   db.run_in_transaction(txn, task)
 
 def delete_task(user, task):
-  def txn(task, undo):
+  def txn(task):
     task = db.get(task.key())
     if task.deleted:
       return
@@ -58,14 +58,8 @@ def delete_task(user, task):
 
     save_user(user)
 
-    undo.put()
-
-  undo = Undo(task_list=task.task_list, parent=user)
-  undo.deleted_tasks.append(task.key())
       
-  db.run_in_transaction(txn, task, undo)
-
-  return undo
+  db.run_in_transaction(txn, task)
 
 def undelete_task(task, task_list):
   def txn(task, task_list):

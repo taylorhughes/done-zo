@@ -112,6 +112,8 @@ class Undo(db.Model):
   deleted_tasks  = db.ListProperty(db.Key)
   archived_tasks = db.ListProperty(db.Key)
 
+  return_uri     = db.StringProperty()
+
   def find_deleted(self):
     deleted = []
     for key in self.deleted_tasks:

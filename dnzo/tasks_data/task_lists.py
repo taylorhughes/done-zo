@@ -50,29 +50,21 @@ def delete_task_list(user, task_list):
     task_list.put()
     
     user = task_list.parent()
-    undo = Undo(task_list=task_list, parent=user)
-    undo.list_deleted = True
-    
-    for task in deleted_tasks:
-      undo.deleted_tasks.append(task.key())
-    undo.put()
     
     user.tasks_count -= len(deleted_tasks)
     user.lists_count -= 1
 
     save_user(user)
     
-    return undo
-    
   # TODO: Remove possible data inconsistency if the count between 
   # when we execute this query and when the count is changed changes.
   deleted_tasks = Task.gql("WHERE task_list=:list AND archived=:archived AND deleted=:deleted",
                            list=task_list, archived=False, deleted=False).fetch(100)
-  undo = db.run_in_transaction(txn, task_list, deleted_tasks)
+  db.run_in_transaction(txn, task_list, deleted_tasks)
 
   clear_lists_memcache(user)
 
-  return undo
+  return deleted_tasks
   
 def undelete_task_list(user, task_list):
   def txn(task_list, deleted_tasks):
@@ -135,10 +127,14 @@ def get_completed_tasks(task_list, limit=100):
   return tasks.fetch(limit)
   
 def archive_tasks(task_list, user):
-  undo = Undo(task_list=task_list, parent=user)
+  archived_tasks = []
   for task in get_completed_tasks(task_list):
     task.archived = True
     task.put()
-    undo.archived_tasks.append(task.key())
-  undo.put()
-  return undo
+    archived_tasks.append(task)
+  return archived_tasks
+  
+  
+  
+  
+  

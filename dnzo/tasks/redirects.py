@@ -16,6 +16,7 @@ def default_list_redirect(user):
     return list_redirect(user, lists[0])
   else:
     import logging
+    # TODO: Log user out.
     logging.error("Somehow this user does not have any task lists.")
     return HttpResponseRedirect('/')
 
@@ -30,10 +31,12 @@ def list_redirect(user, list):
 def referer_redirect(user, request):
   '''Redirect a user to where he came from. If he didn't come from anywhere,
     refer him to a default location.'''
-  if 'HTTP_REFERER' in request.META:
-    return HttpResponseRedirect(request.META['HTTP_REFERER'])
+  from util.misc import get_referer
+  referer = get_referer(request)
+  if referer is not None:
+    return HttpResponseRedirect(referer)
   return default_list_redirect(user)
-  
+
 def most_recent_redirect(user):
   if user.most_recent_uri:
     return HttpResponseRedirect(user.most_recent_uri)
