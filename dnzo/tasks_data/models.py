@@ -16,6 +16,9 @@ class TasksUser(db.Model):
   # CST in the winter = 360, aka UTC/GMT -600
   timezone_offset_mins = db.IntegerProperty(default=0)
   
+  # Last URI the user visited
+  most_recent_uri = db.StringProperty()
+  
   # Counts
   tasks_count   = db.IntegerProperty(default=0)
   lists_count   = db.IntegerProperty(default=0)

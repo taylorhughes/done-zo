@@ -33,3 +33,8 @@ def referer_redirect(user, request):
   if 'HTTP_REFERER' in request.META:
     return HttpResponseRedirect(request.META['HTTP_REFERER'])
   return default_list_redirect(user)
+  
+def most_recent_redirect(user):
+  if user.most_recent_uri:
+    return HttpResponseRedirect(user.most_recent_uri)
+  return default_list_redirect(user)

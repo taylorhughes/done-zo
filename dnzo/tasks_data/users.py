@@ -37,6 +37,14 @@ def get_dnzo_user(invalidate_cache=False, google_user=None):
 
   return dnzo_user
   
+def record_user_history(user, request, save=True):
+  full_path = request.get_full_path()
+  changed = user.most_recent_uri != full_path
+  user.most_recent_uri = full_path
+  if save and changed:
+    save_user(user)
+  
 def save_user(user):
+  import logging
   user.put()
   set_user_memcache(user)

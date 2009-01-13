@@ -37,5 +37,5 @@ urlpatterns = patterns('',
   (list_pattern + r'$', 'tasks.views.list_index'),
   
   
-  (r'^redirect/$', 'tasks.views.redirect'),
+  (r'^signin/$', 'tasks.views.redirect'),
 )

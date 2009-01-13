@@ -35,9 +35,12 @@ def closed(request):
   })
 
 def signup(request):
+  from django.core.urlresolvers import reverse as reverse_url
+  from django.http import HttpResponseRedirect
+  
   current_user = get_dnzo_user()
   if current_user:
-    return default_list_redirect(current_user)
+    return HttpResponseRedirect(reverse_url('tasks.views.redirect'))
   
   from tasks_data.misc import get_invitation_by_address
   from tasks_data.task_lists import add_task_list
@@ -45,8 +48,6 @@ def signup(request):
   current_user = get_current_user()
   invitation = get_invitation_by_address(current_user.email())
   if not invitation and not is_current_user_admin():
-    from django.core.urlresolvers import reverse as reverse_url
-    from django.http import HttpResponseRedirect
     return HttpResponseRedirect(reverse_url('public.views.closed'))
 
   from tasks_data.models import TasksUser

@@ -3,10 +3,10 @@ from django.http import Http404
 from django.views.decorators.cache import never_cache
 
 from tasks_data.models     import Task
-from tasks_data.users      import get_dnzo_user
+from tasks_data.users      import get_dnzo_user, record_user_history
 from tasks_data.task_lists import get_task_list, get_task_lists
 
-from tasks.redirects import default_list_redirect, list_redirect, access_error_redirect, referer_redirect
+from tasks.redirects import default_list_redirect, most_recent_redirect, list_redirect, access_error_redirect, referer_redirect
 from tasks.statusing import get_status_undo, set_status_undo, reset_status_undo
 
 from util.misc       import param, is_ajax, urlize
@@ -24,6 +24,8 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
   task_list = get_task_list(user, task_list_name)
   if not task_list or task_list.deleted:
     raise Http404
+
+  record_user_history(user, request)
   
   # FILTER 
   filter_title = None
@@ -55,8 +57,8 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
 
   default_order, default_direction = 'created_at', 'ASC'
   
-  if param('order', request.GET) in SORTABLE_LIST_COLUMNS:
-    order = param('order', request.GET)
+  order = str(param('order', request.GET))
+  if order in SORTABLE_LIST_COLUMNS:
     direction = 'ASC'
     if param('descending', request.GET) == 'true':
       direction = 'DESC'
@@ -311,7 +313,7 @@ def task(request, task_id=None):
   
   if not is_ajax(request):
     # TODO: Something useful.
-    return default_list_redirect(user)
+    return referer_redirect(user)
     
   else:
     return render_to_response('tasks/tasks/ajax_task.html', {
@@ -371,7 +373,7 @@ def transparent_settings(request):
 def redirect(request, username=None):
   user = get_dnzo_user()
   if user:
-    return default_list_redirect(user)
+    return most_recent_redirect(user)
   else:
     from django.core.urlresolvers import reverse as reverse_url
     from django.http import HttpResponseRedirect
