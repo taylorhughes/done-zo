@@ -1,6 +1,6 @@
 {% load tasks_library %}
 
-<tr class="editable task-row{% if task.is_saved %} task-{{ task.key.id }}{% endif %}"
+<tr class="editable task-row {% if task.is_saved %}task-{{ task.key.id }}{% else %}unsaved{% endif %}"
     {% if not task.editing %} style="display: none"{% endif %}>
   <td class="done">
     <input type="checkbox"{% if task.complete %} checked{% endif %} name="complete" value="true" class="complete editing">

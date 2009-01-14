@@ -339,6 +339,11 @@ var TaskRow = Class.create({
     return this.editRow && this.editRow.visible();
   },
   
+  isCompleted: function()
+  {
+    return this.viewRow && this.viewRow.hasClassName('completed');
+  },
+  
   fire: function(eventName, memo)
   {
     Event.fire((this.viewRow || this.editRow), eventName, memo);
@@ -455,6 +460,9 @@ var TaskRow = Class.create({
 
   edit: function()
   {
+    // Can't edit completed tasks.
+    if (this.isCompleted()) { return; }
+    
     this.fire(Tasks.TASK_EDITING_EVENT);
     
     if (!this.editEventsWired)

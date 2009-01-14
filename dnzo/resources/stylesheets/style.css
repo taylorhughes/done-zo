@@ -176,7 +176,7 @@ td {
 tr.task-row:hover td,
 tr.editable td {
   background: #ff9;
-}
+}  
   tr.task-row:hover td a,
   tr.editable td a {
     text-decoration: underline;
@@ -201,6 +201,11 @@ tr.editable td {
     tr.task-row td.task {
       white-space: normal;
     }
+
+  /* hide checkbox in new, pre-added row */
+  tr.task-row.unsaved td.done input { display: none; }
+  /* hide edit link in completed row */
+  tr.task-row.completed a.edit { display: none; }
     
 tr.editable.task-row td.project,
 tr.editable.task-row td.task,
