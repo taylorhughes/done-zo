@@ -27,8 +27,10 @@ urlpatterns = patterns('',
   (list_pattern + r'delete/$', 'tasks.views.delete_list'),
   #  /username/l/list_name/in/project
   (list_pattern + r'for/(?P<project_index>[a-z_-]+)/$', 'tasks.views.list_index'),
-  #  /username/l/list_name/near/context
+  #  /username/l/list_name/at/context
   (list_pattern + r'at/(?P<context_name>[a-z_-]+)/$', 'tasks.views.list_index'),
+  #  /username/l/list_name/on/12-02-2005
+  (list_pattern + r'on/(?P<due_date>\d{2}-\d{2}-\d{2})/$', 'tasks.views.list_index'),
   
   # archived list
   (r'^l/_archived/$', 'tasks.views.archived_index'),

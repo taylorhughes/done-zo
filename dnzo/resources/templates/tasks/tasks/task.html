@@ -52,7 +52,11 @@
     {% endfor %}
   </td>
   <td class="due">
-    {{ task.due_date|short_date }}
+    {% if task.due_date %}
+      {% with task.due_date|date:"m-d-y" as due_date %}
+      <a href="{% url tasks.views.list_index task_list_name=task.task_list.short_name,due_date=due_date %}">{{ task.due_date|short_date }}</a>
+      {% endwith %}
+    {% endif %}
   </td>
   <td class="edit">
     <a href="{{ task.get_absolute_url }}" class="edit">edit</a>&nbsp;&nbsp;

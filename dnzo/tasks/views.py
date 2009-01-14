@@ -18,7 +18,7 @@ RESULT_LIMIT = 100
 #### VIEWS ####
 
 @never_cache
-def list_index(request, task_list_name=None, context_name=None, project_index=None):
+def list_index(request, task_list_name=None, context_name=None, project_index=None, due_date=None):
   user = get_dnzo_user()
   if not user:
     return access_error_redirect()
@@ -41,11 +41,18 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
       view_project = project_index
     else:
       return list_redirect(user, task_list)
-      
   view_context = None
   if context_name:
     view_context = context_name
     filter_title = "@%s" % context_name
+  view_date = None
+  if due_date:
+    from util.human_time import parse_date
+    from django.template.defaultfilters import date
+    
+    view_date = parse_date(due_date)
+    if view_date:
+      filter_title = date(view_date, 'n-j-y')
 
   wheres = ['task_list=:task_list AND archived=:archived'] 
   params = { 'task_list': task_list, 'archived': False }
@@ -56,7 +63,10 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
   elif view_project:
     wheres.append('project_index=:project_index')
     params['project_index'] = view_project
-
+  elif view_date:
+    wheres.append('due_date=:due_date')
+    params['due_date'] = view_date
+    
   default_order, default_direction = 'created_at', 'ASC'
   
   order = str(param('order', request.GET))
@@ -82,6 +92,8 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
     new_task_attrs['contexts'] = [view_context]
   if view_project:
     new_task_attrs['project'] = view_project_name
+  if view_date:
+    new_task_attrs['due_date'] = view_date
   
   new_task = Task(**new_task_attrs)
   new_task.editing = True

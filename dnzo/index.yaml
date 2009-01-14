@@ -241,6 +241,66 @@ indexes:
     direction: desc
   - name: created_at
 
+### FILTERED BY DATE ###
+
+- kind: Task
+  properties:
+  - name: archived
+  - name: due_date
+  - name: task_list
+  - name: created_at
+  
+- kind: Task
+  properties:
+  - name: archived
+  - name: due_date
+  - name: task_list
+  - name: body
+  - name: created_at
+
+- kind: Task
+  properties:
+  - name: archived
+  - name: due_date
+  - name: task_list
+  - name: body
+    direction: desc
+  - name: created_at
+
+- kind: Task
+  properties:
+  - name: archived
+  - name: due_date
+  - name: task_list
+  - name: complete
+  - name: created_at
+
+- kind: Task
+  properties:
+  - name: archived
+  - name: due_date
+  - name: task_list
+  - name: complete
+    direction: desc
+  - name: created_at
+
+- kind: Task
+  properties:
+  - name: archived
+  - name: due_date
+  - name: task_list
+  - name: project_index
+  - name: created_at
+
+- kind: Task
+  properties:
+  - name: archived
+  - name: due_date
+  - name: task_list
+  - name: project_index
+    direction: desc
+  - name: created_at
+
 
 # Archived tasks
 
