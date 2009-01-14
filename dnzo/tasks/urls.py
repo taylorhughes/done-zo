@@ -18,8 +18,8 @@ urlpatterns = patterns('',
   #  /username/p/find/ => project
   (r'^c/find/$', 'tasks.views.find_contexts'),
   
-  #  /username/l/_add/
-  (r'^l/_add/$', 'tasks.views.add_list'),
+  #  /username/l/
+  (r'^l/$', 'tasks.views.add_list'),
 
   # /username/l/list_name/purge
   (list_pattern + r'purge/$', 'tasks.views.purge_list'),

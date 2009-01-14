@@ -43,6 +43,10 @@
   </tr>
 </table>
 
+{% if tasks|length_is:max_records %}
+<p>Results limited to {{ max_records }} items.</p>
+{% endif %}
+
 <form method="POST" id="tasks_form" action="{% url tasks.views.task %}?task_list={{task_list.short_name}}">
   <table id="new_task_table">
   {% with new_task as task %}
@@ -66,6 +70,5 @@
 <form action="{% url tasks.views.add_list %}" method="GET">
   <input type="submit" value="Add list" id="add_list">&nbsp;
 </form>
-
 </div>
 {% endblock %}

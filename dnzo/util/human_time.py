@@ -57,7 +57,7 @@ RE_TOMORROW = re.compile(r'^tom{1,2}or{1,2}ow$', re.I)
 RE_DAY      = re.compile(r'^(mon|tue|wed|thu|fri|sat|sun)\w*$', re.I)
 RE_DATE     = re.compile(r'^(\d{1,2})\D+(\d{1,2})(?:\D+(\d{1,4}))?$')
 
-def parse_date(date_string, offset_mins=0):
+def parse_date(date_string, offset_mins=0, output_utc=False):
   if not date_string:
     return None
     
@@ -67,6 +67,8 @@ def parse_date(date_string, offset_mins=0):
   
   now   = datetime.utcnow() - timedelta(minutes=offset_mins)
   today = datetime(*now.timetuple()[0:3])
+  
+  value = None
   
   match = RE_DATE.match(date_string)
   if match:
@@ -85,13 +87,13 @@ def parse_date(date_string, offset_mins=0):
       if datetime(y, m, d) < today:
         y += 1
       
-    return datetime(y, m, d)
+    value = datetime(y, m, d)
     
   if RE_TODAY.match(date_string):
-    return today
+    value = today
     
   if RE_TOMORROW.match(date_string):
-    return today + timedelta(days=1)
+    value = today + timedelta(days=1)
     
   match = RE_DAY.match(date_string)
   if match:
@@ -99,6 +101,9 @@ def parse_date(date_string, offset_mins=0):
     next_day = today + timedelta(days=1)
     while next_day.strftime("%a").lower() != day:
       next_day += timedelta(days=1)
-    return next_day
+    value = next_day
   
-  return None
+  if value and output_utc:
+    value += timedelta(minutes=offset_mins)
+  
+  return value

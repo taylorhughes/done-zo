@@ -20,6 +20,12 @@ def short_date(my_date):
     format += " y"
   # utilize the default django date filter
   return date(my_date, format)
+
+@register.filter
+def adjust_date(my_date, user):
+  from datetime import timedelta
+
+  return my_date - timedelta(minutes=user.timezone_offset_mins)
         
 @register.filter
 def spans_around(string, to_highlight):

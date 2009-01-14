@@ -13,6 +13,8 @@ from util.misc       import param, is_ajax, slugify
 
 SORTABLE_LIST_COLUMNS = ('complete', 'project_index', 'body', 'due_date', 'created_at', 'context')
 
+RESULT_LIMIT = 100
+
 #### VIEWS ####
 
 @never_cache
@@ -70,7 +72,7 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
     order_by = '%s %s' % (order, direction)
   
   gql = 'WHERE %s ORDER BY %s' % (' AND '.join(wheres), order_by)
-  tasks = Task.gql(gql, **params).fetch(50)
+  tasks = Task.gql(gql, **params).fetch(RESULT_LIMIT)
   
   # SHOW STATUS MESSAGE AND UNDO
   status, undo = get_status_undo(request)
@@ -104,42 +106,55 @@ def archived_index(request, task_list_name=None, context_name=None, project_inde
   user = get_dnzo_user()
   if not user:
     return access_error_redirect()
-  
-  from util.human_time import HUMAN_RANGES
-  
-  given_range = param('range', request.GET, 'this-week')
-  chosen_range = HUMAN_RANGES[0]
-  for r in HUMAN_RANGES:
-    if r['slug'] == given_range:
-      chosen_range = r
-      break
-  
-  import logging
 
+  from util.human_time import parse_date, HUMAN_RANGES
+  
   offset=0
   if user.timezone_offset_mins:
     offset = user.timezone_offset_mins
+  
+  given_range  = param('range', request.GET, None)
 
-  start, stop = chosen_range['range'](offset)
+  start = param('start', request.GET, None)
+  start = parse_date(start, user.timezone_offset_mins or 0, output_utc=True)
+  stop  = param('stop', request.GET, None)
+  stop  = parse_date(stop,  user.timezone_offset_mins or 0, output_utc=True)
+
+  filter_title = None
+  if start is not None and stop is not None:
+    from django.template.defaultfilters import date
     
+    filter_title = '%s to %s' % (date(start,'n-j-y'), date(stop,'n-j-y'))
+
+  else:
+    range_slugs = [r['slug'] for r in HUMAN_RANGES]
+    try:
+      index = range_slugs.index(given_range)
+    except:
+      given_range = 'this-week'
+      index = range_slugs.index(given_range)
+      
+    start, stop  = HUMAN_RANGES[index]['range'](offset)
+    filter_title = HUMAN_RANGES[index]['name']
+  
   gql = 'WHERE ANCESTOR IS :user AND archived=:archived AND deleted=:deleted ' + \
         'AND completed_at >= :start AND completed_at < :stop ORDER BY completed_at DESC'
-  logging.info("Start: %s to stop: %s" % (start, stop))
+
   tasks = Task.gql(gql, 
     user=user,
     archived=True,
     deleted=False,
     start=start,
     stop=stop
-  )
+  ).fetch(RESULT_LIMIT)
     
   return render_to_response('tasks/archived.html', always_includes({
     'tasks': tasks,
     'stop':  stop,
     'start': start,
     'ranges': HUMAN_RANGES,
-    'chosen_range': chosen_range['slug'],
-    'filter_title': chosen_range['name']
+    'chosen_range': given_range,
+    'filter_title': filter_title
   }, request, user))
 
 
@@ -418,5 +433,6 @@ def always_includes(params=None, request=None, user=None):
   
   params['is_production'] = environment.IS_PRODUCTION
   params['logout_url']    = create_logout_url('/')
+  params['max_records']   = RESULT_LIMIT
   
   return params

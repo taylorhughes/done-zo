@@ -13,13 +13,14 @@
   <p>
     Show archived tasks from
     {% for range in ranges %}
-    <a href="?range={{ range.slug }}">{{ range.name|lower }}</a>,
+      {% ifequal range.slug chosen_range %}<strong>{% endifequal %}
+      <a href="?range={{ range.slug }}">{{ range.name|lower }}</a>{% ifequal range.slug chosen_range %}</strong>{% endifequal %},
     {% endfor %}
     <span>or</span>
   </p>
-  <form>
-    <input type="text" value="{{ start|date:"n/j/y" }}" class="date"> to
-    <input type="text" value="{{ stop|date:"n/j/y" }}" class="date">
+  <form method="get" action="{% url tasks.views.archived_index %}">
+    <input type="text" value="{{ start|adjust_date:user|date:"n/j/y" }}" class="date" name="start"> to
+    <input type="text" value="{{ stop|adjust_date:user|date:"n/j/y" }}" class="date" name="stop">
     <input type="submit" value="go">
   </form>
 </div>
@@ -38,6 +39,11 @@
     {% include "tasks/tasks/archived_task.html" %}
   {% endfor %}
 </table>
+
+{% if tasks|length_is:max_records %}
+<p>Results limited to {{ max_records }} items.</p>
+{% endif %}
+
 {% endblock %}
 
 {% block footer %}{% endblock %}
