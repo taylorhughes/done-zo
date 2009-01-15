@@ -362,7 +362,7 @@ def task(request, task_id=None):
     undo = undo.key().id()
   
   if not is_ajax(request):
-    return referer_redirect(user)
+    return referer_redirect(user, request)
     
   else:
     return render_to_response('tasks/tasks/ajax_task.html', {
