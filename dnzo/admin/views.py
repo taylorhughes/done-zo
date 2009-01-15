@@ -71,3 +71,63 @@ def invitations(request):
   return render_to_response("admin/invitations.html", {
     'invitations': invitations
   })
+  
+  
+def migrations(request):
+  from admin.migrations import MIGRATIONS
+  
+  return render_to_response("admin/migrations/index.html", {
+    'migrations': MIGRATIONS
+  })
+  
+def run_migration(request, migration_id):
+  from admin.migrations import MIGRATIONS
+
+  migration_index = 0
+  try:
+    migration_slugs = [migration['slug'] for migration in MIGRATIONS]
+    migration_index = migration_slugs.index(migration_id)
+  except:
+    pass
+    
+  migration = MIGRATIONS[migration_index]
+
+  if request.method == "POST":
+    start = param('start', request.POST, None)
+    
+    total, updated, last_key = migration['migration'](start)
+
+    return render_to_response("admin/migrations/migration_progress.html", {
+      'migration': migration,
+      'total':     total,
+      'updated':   updated,
+      'last_key':  last_key
+    })
+        
+  else: 
+    return render_to_response("admin/migrations/run_migration.html", {
+      'migration': migration
+    })
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  

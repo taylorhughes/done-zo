@@ -38,6 +38,7 @@
       
     #content { margin-left: 150px; }
   </style>
+  {% block javascripts %}{% endblock %}
 </head>
 <body>
   <div id="body">
@@ -47,7 +48,8 @@
     <ul id="nav">
       <li><a href="{% url admin.views.invitations %}">List invitations</a></li>
       <li><a href="{% url admin.views.add_invitation %}">Add invitations</a></li>
-      <li><a href="{% url admin.views.add_invitation %}">Migrate user</a></li>
+      <li><a href="{% url admin.views.migrate_user %}">Migrate user</a></li>
+      <li><a href="{% url admin.views.migrations %}">Data migrations</a></li>
     </ul>
     
     <div id="content">
