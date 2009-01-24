@@ -3,7 +3,6 @@
  * Adapted from Tantek Celik's undohtml.css
  *   http://tantek.com/log/2004/09.html#d06t2354
  */  
-:link,:visited { text-decoration:none }
 ul,ol { list-style:none }
 h1,h2,h3,h4,h5,h6,pre,code { font-size:1em; }
 ul,ol,li,dl,dt,dd,h1,h2,h3,h4,h5,h6,
@@ -139,6 +138,7 @@ th {
 td {
   padding: 7px 8px 6px 8px;
   font-size: 13px;
+  height: 18px;
 }
 	td a {
 	  text-decoration: none;
@@ -218,6 +218,9 @@ tr.editable.task-row td.due,
 tr.editable.task-row td.edit {
   padding: 6px 4px 5px 4px;
 }
+  tr.editable.task-row td.task {
+    padding-right: 10px;
+  }
   tr.editable.task-row td.edit {
     padding-left: 0;
   }
@@ -227,29 +230,23 @@ tr.editable.task-row td.edit {
   border: 1px solid #ccc;
 }
 
-/*
-tr.editable.task-row td.error input {
-  border-color: #c00;
-}
-*/
 tr.editable.task-row td.project input,
 tr.editable.task-row td.task input,
 tr.editable.task-row td.context input,
 tr.editable.task-row td.due input {
-  width: 100%;
+  height: 14px;
+  outline: none;
 }
-
-/*
-tr.editable td.message {
-  padding-top: 0;
-  padding-left: 0.5em;
-  padding-bottom: 0.5em;
-  font-size: 1.1em;
-}
-  tr.editable td.message strong {
-    color: #c00;
+  tr.editable.task-row td.project input,
+  tr.editable.task-row td.context input {
+    width: 100px;
   }
-  */
+  tr.editable.task-row td.due input {
+    width: 60px;
+  }
+  tr.editable.task-row td.task input {
+    width: 100%;
+  }
 
 tr.dragging {
   background: #ff9;
@@ -337,10 +334,3 @@ tr.error td {
   #filter input.date {
     width: 70px;
   }
-
-
-
-
-
-
-
