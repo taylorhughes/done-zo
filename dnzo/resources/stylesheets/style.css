@@ -57,10 +57,10 @@ body,
   }
   
 #status {
-  position: absolute;
+  position: fixed;
   width: 400px;
-  height: 20px;
-  top: 50px;
+  height: 25px;
+  top: 0;
   left: 50%;
   margin-left: -200px;
   background: red;
@@ -71,7 +71,7 @@ body,
     text-decoration: underline;
   }
   #status p {
-    margin-top: 3px;
+    margin-top: 6px;
     padding: 0;
 	  text-align: center;
   }
