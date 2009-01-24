@@ -176,7 +176,10 @@ td {
 tr.task-row:hover td,
 tr.editable td {
   background: #ff9;
-}  
+} 
+tr.task-row.cancel-hover:hover td {
+  background: white;
+}
   tr.task-row:hover td a,
   tr.editable td a {
     text-decoration: underline;
@@ -197,6 +200,7 @@ tr.editable td {
 
   tr.task-row td {
     white-space: nowrap;
+    cursor: move;
   }
     tr.task-row td.task {
       white-space: normal;
@@ -248,7 +252,6 @@ tr.editable td.message {
   */
 
 tr.dragging {
-  border: 1px solid #666;
   background: #ff9;
 }
 

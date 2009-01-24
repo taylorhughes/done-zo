@@ -230,7 +230,7 @@ var TaskRow = Class.create({
     {
       this.viewRow = viewRow;
       this.wireViewingEvents(this.viewRow);
-      //this.wireDragging(this.viewRow);
+      this.wireDragging(this.viewRow);
     }
     if (editRow)
     {
@@ -477,6 +477,9 @@ var TaskRow = Class.create({
   onStopDrag: function(draggable, mouseEvent)
   {
     this.viewRow.removeClassName('dragging');
+    
+    if (this.aboveNeighbor) this.aboveNeighbor.removeClassName('cancel-hover');
+    if (this.belowNeighbor) this.belowNeighbor.removeClassName('cancel-hover');
   },
   
   onDrag: function(draggable, mouseEvent)
@@ -496,12 +499,18 @@ var TaskRow = Class.create({
     this.topDragBound = null;
     this.bottomDragBound = null;
     
+    if (this.aboveNeighbor) this.aboveNeighbor.removeClassName('cancel-hover');
+    if (this.belowNeighbor) this.belowNeighbor.removeClassName('cancel-hover');
+    
     this.aboveNeighbor = this.viewRow.previousSiblings().find(function(e){
                            return e.match('tr.task-row') && !e.hasClassName('editable');
                          });
+    if (this.aboveNeighbor) this.aboveNeighbor.addClassName('cancel-hover');
+    
     this.belowNeighbor = this.viewRow.nextSiblings().find(function(e){
                             return e.match('tr.task-row') && !e.hasClassName('editable');
                          });
+    if (this.belowNeighbor) this.belowNeighbor.addClassName('cancel-hover');
                        
                          
     this.canMoveUp   = this.aboveNeighbor != null;
@@ -509,12 +518,12 @@ var TaskRow = Class.create({
     if (this.canMoveUp)
     {
       this.topDragBound = this.aboveNeighbor.cumulativeOffset().top + 
-                          (this.aboveNeighbor.getDimensions().height / 3.0);
+                          this.aboveNeighbor.getDimensions().height;
     }
     if (this.canMoveDown)
     {
-      this.bottomDragBound = this.belowNeighbor.cumulativeOffset().top + 
-                             ((this.belowNeighbor.getDimensions().height / 3.0) * 2);
+      this.bottomDragBound = this.belowNeighbor.cumulativeOffset().top;// + 
+                             //(this.belowNeighbor.getDimensions().height / 2.0);
     }
   },
   
