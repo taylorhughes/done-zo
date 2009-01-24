@@ -230,6 +230,7 @@ var TaskRow = Class.create({
     {
       this.viewRow = viewRow;
       this.wireViewingEvents(this.viewRow);
+      //this.wireDragging(this.viewRow);
     }
     if (editRow)
     {
@@ -277,6 +278,17 @@ var TaskRow = Class.create({
     this.wireContextAutocomplete(row);
     
     this.editEventsWired = true;
+  },
+  
+  wireDragging: function(row)
+  {
+    new Draggable(row, { 
+      ghosting:   false,
+      constraint: 'vertical',
+      onStart:    this.onStartDrag.bind(this),
+      onEnd:      this.onStopDrag.bind(this),
+      onDrag:     this.onDrag.bind(this)
+    });
   },
   
   wireProjectAutocomplete: function(row)
@@ -454,6 +466,82 @@ var TaskRow = Class.create({
     {
       this.cancel();
     }
+  },
+  
+  onStartDrag: function(draggable, mouseEvent)
+  {
+    this.viewRow.addClassName('dragging');
+    this.findDragBounds();
+  },
+  
+  onStopDrag: function(draggable, mouseEvent)
+  {
+    this.viewRow.removeClassName('dragging');
+  },
+  
+  onDrag: function(draggable, mouseEvent)
+  {
+    if (this.canMoveUp && mouseEvent.clientY < this.topDragBound)
+    {
+      this.moveUp();
+    }
+    else if (this.canMoveDown && mouseEvent.clientY > this.bottomDragBound)
+    {
+      this.moveDown();
+    }
+  },
+  
+  findDragBounds: function()
+  {    
+    this.topDragBound = null;
+    this.bottomDragBound = null;
+    
+    this.aboveNeighbor = this.viewRow.previousSiblings().find(function(e){
+                           return e.match('tr.task-row') && !e.hasClassName('editable');
+                         });
+    this.belowNeighbor = this.viewRow.nextSiblings().find(function(e){
+                            return e.match('tr.task-row') && !e.hasClassName('editable');
+                         });
+                       
+                         
+    this.canMoveUp   = this.aboveNeighbor != null;
+    this.canMoveDown = this.belowNeighbor != null;
+    if (this.canMoveUp)
+    {
+      this.topDragBound = this.aboveNeighbor.cumulativeOffset().top + 
+                          (this.aboveNeighbor.getDimensions().height / 3.0);
+    }
+    if (this.canMoveDown)
+    {
+      this.bottomDragBound = this.belowNeighbor.cumulativeOffset().top + 
+                             ((this.belowNeighbor.getDimensions().height / 3.0) * 2);
+    }
+  },
+  
+  moveUp: function()
+  {
+    var aboveEditRow = this.aboveNeighbor.previousSiblings()[0];
+    
+    this.viewRow.remove();
+    this.editRow.remove();
+    
+    aboveEditRow.parentNode.insertBefore(this.editRow, aboveEditRow);
+    aboveEditRow.parentNode.insertBefore(this.viewRow, aboveEditRow);
+    
+    this.findDragBounds();
+  },
+  
+  moveDown: function()
+  {
+    var belowEditRow = this.belowNeighbor.nextSiblings()[0];
+    
+    this.viewRow.remove();
+    this.editRow.remove();
+    
+    belowEditRow.parentNode.insertBefore(this.editRow, belowEditRow);
+    belowEditRow.parentNode.insertBefore(this.viewRow, belowEditRow);
+    
+    this.findDragBounds();
   },
   
   /*** ACTIONS ***/

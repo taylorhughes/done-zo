@@ -7,7 +7,7 @@ COMBINED_JS_OUTPUT=(
   "ext/combined.js"
 )
 COMBINE_JS=(
-  "ext/prototype.js ext/scriptaculous.js ext/effects.js ext/controls.js"
+  "ext/prototype.js ext/scriptaculous.js ext/effects.js ext/controls.js ext/dragdrop.js"
 )
 
 JAVASCRIPTS=" 

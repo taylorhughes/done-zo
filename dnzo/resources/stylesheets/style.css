@@ -247,6 +247,12 @@ tr.editable td.message {
   }
   */
 
+tr.dragging {
+  border: 1px solid #666;
+  background: #ff9;
+}
+
+
 tr.error td {
   background: #c00;
 }
