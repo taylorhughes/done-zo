@@ -140,10 +140,10 @@ var Tasks = {
       return new Effect.Fade(child, { sync: true });
     });
     
-    new Effect.Parallel(subeffects, { 
-      duration: 0.25,
+    new Effect.Parallel(subeffects, {
+      duration: 0.1,
       afterFinish: function() {
-        new Effect.BlindUp(status, { duration: 0.25 });
+        new Effect.BlindUp(status, { duration: 0.1 });
       }
     });
   },
@@ -159,9 +159,9 @@ var Tasks = {
     });
     
     new Effect.BlindDown(status, { 
-      duration: 0.25,
+      duration: 0.1,
       afterFinish: function() {
-        new Effect.Parallel(subeffects, { duration: 0.25 });
+        new Effect.Parallel(subeffects, { duration: 0.1 });
       }
     });
   },
