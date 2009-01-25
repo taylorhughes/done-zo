@@ -571,7 +571,11 @@ var Draggable = Class.create({
 
 Draggable._dragging = { };
 
-/*--------------------------------------------------------------------------*/
+/******
+
+
+// PORTIONS OF THIS DRAG AND DROP FILE WE DO NOT USE
+
 
 var SortableObserver = Class.create({
   initialize: function(element, observer) {
@@ -855,7 +859,7 @@ var Sortable = {
         container: $(children[i]).down(options.treeTag)
       }
       
-      /* Get the element containing the children and recurse over it */
+      // Get the element containing the children and recurse over it 
       if (child.container)
         this._tree(child.container, options, child)
       
@@ -887,7 +891,7 @@ var Sortable = {
     return Sortable._tree(element, options, root);
   },
 
-  /* Construct a [i] index for a particular node */
+  // Construct a [i] index for a particular node 
   _constructIndex: function(node) {
     var index = '';
     do {
@@ -943,6 +947,8 @@ var Sortable = {
     }
   }
 }
+
+******/
 
 // Returns true if child is contained within element
 Element.isParent = function(child, element) {
