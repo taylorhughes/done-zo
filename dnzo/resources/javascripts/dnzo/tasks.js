@@ -558,12 +558,19 @@ var TaskRow = Class.create({
       function(e) { return e.hasClassName('unsaved'); }
     );
    
+    var myHeight = this.viewRow.getDimensions().height;
+   
     this.canMoveUp      = this.aboveNeighbors.length > 0;
     this.topDragBounds  = null;
     if (this.canMoveUp)
     {
       this.topDragBounds = this.aboveNeighbors.collect(function(aboveNeighbor) {
-        return aboveNeighbor.cumulativeOffset().top + aboveNeighbor.getDimensions().height;
+        var hisHeight = aboveNeighbor.getDimensions().height;
+        return aboveNeighbor.cumulativeOffset().top + hisHeight -
+               // If this row is taller than my row, when my row moves
+               // I don't want the mouse to end up in his row -- so add
+               // the difference in height as a buffer.
+               (hisHeight > myHeight ? hisHeight - myHeight : 0);
       });
     }
     
