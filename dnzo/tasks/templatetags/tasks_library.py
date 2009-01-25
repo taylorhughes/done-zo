@@ -129,7 +129,7 @@ class VersionedTag(Node):
   def filename(self):
     if environment.IS_DEVELOPMENT:
       return self.base_filename
-    return self.base_filename + "_compiled"
+    return self.base_filename + "min"
     
   @property
   def version(self):

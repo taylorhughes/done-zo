@@ -39,7 +39,7 @@ done
 # Update compiled stylesheets
 for i in $CSS
 do
-  compiled=${i/.css/_compiled.css}
+  compiled=${i/.css/_min.css}
   echo "Updating $compiled ..."
   java -jar $COMPRESSOR $CSS_DIR/$i > $CSS_DIR/$compiled
 done
@@ -47,7 +47,7 @@ done
 # Update compiled scripts
 for i in $JAVASCRIPTS
 do
-  compiled=${i/.js/_compiled.js}
+  compiled=${i/.js/_min.js}
   echo "Updating $compiled ..."
   java -jar $COMPRESSOR \
        $JAVASCRIPTS_DIR/$i > $JAVASCRIPTS_DIR/$compiled

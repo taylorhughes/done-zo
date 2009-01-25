@@ -39,7 +39,7 @@ then
   exit
 fi
 
-# Update the _compiled JS/CSS files
+# Update the _min JS/CSS files
 ./compile_resources.sh
 
 # Get the current svn revision number.
