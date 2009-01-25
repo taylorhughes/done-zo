@@ -26,7 +26,7 @@
   {% endif %}
 </style>
 
-<table cellspacing="0" cellpadding="0" id="tasks_list">
+<table cellspacing="0" cellpadding="0" id="tasks_list"{% if is_sortable %} class="sortable"{% endif %}>
   <tr>
     {% sorting_header "<img src=\"/images/checkmark.gif\" alt=\"checkmark\">" "complete" order direction "done" %}
     {% sorting_header "Project" "project_index" order direction "project" %}

@@ -76,10 +76,12 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
       direction = 'DESC'
     
     order_by = '%s %s, %s %s' % (order, direction, default_order, default_direction)
+    is_sortable = False
   
   else:
     order, direction = default_order, default_direction
     order_by = '%s %s' % (order, direction)
+    is_sortable = True
   
   gql = 'WHERE %s ORDER BY %s' % (' AND '.join(wheres), order_by)
   tasks = Task.gql(gql, **params).fetch(RESULT_LIMIT)
@@ -106,7 +108,8 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
     'direction': direction,
     'status': status,
     'undo': undo,
-    'new_task': new_task
+    'new_task': new_task,
+    'is_sortable': is_sortable,
   }, request, user))
   
   reset_status_undo(response,status,undo)

@@ -199,9 +199,11 @@ table.row-dragging tr.task-row:hover td {
       text-decoration: none;
     }
 
+  table.sortable tr.task-row td {
+    cursor: move;
+  }
   tr.task-row td {
     white-space: nowrap;
-    cursor: move;
   }
     tr.task-row td.task {
       white-space: normal;

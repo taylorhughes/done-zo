@@ -34,6 +34,10 @@ var Tasks = {
     Tasks.setHideStatus();
   },
   
+  sortable: function() {
+    return Tasks.table.hasClassName('sortable');
+  },
+  
   onClickAddTask: function(event)
   {
     event.stop();
@@ -230,7 +234,6 @@ var TaskRow = Class.create({
     {
       this.viewRow = viewRow;
       this.wireViewingEvents(this.viewRow);
-      this.wireDragging(this.viewRow);
     }
     if (editRow)
     {
@@ -261,6 +264,8 @@ var TaskRow = Class.create({
     
     // For clicking events
     row.observe('dblclick', this.onDoubleClickViewRow.bind(this));
+    
+    this.wireDragging(this.viewRow);
   },
   
   wireEditingEvents: function(row)
@@ -282,12 +287,18 @@ var TaskRow = Class.create({
   
   wireDragging: function(row)
   {
-    new Draggable(row, { 
-      ghosting:   false,
-      constraint: 'vertical',
-      onStart:    this.onStartDrag.bind(this),
-      onEnd:      this.onStopDrag.bind(this),
-      onDrag:     this.onDrag.bind(this)
+    if (!Tasks.sortable()) { return; }
+    
+    new Draggable(row, {
+      starteffect: null,
+      endeffect:   null,
+      
+      ghosting:    false,
+      constraint:  'vertical',
+      
+      onStart:     this.onStartDrag.bind(this),
+      onEnd:       this.onStopDrag.bind(this),
+      onDrag:      this.onDrag.bind(this)
     });
   },
   
