@@ -468,89 +468,106 @@ var TaskRow = Class.create({
     }
   },
   
+  /** DRAG AND DROP **/
+  
   onStartDrag: function(draggable, mouseEvent)
   {
     this.viewRow.addClassName('dragging');
+    this.viewRow.up('table').addClassName('row-dragging');
+    
     this.findDragBounds();
   },
   
   onStopDrag: function(draggable, mouseEvent)
   {
     this.viewRow.removeClassName('dragging');
-    
-    if (this.aboveNeighbor) this.aboveNeighbor.removeClassName('cancel-hover');
-    if (this.belowNeighbor) this.belowNeighbor.removeClassName('cancel-hover');
+    this.viewRow.up('table').removeClassName('row-dragging');
   },
   
   onDrag: function(draggable, mouseEvent)
   {
-    if (this.canMoveUp && mouseEvent.clientY < this.topDragBound)
+    var scrollOffset = document.viewport.getScrollOffsets().top;
+    var y = mouseEvent.clientY + scrollOffset;
+    
+    var visibleRow, rowBound = null;
+    var index = 0;
+    if (this.canMoveUp && y < this.topDragBounds.first())
     {
-      this.moveUp();
+      if (this.topDragBounds.length > 1)
+      {
+        rowBound = this.topDragBounds.find(function(bound) { return y > bound; });
+        index = rowBound ? this.topDragBounds.indexOf(rowBound) - 1 : this.topDragBounds.length - 1;
+      }
+      visibleRow = this.aboveNeighbors[index];
+      this.moveUp(visibleRow);
     }
-    else if (this.canMoveDown && mouseEvent.clientY > this.bottomDragBound)
+    else if (this.canMoveDown && y > this.bottomDragBounds.first())
     {
-      this.moveDown();
+      if (this.bottomDragBounds.length > 1)
+      {
+        rowBound = this.bottomDragBounds.find(function(bound) { return y < bound; });
+        index = rowBound ? this.bottomDragBounds.indexOf(rowBound) - 1 : this.bottomDragBounds.length - 1;
+      }
+      visibleRow = this.belowNeighbors[index];
+      this.moveDown(visibleRow);
     }
   },
   
   findDragBounds: function()
   {    
-    this.topDragBound = null;
-    this.bottomDragBound = null;
-    
-    if (this.aboveNeighbor) this.aboveNeighbor.removeClassName('cancel-hover');
-    if (this.belowNeighbor) this.belowNeighbor.removeClassName('cancel-hover');
-    
-    this.aboveNeighbor = this.viewRow.previousSiblings().find(function(e){
-                           return e.match('tr.task-row') && !e.hasClassName('editable');
-                         });
-    if (this.aboveNeighbor) this.aboveNeighbor.addClassName('cancel-hover');
-    
-    this.belowNeighbor = this.viewRow.nextSiblings().find(function(e){
-                            return e.match('tr.task-row') && !e.hasClassName('editable');
-                         });
-    if (this.belowNeighbor) this.belowNeighbor.addClassName('cancel-hover');
-                       
-                         
-    this.canMoveUp   = this.aboveNeighbor != null;
-    this.canMoveDown = this.belowNeighbor != null;
+    var visibleRowTest = function(e){ return e.match('tr.task-row') && e.visible(); }
+    this.aboveNeighbors = this.viewRow.previousSiblings().findAll(visibleRowTest);
+    this.belowNeighbors = this.viewRow.nextSiblings().findAll(visibleRowTest);
+   
+    this.canMoveUp      = this.aboveNeighbors.length > 0;
+    this.topDragBounds  = null;
     if (this.canMoveUp)
     {
-      this.topDragBound = this.aboveNeighbor.cumulativeOffset().top + 
-                          this.aboveNeighbor.getDimensions().height;
+      this.topDragBounds = this.aboveNeighbors.collect(function(aboveNeighbor) {
+        return aboveNeighbor.cumulativeOffset().top + aboveNeighbor.getDimensions().height;
+      });
     }
+    
+    this.canMoveDown      = this.belowNeighbors.length > 0;
+    this.bottomDragBounds = null;
     if (this.canMoveDown)
     {
-      this.bottomDragBound = this.belowNeighbor.cumulativeOffset().top;// + 
-                             //(this.belowNeighbor.getDimensions().height / 2.0);
+      this.bottomDragBounds = this.belowNeighbors.collect(function(belowNeighbor) {
+        return belowNeighbor.cumulativeOffset().top;
+      });
     }
   },
   
-  moveUp: function()
+  moveUp: function(visibleRow)
   {
-    var aboveEditRow = this.aboveNeighbor.previousSiblings()[0];
+    // If the above neighbor is an edit row, just use it because it's the top row
+    // otherwise we have to get the row above it
+    var aboveEditRow = visibleRow.hasClassName('editable') ? 
+                       visibleRow : visibleRow.previousSiblings()[0];
     
-    this.viewRow.remove();
-    this.editRow.remove();
-    
-    aboveEditRow.parentNode.insertBefore(this.editRow, aboveEditRow);
-    aboveEditRow.parentNode.insertBefore(this.viewRow, aboveEditRow);
-    
+    this.moveAboveRow(aboveEditRow);
     this.findDragBounds();
   },
   
-  moveDown: function()
+  moveDown: function(visibleRow)
   {
-    var belowEditRow = this.belowNeighbor.nextSiblings()[0];
+    // This is the row BELOW the below neighbor, since we're going to take
+    // our rows and insert them ** BEFORE ** this element 
+    var nextBelowNeighbor = visibleRow.hasClassName('editable') ? 
+                            visibleRow.nextSiblings()[1] : 
+                            visibleRow.nextSiblings()[0];
     
+    this.moveAboveRow(nextBelowNeighbor);
+    this.findDragBounds();
+  },
+  
+  moveAboveRow: function(rowBelow)
+  {
     this.viewRow.remove();
     this.editRow.remove();
     
-    belowEditRow.parentNode.insertBefore(this.editRow, belowEditRow);
-    belowEditRow.parentNode.insertBefore(this.viewRow, belowEditRow);
-    
-    this.findDragBounds();
+    rowBelow.parentNode.insertBefore(this.editRow, rowBelow);
+    rowBelow.parentNode.insertBefore(this.viewRow, rowBelow);
   },
   
   /*** ACTIONS ***/

@@ -176,8 +176,9 @@ td {
 tr.task-row:hover td,
 tr.editable td {
   background: #ff9;
-} 
-tr.task-row.cancel-hover:hover td {
+}
+/* overrule default :hover rule when something in the table is being dragged */
+table.row-dragging tr.task-row:hover td {
   background: white;
 }
   tr.task-row:hover td a,
@@ -248,10 +249,10 @@ tr.editable.task-row td.due input {
     width: 100%;
   }
 
-tr.dragging {
+table.row-dragging tr.task-row.dragging:hover td,
+tr.dragging td {
   background: #ff9;
 }
-
 
 tr.error td {
   background: #c00;
