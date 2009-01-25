@@ -729,6 +729,8 @@ var TaskRow = Class.create({
   
   savePosition: function()
   {
+    if (!Tasks.sortable()) { return; }
+    
     new Ajax.Request(this.editLink.href, {
       method: 'post',
       onSuccess: this.doSavePosition.bind(this),
