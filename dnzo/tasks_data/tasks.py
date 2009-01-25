@@ -90,7 +90,9 @@ def update_task_with_params(user, task, params):
     task.complete = False
     task.completed_at = None
   
-  task.body = param('body', params, '')
+  raw_body = param('body', params, None)
+  if raw_body is not None:
+    task.body = raw_body
   
   raw_project = param('project', params, None)
   if raw_project is not None:

@@ -59,6 +59,7 @@
     {% endif %}
   </td>
   <td class="edit">
+    <input type="hidden" class="task-id" value="{{ task.key.id }}">
     <a href="{{ task.get_absolute_url }}" class="edit">edit</a>&nbsp;&nbsp;
     <a href="{{ task.get_absolute_url }}?delete=true" class="delete">
       <img src="/images/trash.gif" alt="delete task">

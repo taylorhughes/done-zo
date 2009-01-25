@@ -330,6 +330,9 @@ def task(request, task_id=None):
   force_uncomplete = param('force_uncomplete', request.POST, None)
   force_delete     = param('delete', request.GET, None)
   
+  task_above = param('task_above', request.POST, None)
+  task_below = param('task_below', request.POST, None)
+  
   status = None
   undo = None
   
@@ -351,6 +354,32 @@ def task(request, task_id=None):
     status = get_status_message(Statuses.TASK_DELETED)
     delete_task(user,task)
     undo = create_undo(user, task_list=task.task_list, deleted_tasks=[task])
+    
+  elif task_above is not None or task_below is not None:
+    before, after = None, None
+    if task_above:
+      task_above = Task.get_by_id(int(task_above), parent=user)
+      if task_above:
+        before = task_above.created_at
+    if task_below:
+      task_below = Task.get_by_id(int(task_below), parent=user)
+      if task_below:
+        after = task_below.created_at
+        
+    from datetime import datetime, timedelta
+    new_sort = None  
+    if before and after:
+      new_sort = before + ((after - before) / 2)
+    elif before:
+      # last task
+      new_sort = datetime.utcnow()
+    elif after:
+      # first task
+      new_sort = after - timedelta(hours=1)
+    
+    if new_sort:
+      task.created_at = new_sort
+      save_task(user, task)
     
   elif request.method == "POST":
     update_task_with_params(user, task, request.POST)

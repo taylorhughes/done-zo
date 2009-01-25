@@ -216,6 +216,14 @@ var Tasks = {
     return temp;
   },
   
+  idFromViewRow: function(row)
+  {
+    var input = row && row.select('input.task-id').first();
+    if (input)
+      return input.getValue();
+    return null;
+  },
+  
   doFail: function(xhr)
   {
     alert("Ruh roh! Something went wrong. Please let us know what happened!");
@@ -372,6 +380,22 @@ var TaskRow = Class.create({
     Event.fire((this.viewRow || this.editRow), eventName, memo);
   },
   
+  taskAbove: function()
+  {
+    var above = this.viewRow.previousSiblings().find(function(row) { 
+      return row.match('tr.task-row') && ! row.hasClassName('editable');
+    });
+    return Tasks.idFromViewRow(above);
+  },
+  
+  taskBelow: function()
+  {
+    var below = this.viewRow.nextSiblings().find(function(row) { 
+      return row.match('tr.task-row') && ! row.hasClassName('editable');
+    });
+    return Tasks.idFromViewRow(below);
+  },
+  
   /*** EVENT HANDLERS ***/
   
   onClickEdit: function(event)
@@ -493,6 +517,8 @@ var TaskRow = Class.create({
   {
     this.viewRow.removeClassName('dragging');
     this.viewRow.up('table').removeClassName('row-dragging');
+    
+    this.savePosition();
   },
   
   onDrag: function(draggable, mouseEvent)
@@ -528,7 +554,9 @@ var TaskRow = Class.create({
   {    
     var visibleRowTest = function(e){ return e.match('tr.task-row') && e.visible(); }
     this.aboveNeighbors = this.viewRow.previousSiblings().findAll(visibleRowTest);
-    this.belowNeighbors = this.viewRow.nextSiblings().findAll(visibleRowTest);
+    this.belowNeighbors = this.viewRow.nextSiblings().findAll(visibleRowTest).reject(
+      function(e) { return e.hasClassName('unsaved'); }
+    );
    
     this.canMoveUp      = this.aboveNeighbors.length > 0;
     this.topDragBounds  = null;
@@ -677,7 +705,8 @@ var TaskRow = Class.create({
     defaultOptions = {
       method: 'post',
       parameters: params,
-      onSuccess: this.doComplete.bind(this)      
+      onSuccess: this.doComplete.bind(this),
+      onFailure: this.doFail.bind(this)
     };
     if (options)
     {
@@ -690,6 +719,20 @@ var TaskRow = Class.create({
   {
     this.replaceRows(xhr);
   },
+  
+  savePosition: function()
+  {
+    new Ajax.Request(this.editLink.href, {
+      method: 'post',
+      onSuccess: this.doSavePosition.bind(this),
+      onFailure: this.doFail.bind(this),
+      parameters: {
+        task_above: this.taskAbove(),
+        task_below: this.taskBelow()
+      }
+    });
+  },
+  doSavePosition: function(xhr) {},
   
   doFail: function(xhr)
   {

@@ -46,6 +46,11 @@ class Task(db.Model):
   task_list     = db.ReferenceProperty(TaskList, collection_name='tasks')
   created_at    = db.DateTimeProperty(auto_now_add=True)
   
+  # created_at is now overwritten when you re-order tasks in a list,
+  # and I'm lazy, so I'm just adding another property to actually
+  # keep track of this.
+  real_created_at = db.DateTimeProperty(auto_now_add=True)
+  
   complete      = db.BooleanProperty(default=False)
   completed_at  = db.DateTimeProperty()
   
