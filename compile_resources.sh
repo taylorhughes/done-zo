@@ -5,14 +5,16 @@ JAVASCRIPTS_DIR="dnzo/resources/javascripts"
 # Ensure that these indexes match.
 COMBINED_JS_OUTPUT=(
   "ext/combined.js"
+  "dnzo/combined.js"
 )
 COMBINE_JS=(
   "ext/prototype.js ext/scriptaculous.js ext/effects.js ext/controls.js ext/dragdrop.js"
+  "dnzo/task_row.js dnzo/tasks.js"
 )
 
 JAVASCRIPTS=" 
   dnzo/application.js
-  dnzo/tasks.js
+  dnzo/combined.js
   ext/combined.js
 "
 CSS_DIR="dnzo/resources/stylesheets"
