@@ -11,7 +11,10 @@ DNZO
 {% block body %}
 <p>Helps you get things done-zo.</p>
 <p>
-  <a href="{% url public.views.signup %}">Register »</a><br/>
-  <a href="{% url tasks.views.redirect %}">Sign in »</a>
+  You can
+  <a href="{% url public.views.signup %}">register</a> 
+  or 
+  <a href="{% url tasks.views.redirect %}">sign in</a> 
+  with your Google Account.
 </p>
 {% endblock %}
