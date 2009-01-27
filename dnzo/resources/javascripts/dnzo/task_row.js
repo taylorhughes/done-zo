@@ -69,6 +69,7 @@ var TaskRow = Class.create({
       starteffect: null,
       endeffect:   null,
       
+      revert:      true,
       ghosting:    false,
       constraint:  'vertical',
       
