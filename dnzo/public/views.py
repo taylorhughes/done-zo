@@ -6,6 +6,8 @@ from tasks.redirects import default_list_redirect
 
 from tasks_data.users import get_dnzo_user
 
+import environment
+
 DEFAULT_LIST_NAME = 'Tasks'
 
 def welcome(request):
@@ -20,7 +22,8 @@ def welcome(request):
     
   return render_to_response("public/index.html", {
     'nickname': nickname,
-    'logout_url': create_logout_url('/')
+    'logout_url': create_logout_url('/'),
+    'is_development': environment.IS_DEVELOPMENT
   })
   
 def closed(request):
@@ -31,7 +34,8 @@ def closed(request):
   
   return render_to_response("public/signup/closed.html", {
     'nickname': nickname,
-    'logout_url': create_logout_url('/')
+    'logout_url': create_logout_url('/'),
+    'is_development': environment.IS_DEVELOPMENT
   })
 
 def signup(request):
