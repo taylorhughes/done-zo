@@ -42,5 +42,17 @@
   {% combined_javascript_tag ext/combined ext/prototype ext/scriptaculous ext/effects ext/controls ext/dragdrop %}
   {% javascript_tag dnzo/application %}
   {% block javascripts %}{% endblock %}
+  
+  {% if is_production %}
+  <script type="text/javascript">
+  var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+  document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+  <script type="text/javascript">
+  try {
+  var pageTracker = _gat._getTracker("UA-6679771-1");
+  pageTracker._trackPageview();
+  } catch(err) {}</script>
+  {% endif %}
 </body>
 </html>
