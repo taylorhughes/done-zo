@@ -344,7 +344,7 @@ def task(request, task_id=None):
     if force_uncomplete: 
       task.complete = False
       task.completed_at = None
-      
+    
     save_task(user, task)
     
   elif force_delete:

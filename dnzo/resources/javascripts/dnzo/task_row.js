@@ -220,11 +220,9 @@ var TaskRow = Class.create({
     if (this.isEditing()) return;
     
     var check = event.element();
-    this.completeOrUncomplete(check.checked, {
-      onFailure: (function(xhr){
-        this.doFail();
-        check.checked = !checked;
-      }).bind(this)
+    var checked = check.checked;
+    this.completeOrUncomplete(checked, {
+      onFailure: this.doFail.bind(this)
     });
   },
   
@@ -279,6 +277,7 @@ var TaskRow = Class.create({
     this.viewRow.addClassName('dragging');
     this.viewRow.up('table').addClassName('row-dragging');
     
+    this.recordPosition();
     this.findDragBounds();
   },
   
@@ -474,9 +473,15 @@ var TaskRow = Class.create({
   {
     var params = {}
     if (complete)
+    {
       params['force_complete'] = true;
+      this.viewRow.addClassName('completed');
+    }
     else
+    {
       params['force_uncomplete'] = true;
+      this.viewRow.removeClassName('completed');
+    }
     
     defaultOptions = {
       method: 'post',
@@ -491,24 +496,33 @@ var TaskRow = Class.create({
     
     new Ajax.Request(this.editLink.href, defaultOptions);
   },
-  doComplete: function(xhr)
+  doComplete: function(xhr) {},
+  
+  recordPosition: function()
   {
-    this.replaceRows(xhr);
+    var originalPosition = this.position;
+    this.position = {
+      task_above: this.taskAbove(),
+      task_below: this.taskBelow()
+    }
+    
+    // Returns whether we changed anything
+    return Object.toJSON(originalPosition||{}) != Object.toJSON(this.position);
   },
   
   savePosition: function()
   {
     if (!Tasks.sortable()) { return; }
     
-    new Ajax.Request(this.editLink.href, {
-      method: 'post',
-      onSuccess: this.doSavePosition.bind(this),
-      onFailure: this.doFail.bind(this),
-      parameters: {
-        task_above: this.taskAbove(),
-        task_below: this.taskBelow()
-      }
-    });
+    if (this.recordPosition())
+    {
+      new Ajax.Request(this.editLink.href, {
+        method: 'post',
+        onSuccess: this.doSavePosition.bind(this),
+        onFailure: this.doFail.bind(this),
+        parameters: this.position
+      });
+    }
   },
   doSavePosition: function(xhr) {},
   
