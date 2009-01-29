@@ -13,7 +13,12 @@ TEMPLATE_LOADERS = (
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
-) 
+)
+
+ADMINS = (
+    # ('Your Name', 'your_email@domain.com'),
+    ('Taylor Hughes', 'taylor@taylor-hughes.com'),
+)
 
 MIDDLEWARE_CLASSES = (
   # does things like APPEND_SLASH for URLs
