@@ -2,6 +2,10 @@ from google.appengine.ext import db
 
 from tasks_data.models import Project, ProjectIndex, Context, Invitation, Undo
 
+# Max projects to store in the datastore for autocomplete
+MAX_PROJECTS = 50
+
+
 ### Invitations ###
 
 def get_invitation_by_address(address):
@@ -22,30 +26,15 @@ def save_project(user, project_name):
   if not project:
     project = create_project(user, project_name)
     
-  else:
-    for index in project.indexes:
-      # TODO: update in a transaction?
-      from datetime import datetime
-      index.last_used_at = datetime.utcnow()
-      index.put()
-    
+  plist = user.mru_projects or []
+  if project_name in plist:
+    plist.remove(project_name)
+  plist.insert(0,project_name)
+  user.mru_projects = plist[:MAX_PROJECTS]
+  
   return project
   
 def create_project(user, project_name):
-  def txn(user, project):
-    from util.misc import indexize
-    from tasks_data.tasks import MAX_INDEX_LENGTH
-    import re
-    
-    project.put()
-    name = indexize(project.name)[0:MAX_INDEX_LENGTH]
-    tokens = re.split(r'\s+', name)
-    for i in range(0,len(tokens)):
-      token = ' '.join(tokens[i:])
-      index = ProjectIndex(parent=user, index=token, name=project.name, project=project)
-      index.put()
-    
-  
   from util.misc import slugify
   short_name = slugify(project_name)
   key_name = Project.name_to_key_name(project_name)
@@ -55,8 +44,7 @@ def create_project(user, project_name):
     name=project_name, 
     short_name=short_name
   )
-    
-  db.run_in_transaction(txn, user, project)
+  project.put()
 
   return project
   

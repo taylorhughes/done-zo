@@ -27,6 +27,10 @@ class TasksUser(db.Model):
   tasks_count   = db.IntegerProperty(default=0)
   lists_count   = db.IntegerProperty(default=0)
   
+  # Autocompletes
+  mru_projects  = db.StringListProperty()
+  mru_contexts  = db.StringListProperty()
+  
   @permalink
   def get_absolute_url(self):
     return('tasks.views.redirect')

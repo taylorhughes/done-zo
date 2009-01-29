@@ -175,6 +175,15 @@ var Tasks = {
     Tasks.loadStatus(Tasks.containerFromResponse(xhr));
   },
   
+  updateProjects: function(row)
+  {
+    var project = row.select('input[name=project]').first();
+    project = project && project.getValue();
+    if (!project) { return; }
+    
+    Projects = [project, Projects.without(project)].flatten();
+  },
+  
   saveTask: function(action, row, options)
   {
     var duplicateBySelector = function(from,to,selector) {
@@ -200,6 +209,8 @@ var Tasks = {
     Tasks.tasksForm.action = action ? action : oldAction;
     Tasks.tasksForm.request(options);
     Tasks.tasksForm.action = oldAction;
+    
+    Tasks.updateProjects(row);
   },
   
   getNewTaskRow: function()

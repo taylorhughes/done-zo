@@ -83,19 +83,10 @@ var TaskRow = Class.create({
   {
     var project = row.select('td.project>input').first();
 
-    var autocompleter = row.select('.project-autocompleter').first();
+    var autocompleter     = row.select('.project-autocompleter').first();
     var autocompleterLink = autocompleter.select('a').first();
-  
-    project.observe('keyup', function(event) {
-      // Don't want <enter> while selecting an item to save the task.
-      if (autocompleter.visible()) { event.stop(); }
-    });
-  
-    new Ajax.Autocompleter(project, autocompleter, autocompleterLink.href, {
-      method: 'get',
-      paramName: 'q',
-      frequency: 0.2
-    });
+
+    new ArrayAutocompleter(project, autocompleter, Projects);
   },
   
   wireContextAutocomplete: function(row)
@@ -110,12 +101,14 @@ var TaskRow = Class.create({
       if (autocompleter.visible()) { event.stop(); }
     });
   
+    /*
     new Ajax.Autocompleter(contexts, autocompleter, autocompleterLink.href, {
       method: 'get',
       paramName: 'q',
       frequency: 0.2,
       tokens: [' ', ',', ';']
     });
+    */
   },
   
   destroy: function()

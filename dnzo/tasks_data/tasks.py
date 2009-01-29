@@ -28,6 +28,8 @@ def save_task(user,task):
     save_project(user, task.project)
   if len(task.contexts) > 0:
     save_contexts(user, task.contexts)
+    
+  save_user(user)
   
 def add_task(task):
   def txn(task):

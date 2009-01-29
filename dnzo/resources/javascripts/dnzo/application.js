@@ -225,3 +225,178 @@ ModalDialog = Class.create({
     });
   }
 });
+
+
+ArrayAutocompleter = Class.create({
+  
+  initialize: function(element, updateElement, collection) {
+    // Input element to monitor
+    this.element = element;
+    // Element that contains the selection list
+    this.updateElement = updateElement;
+    // Collection to snatch the choices from
+    this.collection = collection;
+    
+    this.wireEvents();
+  },
+  
+  wireEvents: function() {
+    this.element.observe('focus', this.onFocus.bind(this));
+    this.element.observe('keydown', this.onKeyDown.bind(this));
+    this.element.observe('keyup', this.onKeyUp.bind(this));
+  },
+  
+  reset: function(event) {
+    this.hide();
+    this.updateElement.innerHTML = '';
+    this.dontReappear = false;
+    this.selectedIndex = 0;
+    this.value = null;
+    this.matches = [];
+  },
+  
+  onFocus: function(event) {
+    this.reset();
+  },
+  
+  onKeyDown: function(event) {
+    this.wasShown = this.isShown();
+    
+    if (this.dontReappear) { return; }
+
+    switch(event.keyCode) {
+      case Event.KEY_TAB:
+      case Event.KEY_RETURN:
+        this.selectEntry();
+        return;
+        
+      case Event.KEY_ESC:
+        this.hide();
+        this.dontReappear = true;
+        event.stop();
+        return;
+        
+      case Event.KEY_LEFT:
+      case Event.KEY_RIGHT:
+        return;
+        
+      case Event.KEY_UP:
+        this.markPrevious();
+        event.stop();
+        return;
+        
+      case Event.KEY_DOWN:
+        this.markNext();
+        event.stop();
+        return;
+    }
+  },
+  
+  onKeyUp: function(event) {
+    var changed = this.valueChanged();
+    
+    if (this.value.blank())
+    {
+      this.reset();
+    }
+    else 
+    {
+      if (this.wasShown) { event.stop(); }
+      if (changed && !this.dontReappear) { 
+        this.updateOptions(); 
+      }
+    }
+  },
+  
+  isShown: function() {
+    return this.updateElement.visible();
+  },
+  
+  show: function() {
+    this.updateElement.absolutize();
+    this.updateElement.setStyle({
+      height: null
+    });
+    Position.clone(this.element, this.updateElement, {
+      setHeight: false,
+      offsetTop: this.element.offsetHeight
+    });
+    this.updateElement.show();
+  },
+  
+  hide: function() {
+    this.updateElement.hide();
+  },
+  
+  valueChanged: function() {
+    var oldValue = this.value;
+    this.value = this.element.getValue();
+    return this.value != oldValue;
+  },
+  
+  updateOptions: function() {
+    this.updateElement.innerHTML = '';
+    
+    this.matches = this.getMatches();
+    if (this.matches.length > 0) {
+      var ul = new Element('ul');
+      this.matches.each(function(match){
+        var li = new Element('li');
+        li.innerHTML = match;
+        ul.appendChild(li);
+      });
+      this.updateElement.appendChild(ul);
+      
+      this.selectedIndex = this.selectedIndex >= this.matches.length ? this.matches.length : this.selectedIndex;
+      
+      this.updateSelected();
+      
+      if (!this.isShown()) { this.show(); }
+    } else {
+      this.hide();
+    }
+  },
+  
+  updateSelected: function() {
+    var elements = this.updateElement.select('ul>li');
+    elements.each(function(li,index){
+      li.removeClassName('selected');
+    });
+    if (elements[this.selectedIndex]) { 
+      elements[this.selectedIndex].addClassName('selected'); 
+    }
+  },
+  
+  getMatches: function() {
+    var regex = this.getRegex();
+    return this.collection.collect(function(choice) {
+      if (choice.match(regex)) { return choice; }
+      return null;
+    }).reject(function(c){ return !c; });
+  },
+  
+  getRegex: function() {
+    return new RegExp('\\b' + this.value, "i");
+  },
+  
+  markPrevious: function() {
+    if (this.selectedIndex == 0) { return; }
+    this.selectedIndex -= 1;
+    this.updateSelected();
+  },
+  
+  markNext: function() {
+    if (this.selectedIndex == this.matches.length - 1) { return; }
+    this.selectedIndex += 1;
+    this.updateSelected();
+  },
+  
+  selectEntry: function() {
+    if (this.matches[this.selectedIndex]) {
+      this.element.setValue(this.matches[this.selectedIndex]);
+    }
+    this.reset();
+  }
+  
+});
+
