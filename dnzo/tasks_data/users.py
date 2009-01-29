@@ -45,6 +45,13 @@ def record_user_history(user, request, save=True):
     save_user(user)
   
 def save_user(user):
-  import logging
   user.put()
   set_user_memcache(user)
+  
+def create_user(current_user, list_name):
+  from tasks_data.task_lists import add_task_list
+  # Create a default new list for this user
+  new_user = TasksUser(user=current_user, email=current_user.email().lower())
+  save_user(new_user)
+  tasks_list = add_task_list(new_user, list_name)
+  return new_user

@@ -55,6 +55,7 @@ def add_invitation(request):
     addresses = re.split(r'\s+',addresses)
     
     for address in addresses:
+      address = address.lower()
       if not get_invitation_by_address(address):
         invitations.append(address)
         Invitation(

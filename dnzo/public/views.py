@@ -47,7 +47,7 @@ def signup(request):
     return HttpResponseRedirect(reverse_url('tasks.views.redirect'))
   
   from tasks_data.misc import get_invitation_by_address
-  from tasks_data.task_lists import add_task_list
+  from tasks_data.users import create_user
   
   current_user = get_current_user()
   invitation = get_invitation_by_address(current_user.email())
@@ -56,16 +56,12 @@ def signup(request):
 
   from tasks_data.models import TasksUser
   
-  new_user = TasksUser(user=current_user)
-  new_user.put()
+  new_user = create_user(current_user, DEFAULT_LIST_NAME)
   
   if invitation:
     from datetime import datetime
     invitation.registered_at = datetime.now()
     invitation.put()
-  
-  # Create a default new list for this user
-  tasks_list = add_task_list(new_user, DEFAULT_LIST_NAME)
   
   return default_list_redirect(new_user)
 

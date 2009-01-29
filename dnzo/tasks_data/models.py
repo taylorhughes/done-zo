@@ -6,6 +6,10 @@ from django.db.models import permalink
 
 class TasksUser(db.Model):
   user          = db.UserProperty()
+  # Store this also, because it's nearly impossible to retrieve a user
+  # object without a valid e-mail address after he's changed it under
+  # his Google account.
+  email         = db.StringProperty()
     
   # Settings
   hide_project  = db.BooleanProperty(default=False)

@@ -5,6 +5,7 @@ from tasks_data.models import Project, ProjectIndex, Context, Invitation, Undo
 ### Invitations ###
 
 def get_invitation_by_address(address):
+  address = address.lower()
   return Invitation.gql("WHERE email_address=:address", address=address).get()
 
 ### PROJECTS ###
