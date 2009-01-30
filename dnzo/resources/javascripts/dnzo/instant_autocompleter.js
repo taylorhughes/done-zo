@@ -315,7 +315,7 @@ var InstantAutocompleter = Class.create({
       var protokens  = value.split(this.options.tokenSplitter);
       var matcher = this.options.tokenSplitter.toString();
       // This seems like a hack: turn /pattern/ into /pattern/g
-      matcher = new RegExp(matcher.substring(1,matcher.length - 2),"g");
+      matcher = new RegExp(matcher.substring(1,matcher.length - 1),"g");
       var antitokens = value.match(matcher) || [];
       
       protokens.each(function(token, index) {
