@@ -264,21 +264,26 @@ tr.error td {
 
 .autocompleter {
   background: white;
-  border: 1px solid #666;
+  border: 1px solid #ccc;
+  border-top: none;
+  color: #666;
 }
   .autocompleter ul, .autocompleter li {
     margin: 0;
     padding: 0;
   }
   .autocompleter li {
-    padding: 5px;
+    padding: 3px;
     list-style-type: none;
   }
     /* Highlighted matches */
     .autocompleter li span {
       text-decoration: underline;
     }
-    .autocompleter li.selected { background: #ff9; }
+    .autocompleter li.selected { 
+      background: #ff9;
+      color: black;
+    }
 
 
 /* Modal dialogs */

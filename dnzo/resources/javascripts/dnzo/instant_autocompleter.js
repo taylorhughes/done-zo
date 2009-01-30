@@ -23,11 +23,15 @@ var InstantAutocompleter = Class.create({
     // Collection to snatch the choices from
     this.collection = collection;
     
+    this.updateElementContainer = new Element('div');
+    this.updateElementContainer.hide();
+    
     this.updateElement = new Element('ul', { 
       className: 'autocompleter' 
     });
-    this.updateElement.hide();
-    this.element.parentNode.appendChild(this.updateElement);
+    
+    this.updateElementContainer.appendChild(this.updateElement);
+    this.element.parentNode.appendChild(this.updateElementContainer);
     
     this.wireEvents();
     this.reset();
@@ -42,7 +46,7 @@ var InstantAutocompleter = Class.create({
   
   reset: function(event) 
   {
-    this.updateElement.hide();
+    this.hide();
     this.selectedIndex = -1;
     this.value         = null;
     this.dontReappear  = false;
@@ -120,25 +124,25 @@ var InstantAutocompleter = Class.create({
   
   isShown: function() 
   {
-    return this.updateElement.visible();
+    return this.updateElementContainer.visible();
   },
   
   show: function() 
   {
-    this.updateElement.absolutize();
-    this.updateElement.setStyle({
+    this.updateElementContainer.absolutize();
+    this.updateElementContainer.setStyle({
       height: null
     });
-    Position.clone(this.element, this.updateElement, {
+    this.updateElementContainer.clonePosition(this.element, {
       setHeight: false,
       offsetTop: this.element.offsetHeight
     });
-    this.updateElement.show();
+    this.updateElementContainer.show();
   },
   
   hide: function() 
   {
-    this.updateElement.hide();
+    this.updateElementContainer.hide();
   },
   
   valueChanged: function()
