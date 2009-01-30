@@ -30,7 +30,9 @@ var InstantAutocompleter = Class.create({
   {
     var defaults = {
       firstSelected: true,
-      continueTabOnSelect: true
+      continueTabOnSelect: true,
+      tokenSplitter: /[,;]\s*/,
+      multivalue: false
     };
     this.options = Object.extend(defaults,
       (typeof options != 'undefined') ? options : {}
@@ -57,9 +59,10 @@ var InstantAutocompleter = Class.create({
   
   wireEvents: function() 
   {
-    this.element.observe('focus',   this.onFocus.bind(this));
-    this.element.observe('keydown', this.onKeyDown.bind(this));
-    this.element.observe('keyup',   this.onKeyUp.bind(this));
+    this.element.observe('focus',    this.onFocus.bind(this));
+    this.element.observe('keydown',  this.onKeyDown.bind(this));
+    this.element.observe('keypress', this.onKeyPress.bind(this));
+    this.element.observe('keyup',    this.onKeyUp.bind(this));
     
     this.updateElementContainer.observe('click',     this.onClick.bind(this));
     this.updateElementContainer.observe('mouseover', this.onHover.bind(this));
@@ -127,7 +130,20 @@ var InstantAutocompleter = Class.create({
     }
   },
   
-  onKeyUp: function(event) 
+  onKeyPress: function(event) 
+  {
+    if (this.options.multivalue && event.charCode > 0) {
+      var str = String.fromCharCode(event.charCode);
+      if (str.match(this.options.tokenSplitter)) {
+        if (this.selectEntry()) {
+          this.element.value += str + " ";
+          event.stop();
+        }
+      }
+    }
+  },
+  
+  onKeyUp: function(event)
   {
     var changed = this.valueChanged();
     
@@ -138,10 +154,11 @@ var InstantAutocompleter = Class.create({
     else 
     {
       if (this.wasShown) { event.stop(); }
-      if (changed && !this.dontReappear) { 
+      
+      if (changed && !this.dontReappear) {
         this.updateOptions(); 
       }
-    }
+    }    
   },
   
   onHover: function(event)
@@ -289,7 +306,7 @@ var InstantAutocompleter = Class.create({
     var value = this.element.getValue();
     var tokens = [];
     
-    if (this.options.tokenSplitter) {
+    if (this.options.multivalue) {
       var protokens  = value.split(this.options.tokenSplitter);
       var matcher = this.options.tokenSplitter.toString();
       // This seems like a hack: turn /pattern/ into /pattern/g
@@ -333,7 +350,6 @@ var InstantAutocompleter = Class.create({
     var tokens = this.getTokens();
     tokens = tokens.slice(0,tokens.length - 1);
     newValue = tokens.join('') + newValue;
-    if (this.options.tokenSplitter) { newValue += " "; }
     
     this.element.setValue(newValue);
     

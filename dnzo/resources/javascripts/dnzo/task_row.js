@@ -97,10 +97,11 @@ var TaskRow = Class.create({
     new InstantAutocompleter(contexts, ["home", "work", "school"], {
       firstSelected: false,
       numResults:    5,
+      multivalue:    true,
       tokenSplitter: /[^\w\d@_-]+/,
       continueTabOnSelect: false
     });
-    */
+    */    
   },
   
   destroy: function()
