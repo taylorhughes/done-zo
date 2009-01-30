@@ -2085,6 +2085,8 @@ Element.Methods = {
   getOffsetParent: function(element) {
     if (element.offsetParent) return $(element.offsetParent);
     if (element == document.body) return $(element);
+    // DNZO HACK IE FIX
+    if (element.nodeName == 'HTML') return $(element);
 
     while ((element = element.parentNode) && element != document.body)
       if (Element.getStyle(element, 'position') != 'static')
@@ -2104,9 +2106,8 @@ Element.Methods = {
       // Safari fix
       if (element.offsetParent == document.body &&
         Element.getStyle(element, 'position') == 'absolute') break;
-
     } while (element = element.offsetParent);
-
+    
     element = forElement;
     do {
       if (!Prototype.Browser.Opera || (element.tagName && (element.tagName.toUpperCase() == 'BODY'))) {
@@ -2148,7 +2149,7 @@ Element.Methods = {
       delta[0] -= document.body.offsetLeft;
       delta[1] -= document.body.offsetTop;
     }
-
+    
     // set position
     if (options.setLeft)   element.style.left  = (p[0] - delta[0] + options.offsetLeft) + 'px';
     if (options.setTop)    element.style.top   = (p[1] - delta[1] + options.offsetTop) + 'px';

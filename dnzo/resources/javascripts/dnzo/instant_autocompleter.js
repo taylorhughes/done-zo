@@ -43,6 +43,13 @@ var InstantAutocompleter = Class.create({
     // Collection to snatch the choices from
     this.collectionOrCallback = collectionOrCallback;
     
+    this.setupElements();
+    this.wireEvents();
+    this.reset();
+  },
+  
+  setupElements: function()
+  {
     this.updateElementContainer = new Element('div');
     this.updateElementContainer.hide();
     
@@ -53,8 +60,10 @@ var InstantAutocompleter = Class.create({
     this.updateElementContainer.appendChild(this.updateElement);
     this.element.parentNode.appendChild(this.updateElementContainer);
     
-    this.wireEvents();
-    this.reset();
+    this.updateElementContainer.absolutize();
+    this.updateElementContainer.setStyle({
+      height: null
+    });
   },
   
   wireEvents: function() 
@@ -193,10 +202,6 @@ var InstantAutocompleter = Class.create({
   
   show: function() 
   {
-    this.updateElementContainer.absolutize();
-    this.updateElementContainer.setStyle({
-      height: null
-    });
     this.updateElementContainer.clonePosition(this.element, {
       setHeight: false,
       offsetTop: this.element.offsetHeight
