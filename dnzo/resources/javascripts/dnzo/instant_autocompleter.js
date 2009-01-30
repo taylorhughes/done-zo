@@ -13,7 +13,11 @@
  *      // whether or not the first match in the list is selected
  *      firstSelected: true,
  *      // limit on the number of matching results to display
- *      numResults: 5
+ *      numResults: 5,
+ *      // token splitter regex
+ *      tokenSplitter: /[^\w\d_-]/,
+ *      // whether or not a tab event should be successful
+ *      continueTabOnSelect: true
  *    };
  *
  *  new InstantAutocompleter(input, collection, options);
@@ -25,7 +29,8 @@ var InstantAutocompleter = Class.create({
   initialize: function(element, collectionOrCallback, options) 
   {
     var defaults = {
-      firstSelected: true
+      firstSelected: true,
+      continueTabOnSelect: true
     };
     this.options = Object.extend(defaults,
       (typeof options != 'undefined') ? options : {}
@@ -90,8 +95,9 @@ var InstantAutocompleter = Class.create({
     switch(event.keyCode) {
       case Event.KEY_TAB:
       case Event.KEY_RETURN:
-        this.selectEntry();
+        var selected = this.selectEntry();
         this.dontReappear = true;
+        stop = !this.options.continueTabOnSelect && selected;
         break;
         
       case Event.KEY_ESC:
@@ -189,7 +195,8 @@ var InstantAutocompleter = Class.create({
   valueChanged: function()
   {
     var oldValue = this.value;
-    this.value = this.element.getValue();
+    var value = this.getTokens().last();
+    this.value = value;
     return this.value != oldValue;
   },
   
@@ -277,6 +284,31 @@ var InstantAutocompleter = Class.create({
     return new RegExp('\\b' + this.value, "i");
   },
   
+  getTokens: function()
+  {
+    var value = this.element.getValue();
+    var tokens = [];
+    
+    if (this.options.tokenSplitter) {
+      var protokens  = value.split(this.options.tokenSplitter);
+      var matcher = this.options.tokenSplitter.toString();
+      // This seems like a hack: turn /pattern/ into /pattern/g
+      matcher = new RegExp(matcher.substring(1,matcher.length - 2),"g");
+      var antitokens = value.match(matcher) || [];
+      
+      protokens.each(function(token, index) {
+        tokens.push(token);
+        if (antitokens[index]) tokens.push(antitokens[index]);
+      });
+    }
+    else
+    {
+      tokens.push(value);
+    }
+    
+    return tokens;
+  },
+  
   markPrevious: function() 
   {
     if (this.selectedIndex < 0) { return; }
@@ -293,11 +325,19 @@ var InstantAutocompleter = Class.create({
   
   selectEntry: function() 
   {
-    var selected = this.getSelectedValue();
-    if (selected) {
-      this.element.setValue(selected);
-    }
+    var newValue = this.getSelectedValue();
     this.reset();
+    
+    if (!newValue) { return false; }
+    
+    var tokens = this.getTokens();
+    tokens = tokens.slice(0,tokens.length - 1);
+    newValue = tokens.join('') + newValue;
+    if (this.options.tokenSplitter) { newValue += " "; }
+    
+    this.element.setValue(newValue);
+    
+    return true;
   }
   
 });

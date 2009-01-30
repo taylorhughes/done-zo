@@ -85,13 +85,22 @@ var TaskRow = Class.create({
 
     new InstantAutocompleter(project, function(){ return DNZO.projects; }, {
       firstSelected: false,
-      numResults: 5
+      numResults:    5
     });
   },
   
   wireContextAutocomplete: function(row)
   {
     var contexts = row.select('td.context>input').first();
+    
+    /*
+    new InstantAutocompleter(contexts, ["home", "work", "school"], {
+      firstSelected: false,
+      numResults:    5,
+      tokenSplitter: /[^\w\d@_-]+/,
+      continueTabOnSelect: false
+    });
+    */
   },
   
   destroy: function()
