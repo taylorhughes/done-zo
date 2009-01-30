@@ -83,23 +83,14 @@ var TaskRow = Class.create({
   {
     var project = row.select('td.project>input').first();
 
-    var autocompleter     = row.select('.project-autocompleter').first();
-    var autocompleterLink = autocompleter.select('a').first();
-
-    new ArrayAutocompleter(project, autocompleter, Projects);
+    new InstantAutocompleter(project, Projects, {
+      firstSelected: false
+    });
   },
   
   wireContextAutocomplete: function(row)
   {
     var contexts = row.select('td.context>input').first();
-
-    var autocompleter = row.select('.context-autocompleter').first();
-    var autocompleterLink = autocompleter.select('a').first();
-  
-    contexts.observe('keyup', function(event) {
-      // Don't want <enter> while selecting an item to save the task.
-      if (autocompleter.visible()) { event.stop(); }
-    });
   
     /*
     new Ajax.Autocompleter(contexts, autocompleter, autocompleterLink.href, {
