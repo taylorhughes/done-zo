@@ -83,8 +83,9 @@ var TaskRow = Class.create({
   {
     var project = row.select('td.project>input').first();
 
-    new InstantAutocompleter(project, DNZO.projects, {
-      firstSelected: false
+    new InstantAutocompleter(project, function(){ return DNZO.projects; }, {
+      firstSelected: false,
+      numResults: 5
     });
   },
   
