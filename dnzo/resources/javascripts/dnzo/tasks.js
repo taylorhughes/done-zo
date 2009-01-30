@@ -7,13 +7,15 @@ var Tasks = {
   
   load: function(event)
   {
+    Tasks.table = $('tasks_list');
+    
+    if (!Tasks.table || Tasks.table.hasClassName('archived')) { return; }
+    
     new ModalDialog($('add_list'), {
       afterShown: function() {
         $('new_list_name').activate();
       }
     });
-    
-    Tasks.table = $('tasks_list');
     
     Tasks.addRow = Tasks.table.select('#add_row')[0];
     Tasks.addLink = Tasks.addRow.select('#add')[0];
@@ -181,7 +183,7 @@ var Tasks = {
     project = project && project.getValue();
     if (!project) { return; }
     
-    Projects = [project, Projects.without(project)].flatten();
+    DNZO.projects = [project, DNZO.projects.without(project)].flatten();
   },
   
   saveTask: function(action, row, options)

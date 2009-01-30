@@ -35,8 +35,7 @@
   </div>  <!-- end DIV footer -->
 
   {% combined_javascript_tag ext/combined ext/prototype ext/scriptaculous ext/effects ext/controls ext/dragdrop %}
-  {% javascript_tag dnzo/application %}
-  {% block javascripts %}{% endblock %}
+  {% combined_javascript_tag dnzo/combined dnzo/application dnzo/instant_autocompleter dnzo/modal_dialog dnzo/task_row dnzo/tasks %}
   
   {% if is_production %}
   <script type="text/javascript">

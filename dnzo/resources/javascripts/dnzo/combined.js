@@ -1,4 +1,463 @@
-var TaskRow = Class.create({
+DNZO = Object.extend(DNZO,{
+  load: function(event)
+  {
+    // Setup dropdown switcher
+    var switcher = $('switcher');
+    if (switcher) switcher.observe('change', DNZO.onSwitchList); 
+    
+    $$('a.dialog').each(function(dialogLink) {
+      new ModalDialog(dialogLink);
+    });
+    
+    DNZO.verifyTimezone();
+  },
+  
+  onSwitchList: function(event)
+  {
+    document.location.href = $F(event.element());
+  },
+  
+  verifyTimezone: function()
+  {
+    if (DNZO.timezoneInfo.updateUrl.length == 0) { return; }
+    
+    var currentOffset = (new Date()).getTimezoneOffset();
+    if (DNZO.timezoneInfo.offset != currentOffset)
+    {
+      new Ajax.Request(DNZO.timezoneInfo.updateUrl, {
+        parameters: { offset: currentOffset },
+        method: 'post'
+      });
+    }
+  }
+});
+
+Event.observe(window,'load',DNZO.load);/**
+ * InstantAutocompleter
+ *
+ *  Usage:
+ *
+ *    var collection = ["Apple", "Orange", "Banana"];
+ *    new InstantAutocompleter($('input[type=text]'), collection, options);
+ *
+ */
+var InstantAutocompleter = Class.create({
+  
+  initialize: function(element, collection, options) 
+  {
+    var defaults = {
+      firstSelected: true
+    };
+    this.options = Object.extend(defaults,
+      (typeof options != 'undefined') ? options : {}
+    );
+    
+    // Input element to monitor
+    this.element = element;
+    // Collection to snatch the choices from
+    this.collection = collection;
+    
+    this.updateElement = new Element('ul', { 
+      className: 'autocompleter' 
+    });
+    this.updateElement.hide();
+    this.element.parentNode.appendChild(this.updateElement);
+    
+    this.wireEvents();
+    this.reset();
+  },
+  
+  wireEvents: function() 
+  {
+    this.element.observe('focus',   this.onFocus.bind(this));
+    this.element.observe('keydown', this.onKeyDown.bind(this));
+    this.element.observe('keyup',   this.onKeyUp.bind(this));
+  },
+  
+  reset: function(event) 
+  {
+    this.updateElement.hide();
+    this.selectedIndex = -1;
+    this.value         = null;
+    this.dontReappear  = false;
+    this.matches       = [];
+  },
+  
+  onFocus: function(event) 
+  {
+    this.reset();
+  },
+  
+  //
+  //  In keydown, I can stop events before they happen.
+  //  if an Event.KEY_TAB is stopped, the user's tab action will not continue
+  //  up the event chain, so they won't, for example, go to the next cell.
+  //
+  onKeyDown: function(event) 
+  {
+    this.wasShown = this.isShown();
+    
+    if (this.dontReappear) { return; }
+
+    var stop = false;
+
+    switch(event.keyCode) {
+      case Event.KEY_TAB:
+      case Event.KEY_RETURN:
+        this.selectEntry();
+        this.dontReappear = true;
+        break;
+        
+      case Event.KEY_ESC:
+        this.hide();
+        this.dontReappear = true;
+        stop = true;
+        break;
+        
+      case Event.KEY_LEFT:
+      case Event.KEY_RIGHT:
+        break;
+        
+      case Event.KEY_UP:
+        this.markPrevious();
+        stop = true;
+        break;
+        
+      case Event.KEY_DOWN:
+        this.markNext();
+        stop = true;
+        break;
+    }
+    
+    if (stop)
+    {
+      event.stop();
+    }
+  },
+  
+  onKeyUp: function(event) 
+  {
+    var changed = this.valueChanged();
+    
+    if (this.value.blank())
+    {
+      this.reset();
+    }
+    else 
+    {
+      if (this.wasShown) { event.stop(); }
+      if (changed && !this.dontReappear) { 
+        this.updateOptions(); 
+      }
+    }
+  },
+  
+  isShown: function() 
+  {
+    return this.updateElement.visible();
+  },
+  
+  show: function() 
+  {
+    this.updateElement.absolutize();
+    this.updateElement.setStyle({
+      height: null
+    });
+    Position.clone(this.element, this.updateElement, {
+      setHeight: false,
+      offsetTop: this.element.offsetHeight
+    });
+    this.updateElement.show();
+  },
+  
+  hide: function() 
+  {
+    this.updateElement.hide();
+  },
+  
+  valueChanged: function()
+  {
+    var oldValue = this.value;
+    this.value = this.element.getValue();
+    return this.value != oldValue;
+  },
+  
+  updateOptions: function() 
+  {
+    var previouslySelected = this.getSelectedValue();
+    this.updateElement.innerHTML = '';
+    this.matches = this.getMatches();
+    
+    if (this.matches.length == 0)
+    {
+      this.hide();
+      return;
+    }
+    
+    this.selectedIndex = this.options.firstSelected ? 0 : -1;
+    this.matches.each(function(match, index){
+      var li = new Element('li');
+      li.innerHTML = match;
+      this.updateElement.appendChild(li);
+      if (match == previouslySelected) { this.selectedIndex = index; }
+    }, this);
+    
+    this.updateSelected();
+    
+    if (!this.isShown()) { 
+      this.show(); 
+    }
+  },
+  
+  getSelectedValue: function()
+  {
+    return this.matches[this.selectedIndex];
+  },
+  
+  getSelectedElement: function()
+  {
+    return this.updateElement.select('li')[this.selectedIndex];
+  },
+  
+  updateSelected: function() 
+  {
+    var elements = this.updateElement.select('li');
+    elements.each(function(li,index){
+      li.removeClassName('selected');
+    });
+    var selected = this.getSelectedElement();
+    if (selected) { 
+      selected.addClassName('selected'); 
+    }
+  },
+  
+  getMatches: function() 
+  {
+    var regex = this.getRegex();
+    return this.collection.collect(function(choice) {
+      if (choice.match(regex)) { return choice; }
+      return null;
+    }).reject(function(c){ return !c; });
+  },
+  
+  getRegex: function() 
+  {
+    return new RegExp('\\b' + this.value, "i");
+  },
+  
+  markPrevious: function() 
+  {
+    if (this.selectedIndex < 0) { return; }
+    this.selectedIndex -= 1;
+    this.updateSelected();
+  },
+  
+  markNext: function() 
+  {
+    if (this.selectedIndex == this.matches.length - 1) { return; }
+    this.selectedIndex += 1;
+    this.updateSelected();
+  },
+  
+  selectEntry: function() 
+  {
+    var selected = this.getSelectedValue();
+    if (selected) {
+      this.element.setValue(selected);
+    }
+    this.reset();
+  }
+  
+});/*
+ *  ModalDialog
+ *
+ *  ModalDialog is a class that takes a link or form button and loads
+ *  its target into a modal dialog window. Options are highly limited
+ *  at this point. 
+ *
+ *  This class adds two elements to the DOM: a "blackout" element, 
+ *  which hides the unclickable background in a light black; and the
+ *  actual dialog container, whose contents become whatever is returned
+ *  from the link provided.
+ *
+ *  Usage:
+ *
+ *    new ModalDialog($('link_id'), { afterShown: function() {} });
+ * 
+ *  Options:
+ *
+ *    afterShown: a function to call after the dialog is shown.
+ *
+ */
+var ModalDialog = Class.create({
+  initialize: function(element, options) 
+  {
+    if (element.match('a'))
+    {
+      this.href = element.href;
+      this.method = 'get';
+    }
+    else if (element.match('input'))
+    {
+      var form = element.up('form');
+      this.href = form.action;
+      this.method = form.method;
+    }
+    element.observe('click', this.onClickShow.bind(this));
+    
+    this.createElements();
+    
+    this.options = options || {};
+  },
+  
+  createElements: function()
+  {
+    if (this.blackout) { this.blackout.remove(); }
+    this.blackout = new Element('div');
+    this.blackout.addClassName('blackout');
+    this.blackout.setStyle({
+      position: 'absolute',
+      display:  'none',
+      background: 'black'
+    });
+       
+    if (this.container) { this.container.remove(); }
+    this.container = new Element('div');
+    this.container.addClassName('dialog_container');
+    var innerContainer = new Element('div')
+    innerContainer.addClassName('loading');
+    this.container.appendChild(innerContainer);
+    this.container.setStyle({
+      position: 'absolute',
+      display:  'none'
+    });
+    
+    var body = $('body');
+    body.appendChild(this.blackout);
+    body.appendChild(this.container);
+  },
+  
+  position: function()
+  {    
+    var dimensions = this.container.getDimensions();
+    var scrolled   = document.viewport.getScrollOffsets();
+    var viewport   = document.viewport.getDimensions();
+
+    var top = (viewport.height / 4) - (dimensions.height / 4) + scrolled.top;
+    var left = (viewport.width / 2) - (dimensions.width / 2) + scrolled.left;
+
+    this.blackout.setStyle({
+      top:    scrolled.top + 'px', 
+      left:   scrolled.left + 'px',
+      width:  '100%',
+      height: '100%'
+    }); 
+    this.container.setStyle({
+      left: left + 'px',
+      top:  top + 'px'
+    });
+  },
+
+  onClickShow: function(event)
+  {
+    event.stop();
+    this.show();
+  },
+  onClickHide: function(event)
+  {
+    event.stop();
+    this.hide();
+  },
+  onScroll: function(event)
+  {
+    this.position();
+  },
+  
+  show: function() 
+  {
+    if (this.effecting) { return; }
+    if (!this.isLoaded)
+    {
+      this.load();
+    }
+    
+    this.effecting = true;
+    
+    // Keep up with the user if he scrolls
+    this.boundOnScroll = this.onScroll.bind(this);
+    Event.observe(window, "scroll", this.boundOnScroll);
+    
+    this.position();
+    new Effect.Parallel([
+      new Effect.Appear(this.blackout, { from: 0, to: 0.2, sync: true }),
+      new Effect.Appear(this.container, { sync: true })
+    ], {
+      duration: 0.25,
+      afterFinish: this.doShow.bind(this)
+    });
+  },
+  doShow: function()
+  {    
+    this.effecting = false;
+    
+    this.afterShown();
+  },
+  
+  afterShown: function()
+  {
+    if (!this.isLoaded) { return; }
+    
+    if (this.options.afterShown)
+    {
+      this.options.afterShown();
+    }
+  },
+  
+  load: function() 
+  {
+    if (!this.isLoading)
+    {
+      new Ajax.Request(this.href, {
+        method: this.method,
+        onSuccess: this.doLoad.bind(this),
+        afterComplete: (function(xhr){this.isLoading=false;}).bind(this)
+      });
+    }
+  },
+  doLoad: function(xhr)
+  {
+    this.container.innerHTML = xhr.responseText;
+    this.container.select('.hide_dialog').each((function(cancelLink){
+      cancelLink.observe('click', this.onClickHide.bind(this));
+    }).bind(this));
+    this.position();
+    
+    this.isLoaded = true;
+    
+    this.afterShown();
+  },
+  
+  hide: function()
+  {
+    if (this.effecting) { return; }
+    
+    this.effecting = true;
+    
+    if (this.boundOnScroll)
+    {
+      Event.stopObserving(window, "scroll", this.boundOnScroll);
+      this.boundOnScroll = null;
+    }
+    
+    new Effect.Parallel([
+      new Effect.Fade(this.blackout, { sync: true }),
+      new Effect.Fade(this.container, { sync: true })
+    ], {
+      duration: 0.25,
+      afterFinish: (function() { this.effecting = false; }).bind(this)
+    });
+  }
+});var TaskRow = Class.create({
   
   /*** INITIALIZATION ***/
   
@@ -69,6 +528,7 @@ var TaskRow = Class.create({
       starteffect: null,
       endeffect:   null,
       
+      revert:      true,
       ghosting:    false,
       constraint:  'vertical',
       
@@ -82,39 +542,14 @@ var TaskRow = Class.create({
   {
     var project = row.select('td.project>input').first();
 
-    var autocompleter = row.select('.project-autocompleter').first();
-    var autocompleterLink = autocompleter.select('a').first();
-  
-    project.observe('keyup', function(event) {
-      // Don't want <enter> while selecting an item to save the task.
-      if (autocompleter.visible()) { event.stop(); }
-    });
-  
-    new Ajax.Autocompleter(project, autocompleter, autocompleterLink.href, {
-      method: 'get',
-      paramName: 'q',
-      frequency: 0.2
+    new InstantAutocompleter(project, DNZO.projects, {
+      firstSelected: false
     });
   },
   
   wireContextAutocomplete: function(row)
   {
     var contexts = row.select('td.context>input').first();
-
-    var autocompleter = row.select('.context-autocompleter').first();
-    var autocompleterLink = autocompleter.select('a').first();
-  
-    contexts.observe('keyup', function(event) {
-      // Don't want <enter> while selecting an item to save the task.
-      if (autocompleter.visible()) { event.stop(); }
-    });
-  
-    new Ajax.Autocompleter(contexts, autocompleter, autocompleterLink.href, {
-      method: 'get',
-      paramName: 'q',
-      frequency: 0.2,
-      tokens: [' ', ',', ';']
-    });
   },
   
   destroy: function()
@@ -219,11 +654,9 @@ var TaskRow = Class.create({
     if (this.isEditing()) return;
     
     var check = event.element();
-    this.completeOrUncomplete(check.checked, {
-      onFailure: (function(xhr){
-        this.doFail();
-        check.checked = !checked;
-      }).bind(this)
+    var checked = check.checked;
+    this.completeOrUncomplete(checked, {
+      onFailure: this.doFail.bind(this)
     });
   },
   
@@ -278,6 +711,7 @@ var TaskRow = Class.create({
     this.viewRow.addClassName('dragging');
     this.viewRow.up('table').addClassName('row-dragging');
     
+    this.recordPosition();
     this.findDragBounds();
   },
   
@@ -473,9 +907,15 @@ var TaskRow = Class.create({
   {
     var params = {}
     if (complete)
+    {
       params['force_complete'] = true;
+      this.viewRow.addClassName('completed');
+    }
     else
+    {
       params['force_uncomplete'] = true;
+      this.viewRow.removeClassName('completed');
+    }
     
     defaultOptions = {
       method: 'post',
@@ -490,24 +930,33 @@ var TaskRow = Class.create({
     
     new Ajax.Request(this.editLink.href, defaultOptions);
   },
-  doComplete: function(xhr)
+  doComplete: function(xhr) {},
+  
+  recordPosition: function()
   {
-    this.replaceRows(xhr);
+    var originalPosition = this.position;
+    this.position = {
+      task_above: this.taskAbove(),
+      task_below: this.taskBelow()
+    }
+    
+    // Returns whether we changed anything
+    return Object.toJSON(originalPosition||{}) != Object.toJSON(this.position);
   },
   
   savePosition: function()
   {
     if (!Tasks.sortable()) { return; }
     
-    new Ajax.Request(this.editLink.href, {
-      method: 'post',
-      onSuccess: this.doSavePosition.bind(this),
-      onFailure: this.doFail.bind(this),
-      parameters: {
-        task_above: this.taskAbove(),
-        task_below: this.taskBelow()
-      }
-    });
+    if (this.recordPosition())
+    {
+      new Ajax.Request(this.editLink.href, {
+        method: 'post',
+        onSuccess: this.doSavePosition.bind(this),
+        onFailure: this.doFail.bind(this),
+        parameters: this.position
+      });
+    }
   },
   doSavePosition: function(xhr) {},
   
@@ -577,13 +1026,15 @@ var TaskRow = Class.create({
   
   load: function(event)
   {
+    Tasks.table = $('tasks_list');
+    
+    if (!Tasks.table || Tasks.table.hasClassName('archived')) { return; }
+    
     new ModalDialog($('add_list'), {
       afterShown: function() {
         $('new_list_name').activate();
       }
     });
-    
-    Tasks.table = $('tasks_list');
     
     Tasks.addRow = Tasks.table.select('#add_row')[0];
     Tasks.addLink = Tasks.addRow.select('#add')[0];
@@ -745,6 +1196,15 @@ var TaskRow = Class.create({
     Tasks.loadStatus(Tasks.containerFromResponse(xhr));
   },
   
+  updateProjects: function(row)
+  {
+    var project = row.select('input[name=project]').first();
+    project = project && project.getValue();
+    if (!project) { return; }
+    
+    DNZO.projects = [project, DNZO.projects.without(project)].flatten();
+  },
+  
   saveTask: function(action, row, options)
   {
     var duplicateBySelector = function(from,to,selector) {
@@ -770,6 +1230,8 @@ var TaskRow = Class.create({
     Tasks.tasksForm.action = action ? action : oldAction;
     Tasks.tasksForm.request(options);
     Tasks.tasksForm.action = oldAction;
+    
+    Tasks.updateProjects(row);
   },
   
   getNewTaskRow: function()

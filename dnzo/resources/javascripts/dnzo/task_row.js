@@ -83,7 +83,7 @@ var TaskRow = Class.create({
   {
     var project = row.select('td.project>input').first();
 
-    new InstantAutocompleter(project, Projects, {
+    new InstantAutocompleter(project, DNZO.projects, {
       firstSelected: false
     });
   },
@@ -91,15 +91,6 @@ var TaskRow = Class.create({
   wireContextAutocomplete: function(row)
   {
     var contexts = row.select('td.context>input').first();
-  
-    /*
-    new Ajax.Autocompleter(contexts, autocompleter, autocompleterLink.href, {
-      method: 'get',
-      paramName: 'q',
-      frequency: 0.2,
-      tokens: [' ', ',', ';']
-    });
-    */
   },
   
   destroy: function()
