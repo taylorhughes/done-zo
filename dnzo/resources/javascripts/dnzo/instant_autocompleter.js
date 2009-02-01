@@ -314,9 +314,7 @@ var InstantAutocompleter = Class.create({
     // Escape user input for regular expression
     var value = this.escapeRegex(this.value);
     var beforeMatch = this.regexToString(this.options.beforeMatch).first();
-    var a = new RegExp(beforeMatch + value, "i");
-    console.log(a);
-    return a;
+    return new RegExp(beforeMatch + value, "i");
   },
   
   getTokens: function()
