@@ -98,49 +98,50 @@ var InstantAutocompleter = Class.create({
   {
     this.reset();
   },
-  
-  //
-  //  In keydown, I can stop events before they happen.
-  //  if an Event.KEY_TAB is stopped, the user's tab action will not continue
-  //  up the event chain, so they won't, for example, go to the next cell.
-  //
+
   onKeyDown: function(event) 
   {
     this.wasShown = this.isShown();
-    
-    if (this.dontReappear) { return; }
-
     var stop = false;
 
     switch(event.keyCode) {
-      case Event.KEY_TAB:
-      case Event.KEY_RETURN:
-        var selected = this.selectEntry();
+    case Event.KEY_TAB:
+      if (this.selectEntry()) {
         this.dontReappear = true;
-        stop = !this.options.continueTabOnSelect && selected;
-        break;
-        
-      case Event.KEY_ESC:
-        this.hide();
+        stop = !this.options.continueTabOnSelect;
+      }
+      break;
+      
+    case Event.KEY_RETURN:
+      if (this.selectEntry()) {
         this.dontReappear = true;
         stop = true;
-        break;
+      }
+      break;
+      
+    case Event.KEY_ESC:
+      this.reset();
+      this.dontReappear = true;
+      stop = this.wasShown;
+      break;
         
-      case Event.KEY_LEFT:
-      case Event.KEY_RIGHT:
-        break;
+    case Event.KEY_LEFT:
+    case Event.KEY_RIGHT:
+      break;
         
-      case Event.KEY_UP:
-        this.markPrevious();
-        stop = true;
-        break;
+    case Event.KEY_UP:
+      this.markPrevious();
+      stop = true;
+      break;
         
-      case Event.KEY_DOWN:
-        this.markNext();
-        stop = true;
-        break;
-    }
+    case Event.KEY_DOWN:
+      this.markNext();
+      stop = true;
+      break;
+      
+    } // end switch keycode
     
+    this.wasStopped = stop;
     if (stop)
     {
       event.stop();
@@ -148,20 +149,22 @@ var InstantAutocompleter = Class.create({
   },
   
   onKeyPress: function(event) 
-  {
-    if (this.options.multivalue && event.charCode > 0) {
-      var str = String.fromCharCode(event.charCode);
-      if (str.match(this.options.tokenSplitter)) {
-        if (this.selectEntry() && this.options.transformSeparator) {
-          this.element.value += this.options.transformSeparator;
-          event.stop();
-        }
+  { 
+    if (this.wasStopped) { event.stop(); }
+    
+    // Check if we got a real character
+    var str = event.charCode > 0 && String.fromCharCode(event.charCode);
+    if (!str) { return; }
+  
+    // Check if we got a separator; if so, we should select and allow for the next
+    if (this.options.multivalue && str.match(this.options.tokenSplitter)) {
+      if (this.selectEntry()) {
+        event.stop();
       }
     }
   },
   
-  onKeyUp: function(event)
-  {
+  onKeyUp: function(event) {
     var changed = this.valueChanged();
     
     if (this.value.blank())
@@ -170,12 +173,14 @@ var InstantAutocompleter = Class.create({
     }
     else 
     {
+      // We use wasShown here because it may have
+      // been visible before onKeyUp was called.
       if (this.wasShown) { event.stop(); }
       
       if (changed && !this.dontReappear) {
         this.updateOptions(); 
       }
-    }    
+    }
   },
   
   onHover: function(event)
@@ -370,6 +375,11 @@ var InstantAutocompleter = Class.create({
     var tokens = this.getTokens();
     tokens = tokens.slice(0,tokens.length - 1);
     newValue = tokens.join('') + newValue;
+    
+    if (this.options.multivalue && this.options.transformSeparator) {
+      // Use this separator instead of whatever they typed
+      newValue += this.options.transformSeparator;
+    }
     
     this.element.setValue(newValue);
     

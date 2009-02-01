@@ -49,7 +49,7 @@ var TaskRow = Class.create({
     var save = row.select('.edit>input[type=submit]')[0];
     save.observe('click', this.onClickSave.bind(this));
     
-    row.observe('keyup', this.onKeyUp.bind(this));
+    row.observe('keydown', this.onKeyDown.bind(this));
 
     this.cancelLink = row.select('.edit>a.cancel')[0];
     this.boundOnClickCancel = this.onClickCancel.bind(this);
@@ -99,7 +99,7 @@ var TaskRow = Class.create({
       multivalue:    true,
       tokenSplitter: /[^\w\d@_-]+/,
       beforeMatch:   /(^|\s|@)/,
-      transformSeparator: ', ',
+      transformSeparator: ' ',
       continueTabOnSelect: false
     }); 
   },
@@ -207,9 +207,7 @@ var TaskRow = Class.create({
     
     var check = event.element();
     var checked = check.checked;
-    this.completeOrUncomplete(checked, {
-      onFailure: this.doFail.bind(this)
-    });
+    this.completeOrUncomplete(checked);
   },
   
   onDoubleClickViewRow: function(event)
@@ -234,7 +232,7 @@ var TaskRow = Class.create({
     this.activate(className);
   },
   
-  onKeyUp: function(event)
+  onKeyDown: function(event)
   {
     switch(event.keyCode)
     {
@@ -455,9 +453,12 @@ var TaskRow = Class.create({
     this.replaceRows(xhr);
   },
   
-  completeOrUncomplete: function(complete, options)
+  completeOrUncomplete: function(complete)
   {
     var params = {}
+    var editingCheck = this.editRow && this.editRow.select('input.complete').first();
+    if (editingCheck) { editingCheck.checked = complete; }
+    
     if (complete)
     {
       params['force_complete'] = true;
@@ -469,18 +470,12 @@ var TaskRow = Class.create({
       this.viewRow.removeClassName('completed');
     }
     
-    defaultOptions = {
+    new Ajax.Request(this.editLink.href, {
       method: 'post',
       parameters: params,
       onSuccess: this.doComplete.bind(this),
       onFailure: this.doFail.bind(this)
-    };
-    if (options)
-    {
-      for (p in options) { defaultOptions[p] = options[p] };
-    }
-    
-    new Ajax.Request(this.editLink.href, defaultOptions);
+    });
   },
   doComplete: function(xhr) {},
   
