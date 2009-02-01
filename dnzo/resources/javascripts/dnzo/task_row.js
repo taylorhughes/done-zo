@@ -93,15 +93,13 @@ var TaskRow = Class.create({
   {
     var contexts = row.select('td.context>input').first();
     
-    /*
-    new InstantAutocompleter(contexts, ["home", "work", "school"], {
+    new InstantAutocompleter(contexts, ["@home", "@work", "@school"], {
       firstSelected: false,
       numResults:    5,
       multivalue:    true,
       tokenSplitter: /[^\w\d@_-]+/,
       continueTabOnSelect: false
-    });
-    */    
+    }); 
   },
   
   destroy: function()

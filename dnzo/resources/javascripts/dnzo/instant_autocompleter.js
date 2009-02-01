@@ -60,9 +60,9 @@ var InstantAutocompleter = Class.create({
     this.updateElementContainer.appendChild(this.updateElement);
     this.element.parentNode.appendChild(this.updateElementContainer);
     
-    this.updateElementContainer.absolutize();
     this.updateElementContainer.setStyle({
-      height: null
+      position: 'absolute',
+      zIndex: 2
     });
   },
   
@@ -303,7 +303,9 @@ var InstantAutocompleter = Class.create({
   
   getRegex: function() 
   {
-    return new RegExp('\\b' + this.value, "i");
+    // Escape user input for regular expression
+    var value = this.value.replace(/([.*+?|(){}[\]\\])/g, '\\$1');
+    return new RegExp('(?:^|\\s)' + value, "i");
   },
   
   getTokens: function()
@@ -312,11 +314,17 @@ var InstantAutocompleter = Class.create({
     var tokens = [];
     
     if (this.options.multivalue) {
+      var splitterMatchall = this.options.tokenSplitter.toString();
+      var matches = splitterMatchall.match(/^\/(.*)\/(\w*)$/);
+      
+      splitterMatchall = matches[1];
+      var flags        = matches[2];
+      if (!flags.match(/g/)) { flags += "g"; }
+      
+      // to match the values
       var protokens  = value.split(this.options.tokenSplitter);
-      var matcher = this.options.tokenSplitter.toString();
-      // This seems like a hack: turn /pattern/ into /pattern/g
-      matcher = new RegExp(matcher.substring(1,matcher.length - 1),"g");
-      var antitokens = value.match(matcher) || [];
+      // to match the splitters
+      var antitokens = value.match(new RegExp(splitterMatchall, flags)) || [];
       
       protokens.each(function(token, index) {
         tokens.push(token);
