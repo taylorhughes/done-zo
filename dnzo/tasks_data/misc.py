@@ -4,7 +4,7 @@ from tasks_data.models import Project, ProjectIndex, Context, Invitation, Undo
 
 # Max projects to store in the datastore for autocomplete
 MAX_PROJECTS = 50
-
+MAX_CONTEXTS = 50
 
 ### Invitations ###
 
@@ -91,10 +91,15 @@ def save_context(user, context_name):
       name=context_name,
       key_name=Context.name_to_key_name(context_name)
     )
+    context.put()
     
-  from datetime import datetime
-  context.last_used_at = datetime.utcnow()
-  context.put()
+  plist = user.mru_contexts or []
+  if context_name in plist:
+    plist.remove(context_name)
+  plist.insert(0,context_name)
+  user.mru_contexts = plist[:MAX_CONTEXTS]
+    
+  return context
   
 def find_contexts_by_name(user, context_name, limit=5):
   from util.misc import zpad, slugify

@@ -110,6 +110,8 @@ def update_task_with_params(user, task, params):
   if raw_contexts is not None:
     import re
     task.contexts = []
+    # if you update this, remember to change the logic
+    # for updating the MRU contexts list in JavaScript.
     raw_contexts = re.split(r'[,;\s]+', raw_contexts)
     for raw_context in raw_contexts:
       slug = slugify(raw_context)

@@ -179,11 +179,26 @@ var Tasks = {
   
   updateProjects: function(row)
   {
-    var project = row.select('input[name=project]').first();
+    var project = row.select('td.project>input').first();
     project = project && project.getValue();
     if (!project) { return; }
     
     DNZO.projects = [project, DNZO.projects.without(project)].flatten();
+  },
+  
+  updateContexts: function(row)
+  {
+    var contexts = row.select('td.context>input').first();
+    contexts = contexts && contexts.getValue();
+    if (!contexts) { return; }
+    
+    contexts.split(/[,;\s]+/).each(function(context){
+      // copy django's slugify method
+      context = context.replace(/[^\w\s-]/, '').strip().toLowerCase();
+      context = "@" + context.replace(/[-\s]+/, '-');
+      
+      DNZO.contexts = [context, DNZO.contexts.without(context)].flatten();
+    });
   },
   
   saveTask: function(action, row, options)
@@ -213,6 +228,7 @@ var Tasks = {
     Tasks.tasksForm.action = oldAction;
     
     Tasks.updateProjects(row);
+    Tasks.updateContexts(row);
   },
   
   getNewTaskRow: function()

@@ -11,7 +11,7 @@
  *  
  *    var options = {
  *      // whether or not the first match in the list is selected
- *      firstSelected: true,
+ *      firstSelected: false,
  *      // limit on the number of matching results to display
  *      numResults: 5,
  *      // token splitter regex
@@ -35,7 +35,7 @@ var InstantAutocompleter = Class.create({
   initialize: function(element, collectionOrCallback, options) 
   {
     var defaults = {
-      firstSelected: true,
+      firstSelected: false,
       continueTabOnSelect: true,
       tokenSplitter: /[,;]\s*/,
       beforeMatch: /(?:^|\s)/,
