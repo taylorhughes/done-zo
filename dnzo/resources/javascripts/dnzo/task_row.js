@@ -98,6 +98,8 @@ var TaskRow = Class.create({
       numResults:    5,
       multivalue:    true,
       tokenSplitter: /[^\w\d@_-]+/,
+      beforeMatch:   /(^|\s|@)/,
+      transformSeparator: ', ',
       continueTabOnSelect: false
     }); 
   },

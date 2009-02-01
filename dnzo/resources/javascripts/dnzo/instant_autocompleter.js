@@ -16,8 +16,14 @@
  *      numResults: 5,
  *      // token splitter regex
  *      tokenSplitter: /[^\w\d_-]/,
+ *      // regex for what to look for before  match.
+ *      // if you want to match any string inside, for example,
+ *      // this should be empty.
+ *      beforeMatch: /(?:^|\s)/,
  *      // whether or not a tab event should be successful
- *      continueTabOnSelect: true
+ *      continueTabOnSelect: true,
+ *      // transform separator typed when you select an item into this one instead
+ *      transformSeparator: ', '
  *    };
  *
  *  new InstantAutocompleter(input, collection, options);
@@ -32,6 +38,8 @@ var InstantAutocompleter = Class.create({
       firstSelected: true,
       continueTabOnSelect: true,
       tokenSplitter: /[,;]\s*/,
+      beforeMatch: /(?:^|\s)/,
+      transformSeparator: null,
       multivalue: false
     };
     this.options = Object.extend(defaults,
@@ -144,8 +152,8 @@ var InstantAutocompleter = Class.create({
     if (this.options.multivalue && event.charCode > 0) {
       var str = String.fromCharCode(event.charCode);
       if (str.match(this.options.tokenSplitter)) {
-        if (this.selectEntry()) {
-          this.element.value += str + " ";
+        if (this.selectEntry() && this.options.transformSeparator) {
+          this.element.value += this.options.transformSeparator;
           event.stop();
         }
       }
@@ -304,8 +312,11 @@ var InstantAutocompleter = Class.create({
   getRegex: function() 
   {
     // Escape user input for regular expression
-    var value = this.value.replace(/([.*+?|(){}[\]\\])/g, '\\$1');
-    return new RegExp('(?:^|\\s)' + value, "i");
+    var value = this.escapeRegex(this.value);
+    var beforeMatch = this.regexToString(this.options.beforeMatch).first();
+    var a = new RegExp(beforeMatch + value, "i");
+    console.log(a);
+    return a;
   },
   
   getTokens: function()
@@ -314,11 +325,9 @@ var InstantAutocompleter = Class.create({
     var tokens = [];
     
     if (this.options.multivalue) {
-      var splitterMatchall = this.options.tokenSplitter.toString();
-      var matches = splitterMatchall.match(/^\/(.*)\/(\w*)$/);
-      
-      splitterMatchall = matches[1];
-      var flags        = matches[2];
+      var stringified = this.regexToString(this.options.tokenSplitter);
+      var splitterMatchall = stringified.first();
+      var flags = stringified.last();
       if (!flags.match(/g/)) { flags += "g"; }
       
       // to match the values
@@ -367,6 +376,19 @@ var InstantAutocompleter = Class.create({
     this.element.setValue(newValue);
     
     return true;
+  },
+  
+  escapeRegex: function(str)
+  {
+    return str.replace(/([.*+?|(){}[\]\\])/g, '\\$1');
+  },
+  
+  regexToString: function(regex)
+  {
+    var splitterMatchall = regex.toString();
+    var matches = splitterMatchall.match(/^\/(.*)\/(\w*)$/);
+    
+    return [matches[1],matches[2]];
   }
   
 });
