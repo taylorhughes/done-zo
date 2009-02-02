@@ -172,40 +172,6 @@ def archived_index(request, task_list_name=None, context_name=None, project_inde
     'filter_title': filter_title
   }, request, user))
 
-
-@never_cache
-def find_projects(request):
-  user = get_dnzo_user()
-  if not user:
-    return access_error_redirect()
-    
-  from tasks_data.misc import find_projects_by_name
-  
-  project_name = param('q', request.GET, '')
-  projects = find_projects_by_name(user, project_name, 5)
-  
-  return render_to_response('tasks/matches.html', {
-    'matches': projects,
-    'query': project_name
-  })
-  
-@never_cache
-def find_contexts(request):
-  user = get_dnzo_user()
-  if not user:
-    return access_error_redirect()
-  
-  from tasks_data.misc import find_contexts_by_name
-  
-  context_name = param('q', request.GET, '')
-  contexts = find_contexts_by_name(user, context_name, 5)
-  contexts = map(lambda c: "@%s" % c, contexts)
-  
-  return render_to_response('tasks/matches.html', {
-    'matches': contexts,
-    'query': context_name
-  })
-  
 @never_cache
 def purge_list(request, task_list_name):
   user = get_dnzo_user()

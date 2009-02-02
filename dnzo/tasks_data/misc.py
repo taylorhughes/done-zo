@@ -48,17 +48,6 @@ def create_project(user, project_name):
 
   return project
   
-def find_projects_by_name(user, project_name, limit=5):
-  from util.misc import indexize, zpad
-  indexed_name = indexize(project_name)
-  
-  indexes = ProjectIndex.gql(
-    "WHERE index >= :start AND index < :end AND ANCESTOR IS :user",
-    start=indexed_name, end=zpad(indexed_name), user=user
-  )
-  
-  return sorted_by_last_used(indexes, limit)
-  
 def get_project_by_short_name(user, short_name):
   project = Project.gql(
     'WHERE ANCESTOR IS :user AND short_name=:short_name ' + 
@@ -100,17 +89,6 @@ def save_context(user, context_name):
   user.mru_contexts = plist[:MAX_CONTEXTS]
     
   return context
-  
-def find_contexts_by_name(user, context_name, limit=5):
-  from util.misc import zpad, slugify
-  indexed_name = slugify(context_name)
-  
-  contexts = Context.gql(
-    "WHERE name >= :start AND name < :end AND ANCESTOR IS :user",
-    start=indexed_name, end=zpad(indexed_name), user=user
-  )
-  
-  return sorted_by_last_used(contexts, limit)
 
   
 ### UNDOS ###
@@ -162,20 +140,3 @@ def do_undo(user, undo):
     undelete_task_list(user, undo.task_list)
     
   undo.delete()
-
-  
-### MISC ###
-
-def sorted_by_last_used(collection, limit):
-  names_last_used = {}
-  for index in collection:
-    name, last_used_at = index.name, index.last_used_at
-    if name not in names_last_used or last_used_at > names_last_used[name]:
-      names_last_used[name] = last_used_at
-
-  names = names_last_used.items()
-  names.sort(key=lambda item: item[1])
-  names.reverse()
-  names = map(lambda item: item[0], names)
-
-  return names[0:limit]

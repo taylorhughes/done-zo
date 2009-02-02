@@ -12,11 +12,6 @@ urlpatterns = patterns('',
   (r'^t/$', 'tasks.views.task'),
   #  /username/u/id => undo
   (r'^u/(?P<undo_id>\d+)/$', 'tasks.views.undo'),
-
-  #  /username/p/find/ => project
-  (r'^p/find/$', 'tasks.views.find_projects'),
-  #  /username/p/find/ => project
-  (r'^c/find/$', 'tasks.views.find_contexts'),
   
   #  /username/l/
   (r'^l/$', 'tasks.views.add_list'),

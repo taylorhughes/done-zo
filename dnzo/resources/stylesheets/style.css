@@ -267,6 +267,7 @@ tr.error td {
   border: 1px solid #ccc;
   border-top: none;
   color: #666;
+  overflow: hidden;
 }
   .autocompleter ul, .autocompleter li {
     margin: 0;
@@ -276,10 +277,6 @@ tr.error td {
     padding: 3px;
     list-style-type: none;
   }
-    /* Highlighted matches */
-    .autocompleter li span {
-      text-decoration: underline;
-    }
     .autocompleter li.selected { 
       background: #ff9;
       color: black;
