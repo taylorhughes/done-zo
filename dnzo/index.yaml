@@ -36,6 +36,14 @@ indexes:
   properties:
   - name: name
 
+# Used once in query history.
+- kind: Context
+  ancestor: yes
+
+# Used once in query history.
+- kind: ProjectIndex
+  ancestor: yes
+
 ##### Tasks #####
 
 - kind: Task
