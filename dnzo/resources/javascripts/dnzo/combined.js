@@ -33,20 +33,48 @@ DNZO = Object.extend(DNZO,{
 });
 
 Event.observe(window,'load',DNZO.load);/**
- * InstantAutocompleter
+ *  InstantAutocompleter
  *
  *  Usage:
  *
+ *    var input = $('input[type=text]');
+ *
  *    var collection = ["Apple", "Orange", "Banana"];
- *    new InstantAutocompleter($('input[type=text]'), collection, options);
+ *      == or ==
+ *    var collection = function(value) { return ['a','b','c']; }
+ *  
+ *    var options = {
+ *      // whether or not the first match in the list is selected
+ *      firstSelected: false,
+ *      // limit on the number of matching results to display
+ *      numResults: 5,
+ *      // token splitter regex
+ *      tokenSplitter: /[^\w\d_-]/,
+ *      // regex for what to look for before  match.
+ *      // if you want to match any string inside, for example,
+ *      // this should be empty.
+ *      beforeMatch: /(?:^|\s)/,
+ *      // whether or not a tab event should be successful
+ *      continueTabOnSelect: true,
+ *      // transform separator typed when you select an item into this one instead
+ *      transformSeparator: ', '
+ *    };
+ *
+ *  new InstantAutocompleter(input, collection, options);
+ *
  *
  */
 var InstantAutocompleter = Class.create({
   
-  initialize: function(element, collection, options) 
+  initialize: function(element, collectionOrCallback, options) 
   {
     var defaults = {
-      firstSelected: true
+      firstSelected: false,
+      continueTabOnSelect: true,
+      tokenSplitter: /[,;]\s*/,
+      beforeMatch: /(?:^|\s)/,
+      transformSeparator: null,
+      multivalue: false
     };
     this.options = Object.extend(defaults,
       (typeof options != 'undefined') ? options : {}
@@ -55,28 +83,45 @@ var InstantAutocompleter = Class.create({
     // Input element to monitor
     this.element = element;
     // Collection to snatch the choices from
-    this.collection = collection;
+    this.collectionOrCallback = collectionOrCallback;
     
-    this.updateElement = new Element('ul', { 
-      className: 'autocompleter' 
-    });
-    this.updateElement.hide();
-    this.element.parentNode.appendChild(this.updateElement);
-    
+    this.setupElements();
     this.wireEvents();
     this.reset();
   },
   
+  setupElements: function()
+  {
+    this.updateElementContainer = new Element('div');
+    this.updateElementContainer.hide();
+    
+    this.updateElement = new Element('ul', { 
+      className: 'autocompleter' 
+    });
+    
+    this.updateElementContainer.appendChild(this.updateElement);
+    this.element.parentNode.appendChild(this.updateElementContainer);
+    
+    this.updateElementContainer.setStyle({
+      position: 'absolute',
+      zIndex: 2
+    });
+  },
+  
   wireEvents: function() 
   {
-    this.element.observe('focus',   this.onFocus.bind(this));
-    this.element.observe('keydown', this.onKeyDown.bind(this));
-    this.element.observe('keyup',   this.onKeyUp.bind(this));
+    this.element.observe('focus',    this.onFocus.bind(this));
+    this.element.observe('keydown',  this.onKeyDown.bind(this));
+    this.element.observe('keypress', this.onKeyPress.bind(this));
+    this.element.observe('keyup',    this.onKeyUp.bind(this));
+    
+    this.updateElementContainer.observe('click',     this.onClick.bind(this));
+    this.updateElementContainer.observe('mouseover', this.onHover.bind(this));
   },
   
   reset: function(event) 
   {
-    this.updateElement.hide();
+    this.hide();
     this.selectedIndex = -1;
     this.value         = null;
     this.dontReappear  = false;
@@ -87,56 +132,73 @@ var InstantAutocompleter = Class.create({
   {
     this.reset();
   },
-  
-  //
-  //  In keydown, I can stop events before they happen.
-  //  if an Event.KEY_TAB is stopped, the user's tab action will not continue
-  //  up the event chain, so they won't, for example, go to the next cell.
-  //
+
   onKeyDown: function(event) 
   {
     this.wasShown = this.isShown();
-    
-    if (this.dontReappear) { return; }
-
     var stop = false;
 
     switch(event.keyCode) {
-      case Event.KEY_TAB:
-      case Event.KEY_RETURN:
-        this.selectEntry();
+    case Event.KEY_TAB:
+      if (this.selectEntry()) {
         this.dontReappear = true;
-        break;
-        
-      case Event.KEY_ESC:
-        this.hide();
+        stop = !this.options.continueTabOnSelect;
+      }
+      break;
+      
+    case Event.KEY_RETURN:
+      if (this.selectEntry()) {
         this.dontReappear = true;
         stop = true;
-        break;
+      }
+      break;
+      
+    case Event.KEY_ESC:
+      this.reset();
+      this.dontReappear = true;
+      stop = this.wasShown;
+      break;
         
-      case Event.KEY_LEFT:
-      case Event.KEY_RIGHT:
-        break;
+    case Event.KEY_LEFT:
+    case Event.KEY_RIGHT:
+      break;
         
-      case Event.KEY_UP:
-        this.markPrevious();
-        stop = true;
-        break;
+    case Event.KEY_UP:
+      this.markPrevious();
+      stop = true;
+      break;
         
-      case Event.KEY_DOWN:
-        this.markNext();
-        stop = true;
-        break;
-    }
+    case Event.KEY_DOWN:
+      this.markNext();
+      stop = true;
+      break;
+      
+    } // end switch keycode
     
+    this.wasStopped = stop;
     if (stop)
     {
       event.stop();
     }
   },
   
-  onKeyUp: function(event) 
-  {
+  onKeyPress: function(event) 
+  { 
+    if (this.wasStopped) { event.stop(); }
+    
+    // Check if we got a real character
+    var str = event.charCode > 0 && String.fromCharCode(event.charCode);
+    if (!str) { return; }
+  
+    // Check if we got a separator; if so, we should select and allow for the next
+    if (this.options.multivalue && str.match(this.options.tokenSplitter)) {
+      if (this.selectEntry()) {
+        event.stop();
+      }
+    }
+  },
+  
+  onKeyUp: function(event) {
     var changed = this.valueChanged();
     
     if (this.value.blank())
@@ -145,40 +207,65 @@ var InstantAutocompleter = Class.create({
     }
     else 
     {
+      // We use wasShown here because it may have
+      // been visible before onKeyUp was called.
       if (this.wasShown) { event.stop(); }
-      if (changed && !this.dontReappear) { 
+      
+      if (changed && !this.dontReappear) {
         this.updateOptions(); 
       }
     }
   },
   
+  onHover: function(event)
+  {
+    var li = event.element();
+    li = li.match('li') ? li : li.up('li');
+    
+    // Could happen on the border of the element
+    if (!li) { return; }
+    
+    var index = li.autocompleteIndex;
+
+    if (index != null && this.selectedIndex != index)
+    {
+      this.selectedIndex = index;
+      this.updateSelected();
+    }
+  },
+  
+  onClick: function(event)
+  {
+    this.selectEntry();
+    this.dontReappear = true;
+    event.stop();
+    this.element.focus();
+  },
+  
   isShown: function() 
   {
-    return this.updateElement.visible();
+    return this.updateElementContainer.visible();
   },
   
   show: function() 
   {
-    this.updateElement.absolutize();
-    this.updateElement.setStyle({
-      height: null
-    });
-    Position.clone(this.element, this.updateElement, {
+    this.updateElementContainer.clonePosition(this.element, {
       setHeight: false,
       offsetTop: this.element.offsetHeight
     });
-    this.updateElement.show();
+    this.updateElementContainer.show();
   },
   
   hide: function() 
   {
-    this.updateElement.hide();
+    this.updateElementContainer.hide();
   },
   
   valueChanged: function()
   {
     var oldValue = this.value;
-    this.value = this.element.getValue();
+    var value = this.getTokens().last();
+    this.value = value;
     return this.value != oldValue;
   },
   
@@ -197,9 +284,12 @@ var InstantAutocompleter = Class.create({
     this.selectedIndex = this.options.firstSelected ? 0 : -1;
     this.matches.each(function(match, index){
       var li = new Element('li');
+      li.autocompleteIndex = index;
       li.innerHTML = match;
       this.updateElement.appendChild(li);
-      if (match == previouslySelected) { this.selectedIndex = index; }
+      if (match == previouslySelected) { 
+        this.selectedIndex = index;
+      }
     }, this);
     
     this.updateSelected();
@@ -207,6 +297,15 @@ var InstantAutocompleter = Class.create({
     if (!this.isShown()) { 
       this.show(); 
     }
+  },
+  
+  getCollection: function()
+  {
+    var collection = this.collectionOrCallback;
+    if (collection instanceof Function) {
+      collection = collection(this.value);
+    }
+    return collection;
   },
   
   getSelectedValue: function()
@@ -234,15 +333,56 @@ var InstantAutocompleter = Class.create({
   getMatches: function() 
   {
     var regex = this.getRegex();
-    return this.collection.collect(function(choice) {
+    var matches = this.getCollection().collect(function(choice) {
       if (choice.match(regex)) { return choice; }
       return null;
     }).reject(function(c){ return !c; });
+    
+    if (matches.length == 1 && matches[0] == this.value) {
+      matches = [];
+    }
+    
+    if (this.options.numResults) {
+      return matches.slice(0,this.options.numResults);
+    }
+    return matches;
   },
   
   getRegex: function() 
   {
-    return new RegExp('\\b' + this.value, "i");
+    // Escape user input for regular expression
+    var value = this.escapeRegex(this.value);
+    var beforeMatch = this.regexToString(this.options.beforeMatch).first();
+    return new RegExp(beforeMatch + value, "i");
+  },
+  
+  getTokens: function()
+  {
+    var value = this.element.getValue();
+    var tokens = [];
+    
+    if (this.options.multivalue) {
+      var stringified = this.regexToString(this.options.tokenSplitter);
+      var splitterMatchall = stringified.first();
+      var flags = stringified.last();
+      if (!flags.match(/g/)) { flags += "g"; }
+      
+      // to match the values
+      var protokens  = value.split(this.options.tokenSplitter);
+      // to match the splitters
+      var antitokens = value.match(new RegExp(splitterMatchall, flags)) || [];
+      
+      protokens.each(function(token, index) {
+        tokens.push(token);
+        if (antitokens[index]) tokens.push(antitokens[index]);
+      });
+    }
+    else
+    {
+      tokens.push(value);
+    }
+    
+    return tokens;
   },
   
   markPrevious: function() 
@@ -254,18 +394,43 @@ var InstantAutocompleter = Class.create({
   
   markNext: function() 
   {
-    if (this.selectedIndex == this.matches.length - 1) { return; }
+    if (this.selectedIndex == this.matches.length) { return; }
     this.selectedIndex += 1;
     this.updateSelected();
   },
   
   selectEntry: function() 
   {
-    var selected = this.getSelectedValue();
-    if (selected) {
-      this.element.setValue(selected);
-    }
+    var newValue = this.getSelectedValue();
     this.reset();
+    
+    if (!newValue) { return false; }
+    
+    var tokens = this.getTokens();
+    tokens = tokens.slice(0,tokens.length - 1);
+    newValue = tokens.join('') + newValue;
+    
+    if (this.options.multivalue && this.options.transformSeparator) {
+      // Use this separator instead of whatever they typed
+      newValue += this.options.transformSeparator;
+    }
+    
+    this.element.setValue(newValue);
+    
+    return true;
+  },
+  
+  escapeRegex: function(str)
+  {
+    return str.replace(/([.*+?|(){}[\]\\])/g, '\\$1');
+  },
+  
+  regexToString: function(regex)
+  {
+    var splitterMatchall = regex.toString();
+    var matches = splitterMatchall.match(/^\/(.*)\/(\w*)$/);
+    
+    return [matches[1],matches[2]];
   }
   
 });/*
@@ -508,7 +673,7 @@ var ModalDialog = Class.create({
     var save = row.select('.edit>input[type=submit]')[0];
     save.observe('click', this.onClickSave.bind(this));
     
-    row.observe('keyup', this.onKeyUp.bind(this));
+    row.observe('keydown', this.onKeyDown.bind(this));
 
     this.cancelLink = row.select('.edit>a.cancel')[0];
     this.boundOnClickCancel = this.onClickCancel.bind(this);
@@ -542,14 +707,23 @@ var ModalDialog = Class.create({
   {
     var project = row.select('td.project>input').first();
 
-    new InstantAutocompleter(project, DNZO.projects, {
-      firstSelected: false
+    new InstantAutocompleter(project, function(){ return DNZO.projects; }, {
+      numResults: 5
     });
   },
   
   wireContextAutocomplete: function(row)
   {
     var contexts = row.select('td.context>input').first();
+    
+    new InstantAutocompleter(contexts, function(){ return DNZO.contexts; }, {
+      numResults:    5,
+      multivalue:    true,
+      tokenSplitter: /[^\w\d@_-]+/,
+      beforeMatch:   /(^|\s|@)/,
+      transformSeparator: ' ',
+      continueTabOnSelect: false
+    }); 
   },
   
   destroy: function()
@@ -655,9 +829,7 @@ var ModalDialog = Class.create({
     
     var check = event.element();
     var checked = check.checked;
-    this.completeOrUncomplete(checked, {
-      onFailure: this.doFail.bind(this)
-    });
+    this.completeOrUncomplete(checked);
   },
   
   onDoubleClickViewRow: function(event)
@@ -682,7 +854,7 @@ var ModalDialog = Class.create({
     this.activate(className);
   },
   
-  onKeyUp: function(event)
+  onKeyDown: function(event)
   {
     switch(event.keyCode)
     {
@@ -903,9 +1075,12 @@ var ModalDialog = Class.create({
     this.replaceRows(xhr);
   },
   
-  completeOrUncomplete: function(complete, options)
+  completeOrUncomplete: function(complete)
   {
     var params = {}
+    var editingCheck = this.editRow && this.editRow.select('input.complete').first();
+    if (editingCheck) { editingCheck.checked = complete; }
+    
     if (complete)
     {
       params['force_complete'] = true;
@@ -917,18 +1092,12 @@ var ModalDialog = Class.create({
       this.viewRow.removeClassName('completed');
     }
     
-    defaultOptions = {
+    new Ajax.Request(this.editLink.href, {
       method: 'post',
       parameters: params,
       onSuccess: this.doComplete.bind(this),
       onFailure: this.doFail.bind(this)
-    };
-    if (options)
-    {
-      for (p in options) { defaultOptions[p] = options[p] };
-    }
-    
-    new Ajax.Request(this.editLink.href, defaultOptions);
+    });
   },
   doComplete: function(xhr) {},
   
@@ -1198,11 +1367,26 @@ var ModalDialog = Class.create({
   
   updateProjects: function(row)
   {
-    var project = row.select('input[name=project]').first();
+    var project = row.select('td.project>input').first();
     project = project && project.getValue();
     if (!project) { return; }
     
     DNZO.projects = [project, DNZO.projects.without(project)].flatten();
+  },
+  
+  updateContexts: function(row)
+  {
+    var contexts = row.select('td.context>input').first();
+    contexts = contexts && contexts.getValue();
+    if (!contexts) { return; }
+    
+    contexts.split(/[,;\s]+/).each(function(context){
+      // copy django's slugify method
+      context = context.replace(/[^\w\s-]/, '').strip().toLowerCase();
+      context = "@" + context.replace(/[-\s]+/, '-');
+      
+      DNZO.contexts = [context, DNZO.contexts.without(context)].flatten();
+    });
   },
   
   saveTask: function(action, row, options)
@@ -1232,6 +1416,7 @@ var ModalDialog = Class.create({
     Tasks.tasksForm.action = oldAction;
     
     Tasks.updateProjects(row);
+    Tasks.updateContexts(row);
   },
   
   getNewTaskRow: function()
