@@ -2,8 +2,7 @@ from google.appengine.ext import db
 
 def update_mru_lists(start_key = None):
   def fn(user):
-    from tasks_data.models import ProjectIndex
-    from tasks_data.models import Context
+    from tasks_data.models import ProjectIndex, Context
     
     contexts = Context.gql('WHERE ANCESTOR IS :user', user=user).fetch(200)
     contexts.sort(key=lambda c: c.last_used_at)
@@ -22,6 +21,8 @@ def update_mru_lists(start_key = None):
     
     from tasks_data.users import save_user
     save_user(user)
+    
+    return True
     
   from tasks_data.models import TasksUser
   return do_for_all(TasksUser, start_key, fn, 1)

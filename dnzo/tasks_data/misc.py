@@ -1,6 +1,6 @@
 from google.appengine.ext import db
 
-from tasks_data.models import Project, ProjectIndex, Context, Invitation, Undo
+from tasks_data.models import Project, Context, Invitation, Undo
 
 # Max projects to store in the datastore for autocomplete
 MAX_PROJECTS = 50
