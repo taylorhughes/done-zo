@@ -251,7 +251,7 @@ var InstantAutocompleter = Class.create({
     this.matches.each(function(match, index){
       var li = new Element('li');
       li.autocompleteIndex = index;
-      li.innerHTML = match;
+      li.innerHTML = match.escapeHTML();
       this.updateElement.appendChild(li);
       if (match == previouslySelected) { 
         this.selectedIndex = index;
