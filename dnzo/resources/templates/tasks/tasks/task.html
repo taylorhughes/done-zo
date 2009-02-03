@@ -23,7 +23,9 @@
   {% else %}
     <input type="submit" value="Add">
   {% endif %}
-  <a href="{{ request_uri }}" class="cancel">x</a>
+  </td>
+  <td class="cancel">
+    <a href="{{ request_uri }}" class="cancel">cancel</a>
   </td>
 </tr>
 {% if task.is_saved %}
@@ -54,10 +56,10 @@
   </td>
   <td class="edit">
     <input type="hidden" class="task-id" value="{{ task.key.id }}">
-    <a href="{{ task.get_absolute_url }}" class="edit">edit</a>&nbsp;&nbsp;
-    <a href="{{ task.get_absolute_url }}?delete=true" class="delete">
-      <img src="/images/trash.gif" alt="delete task">
-    </a>
+    <a href="{{ task.get_absolute_url }}" class="edit">edit</a>
+  </td>
+  <td class="cancel">
+    <a href="{{ task.get_absolute_url }}?delete=true" class="delete">delete</a>
   </td>
 </tr>
 {% endif %}

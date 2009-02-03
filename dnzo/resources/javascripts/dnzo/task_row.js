@@ -32,7 +32,7 @@ var TaskRow = Class.create({
     this.editLink = row.select('.edit>a.edit')[0];
     this.editLink.observe('click', this.onClickEdit.bind(this));
 
-    this.trashcan = row.select('.edit>a.delete')[0];
+    this.trashcan = row.select('.cancel>a.delete')[0];
     this.trashcan.observe('click', this.onClickTrash.bind(this));
 
     var finish = row.select('.complete')[0];
@@ -51,7 +51,7 @@ var TaskRow = Class.create({
     
     row.observe('keydown', this.onKeyDown.bind(this));
 
-    this.cancelLink = row.select('.edit>a.cancel')[0];
+    this.cancelLink = row.select('.cancel>a.cancel')[0];
     this.boundOnClickCancel = this.onClickCancel.bind(this);
     this.cancelLink.observe('click', this.boundOnClickCancel);
     

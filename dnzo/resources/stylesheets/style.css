@@ -159,19 +159,35 @@ td {
 	  width: 60px;
 	}
 	td.edit {
-	  width: 50px;
-	  text-align: right;
+	  width: 40px;
+	  text-align: center;
 	}
-  	td.edit a {
+  	td.edit a,
+  	td.cancel a {
   	  visibility: hidden;
   	}
-    	td.edit a.cancel { 
-    	  visibility: visible; 
-    	}
-  	  td.edit a img {
-  	    margin-bottom: -1px;
-  	    border: 0;
-  	  }
+  td.cancel {
+    padding: 0;
+    width: 31px;
+    text-indent: -10000px;
+  }
+    td.cancel a {
+      display: block;
+      width: 31px;
+      height: 31px;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+      td.cancel a:hover {
+        background-color: #ffe;
+      }
+      td.cancel a.delete {
+        background-image: url(/images/trash.gif);
+      }
+      td.cancel a.cancel {
+        background-image: url(/images/cancel.gif);
+      }
+      
 	
 tr.task-row:hover td,
 tr.editable td {
@@ -186,7 +202,9 @@ table.row-dragging tr.task-row:hover td {
     text-decoration: underline;
     color: #369;
   }
-  tr.task-row:hover td.edit a {
+  tr.task-row:hover td.edit a,
+  tr.task-row:hover td.cancel a,
+  tr.editable td.cancel a {
     visibility: visible;
   }
   tr.task-row.completed {
@@ -242,7 +260,7 @@ tr.editable.task-row td.due input {
 }
   tr.editable.task-row td.project input,
   tr.editable.task-row td.context input {
-    width: 100px;
+    width: 102px;
   }
   tr.editable.task-row td.due input {
     width: 60px;
