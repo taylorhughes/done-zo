@@ -1,9 +1,18 @@
 /**
- *  InstantAutocompleter
+ *  InstantAutocompleter v0.1
+ * 
+ *  (c) 2009 Taylor Hughes (taylor@taylor-hughes.com)
+ * 
+ *  InstantAutocompleter is freely distributable under the terms 
+ *  of an MIT-style license. For details, visit:
+ *
+ *    http://code.google.com/p/instant-autocompleter/
+ *
+ *  InstantAutocomplete requires Prototype 1.6.0.4
  *
  *  Usage:
  *
- *    var input = $('input[type=text]');
+ *    var input = $$('input.needs-autocompleting').first();
  *
  *    var collection = ["Apple", "Orange", "Banana"];
  *      == or ==
@@ -14,20 +23,21 @@
  *      firstSelected: false,
  *      // limit on the number of matching results to display
  *      numResults: 5,
- *      // token splitter regex
- *      tokenSplitter: /[^\w\d_-]/,
  *      // regex for what to look for before  match.
  *      // if you want to match any string inside, for example,
  *      // this should be empty.
  *      beforeMatch: /(?:^|\s)/,
  *      // whether or not a tab event should be successful
  *      continueTabOnSelect: true,
+ *      // whether this is a tokenized, multivalue list
+ *      multivalue: false,
+ *      // token splitter regex if this is a multivalue list
+ *      tokenSplitter: /[^\w\d_-]/,
  *      // transform separator typed when you select an item into this one instead
  *      transformSeparator: ', '
  *    };
  *
  *  new InstantAutocompleter(input, collection, options);
- *
  *
  */
 var InstantAutocompleter = Class.create({
