@@ -1,31 +1,27 @@
 from google.appengine.ext import db
 
-def update_mru_lists(start_key = None):
-  def fn(user):
-    from tasks_data.models import ProjectIndex, Context
+def update_task_counts(start_key = None):
+  def fn(task_list):
+    from tasks_data.models import Task
+  
+    active_tasks = Task.gql(
+      'WHERE task_list=:task_list AND deleted=:deleted AND archived=:archived',
+      task_list=task_list, deleted=False, archived=False
+    ).fetch(1000)
     
-    contexts = Context.gql('WHERE ANCESTOR IS :user', user=user).fetch(200)
-    contexts.sort(key=lambda c: c.last_used_at)
-    contexts.reverse()
-    user.mru_contexts = map(lambda c: c.name, contexts)
+    archived_tasks = Task.gql(
+      'WHERE task_list=:task_list AND deleted=:deleted AND archived=:archived',
+      task_list=task_list, deleted=False, archived=True
+    ).fetch(1000)
     
-    projects = ProjectIndex.gql('WHERE ANCESTOR IS :user', user=user).fetch(200)
-    projects.sort(key=lambda p: p.last_used_at)
-    projects.reverse()
-    projects = map(lambda p: p.name, projects)
-    projects_new = []
-    for project in projects:
-      if project not in projects_new:
-        projects_new.append(project)
-    user.mru_projects = projects_new
-    
-    from tasks_data.users import save_user
-    save_user(user)
+    task_list.active_tasks_count = len(active_tasks)
+    task_list.archived_tasks_count = len(archived_tasks)
+    task_list.put()
     
     return True
     
-  from tasks_data.models import TasksUser
-  return do_for_all(TasksUser, start_key, fn, 1)
+  from tasks_data.models import TaskList
+  return do_for_all(TaskList, start_key, fn, 3)
 
 def do_for_all(model_klass, start_key, callback, max_records = 100):
   objects = get_all_from_key(model_klass, start_key, max_records)
@@ -59,8 +55,8 @@ def get_all_from_key(model_klass, start_key, max_records):
   
 MIGRATIONS = [
   {
-    'name': 'Create MRU contexts/projects', 
-    'slug': 'update_mru_lists', 
-    'migration': update_mru_lists
+    'name': 'Update task counts', 
+    'slug': 'update_task_counts', 
+    'migration': update_task_counts
   }
 ]

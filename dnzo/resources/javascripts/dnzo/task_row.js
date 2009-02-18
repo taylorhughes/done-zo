@@ -452,7 +452,19 @@ var TaskRow = Class.create({
   },
   doSave: function(xhr)
   { 
-    this.replaceRows(xhr);
+    var replaced = this.replaceRows(xhr);
+    
+    // This should not happen unless the task was not saved.
+    if (!replaced) {
+      alert(
+        "There was a problem saving your task. \n\n" + 
+        "There is a limit on the number of unfinished tasks -- " +
+        "if you have several pages of unfinished tasks, " + 
+        "try finishing or deleting one before adding a new one again. \n\n" +
+        "If this problem persists, please contact us."
+      );
+      this.destroy();
+    }
   },
   
   completeOrUncomplete: function(complete)
@@ -527,6 +539,10 @@ var TaskRow = Class.create({
     var temp = Tasks.containerFromResponse(xhr);
     var rows = temp.select('tr');
 
+    if (rows.length < 2) {
+      return false;
+    }
+
     var newEditRow = rows.find(function(row){ return row.hasClassName('editable'); });
     var newViewRow = rows.without(newEditRow)[0];
     
@@ -536,6 +552,8 @@ var TaskRow = Class.create({
     this.editRow.remove();
     // Re-initialize everything.
     this.initialize(newViewRow, newEditRow);
+    
+    return true;
   },
   
   activate: function(tdClassName)

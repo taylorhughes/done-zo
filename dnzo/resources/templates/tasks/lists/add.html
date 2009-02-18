@@ -5,7 +5,7 @@
   <form action="{% url tasks.views.add_list %}" method="POST">
     <ul>
       <li>
-        <input type="text" value="" name="name" id="new_list_name">
+        <input type="text" value="" name="name" id="new_list_name" maxlength="30">
       </li>
       <li class="buttons">
         <input type="submit" value="Add list">

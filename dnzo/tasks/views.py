@@ -4,7 +4,7 @@ from django.views.decorators.cache import never_cache
 
 from tasks_data.models     import Task
 from tasks_data.users      import get_dnzo_user, record_user_history
-from tasks_data.task_lists import get_task_list, get_task_lists
+from tasks_data.task_lists import get_task_list, get_task_lists, can_add_list
 
 from tasks.redirects import default_list_redirect, most_recent_redirect, list_redirect, access_error_redirect, referer_redirect
 from tasks.statusing import get_status_undo, set_status_undo, reset_status_undo
@@ -189,7 +189,7 @@ def purge_list(request, task_list_name):
   status = None
   if request.method == "POST":
     from statusing import Statuses
-    archived_tasks = archive_tasks(task_list, user)
+    archived_tasks = archive_tasks(task_list)
     if len(archived_tasks) == 0:
       status = Statuses.TASKS_NOT_PURGED
     else:
@@ -242,7 +242,8 @@ def add_list(request):
   if request.method == "POST":
     if len(slugify(new_name)) > 0:
       new_list = add_task_list(user, new_name)
-      return list_redirect(user, new_list)
+      if new_list:
+        return list_redirect(user, new_list)
       
   elif is_ajax(request): # GET
     return render_to_response('tasks/lists/add.html', {
@@ -445,16 +446,17 @@ def always_includes(params=None, request=None, user=None):
     params = {}
     
   if request:
-    params['request_uri'] = request.get_full_path()
+    params['request_uri']  = request.get_full_path()
   if user:
-    params['task_lists']  = get_task_lists(user)
-    params['user']        = user
+    params['task_lists']   = get_task_lists(user)
+    params['user']         = user
+    params['can_add_list'] = can_add_list(user)
   
   import environment
   from google.appengine.api.users import create_logout_url
   
-  params['is_production'] = environment.IS_PRODUCTION
-  params['logout_url']    = create_logout_url('/')
-  params['max_records']   = RESULT_LIMIT
+  params['is_production']  = environment.IS_PRODUCTION
+  params['logout_url']     = create_logout_url('/')
+  params['max_records']    = RESULT_LIMIT
   
   return params

@@ -4,6 +4,9 @@ from google.appengine.ext import db
 from tasks_data.models import TaskList, Undo, Task
 from tasks_data.users import save_user
 
+MAX_LIST_NAME_LENGTH = 30
+MAX_TASK_LISTS       = 10
+
 ### MEMCACHING ###
 
 def user_lists_key(user):
@@ -14,11 +17,22 @@ def clear_lists_memcache(user):
   
 ### TASK LISTS ###
 
+def can_add_list(user):
+  return user.lists_count < MAX_TASK_LISTS
+
 def get_task_list(user, name):
   return TaskList.get_by_key_name(TaskList.name_to_key_name(name), parent=user)
 
 def add_task_list(user, list_name):
   def txn(user, list_name):
+    user = db.get(user.key())
+    
+    if not can_add_list(user):
+      return None
+      
+    user.lists_count += 1
+    save_user(user)
+    
     short_name = get_new_list_name(user, list_name)
     new_list = TaskList(parent=user, 
       key_name=TaskList.name_to_key_name(short_name),
@@ -26,18 +40,15 @@ def add_task_list(user, list_name):
       name=list_name)
     new_list.put()
     
-    user = db.get(user.key())
-    user.lists_count += 1
-
-    save_user(user)
-    
     return short_name
     
-  short_name = db.run_in_transaction(txn, user, list_name)
+  short_name = db.run_in_transaction(txn, user, list_name[:MAX_LIST_NAME_LENGTH])
   
-  clear_lists_memcache(user)
-  
-  return get_task_list(user, short_name)
+  if short_name:
+    clear_lists_memcache(user)
+    return get_task_list(user, short_name)
+  else:
+    return None
 
 def delete_task_list(user, task_list):
   def txn(task_list, deleted_tasks):
@@ -51,7 +62,6 @@ def delete_task_list(user, task_list):
     
     user = task_list.parent()
     
-    user.tasks_count -= len(deleted_tasks)
     user.lists_count -= 1
 
     save_user(user)
@@ -77,7 +87,6 @@ def undelete_task_list(user, task_list):
     
     user = task_list.parent()
     user.lists_count += 1
-    user.tasks_count += len(deleted_tasks)
 
     save_user(user)
 
@@ -126,14 +135,35 @@ def get_completed_tasks(task_list, limit=100):
                    list=task_list, archived=False, complete=True)
   return tasks.fetch(limit)
   
-def archive_tasks(task_list, user):
+def archive_tasks(task_list):
+  def txn(task_list, archived_tasks):
+    for task in archived_tasks:
+      task.archived = True
+      task.put()
+      
+    task_list.active_tasks_count -= len(archived_tasks)
+    task_list.archived_tasks_count += len(archived_tasks)
+    task_list.put()
+  
   archived_tasks = []
   for task in get_completed_tasks(task_list):
-    task.archived = True
-    task.put()
     archived_tasks.append(task)
+    
+  db.run_in_transaction(txn, task_list, archived_tasks)
+  
   return archived_tasks
   
+def unarchive_tasks(task_list, archived_tasks):
+  def txn(task_list, archived_tasks):
+    for task in archived_tasks:
+      task.archived = False
+      task.put()
+      
+    task_list.active_tasks_count += len(archived_tasks)
+    task_list.archived_tasks_count -= len(archived_tasks)
+    task_list.put()
+
+  db.run_in_transaction(txn, task_list, archived_tasks)
   
   
   

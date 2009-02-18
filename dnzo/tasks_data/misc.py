@@ -131,12 +131,13 @@ def do_undo(user, undo):
     from tasks_data.tasks import undelete_task
     undelete_task(task, undo.task_list)
     
-  for task in undo.find_archived():
-    task.archived = False
-    task.put()
-    
   if undo.list_deleted:
     from tasks_data.task_lists import undelete_task_list
     undelete_task_list(user, undo.task_list)
+  
+  archived = undo.find_archived()
+  if len(archived) > 0:
+    from tasks_data.task_lists import unarchive_tasks
+    unarchive_tasks(undo.task_list, archived)
     
   undo.delete()

@@ -23,8 +23,7 @@ class TasksUser(db.Model):
   # Last URI the user visited
   most_recent_uri = db.StringProperty()
   
-  # Counts
-  tasks_count   = db.IntegerProperty(default=0)
+  # Number of lists
   lists_count   = db.IntegerProperty(default=0)
   
   # Autocompletes
@@ -39,6 +38,10 @@ class TaskList(db.Model):
   name          = db.StringProperty()
   short_name    = db.StringProperty()
   deleted       = db.BooleanProperty(default=False)
+  
+  # Number of active (not deleted or archived) tasks
+  active_tasks_count = db.IntegerProperty(default=0)
+  archived_tasks_count = db.IntegerProperty(default=0)
   
   @classmethod
   def name_to_key_name(self,name):

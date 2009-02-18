@@ -6,15 +6,19 @@ from tasks_data.models import Task
 from tasks_data.users import save_user
 from tasks_data.misc import save_project, save_contexts
 
-#
-#  This specifies how long the maximum indexized value can be.
-#  This essentially limits the maximum number of records to 
-#  MAX_INDEX_LENGTH index records per unique indexed value,
-#  but also restricts the resultset from index queries to results
-#  appearing in the first MAX_INDEX_LENGTH characters of the value.
-#
-MAX_INDEX_LENGTH = 50
-    
+
+# This is actually a limitation of the datastore:
+#   string types can only be 500 characters.
+MAX_BODY_LENGTH    = 500
+
+# This is mostly a factor of what it will make the UI 
+# look like and how long and unwieldy URLs will get
+MAX_PROJECT_LENGTH = 30
+MAX_CONTEXT_LENGTH = 30
+
+# Maximum number of undeleted, unarchived tasks for a list.
+MAX_ACTIVE_TASKS   = 100
+
   
 ### TASKS ###
 
@@ -32,34 +36,32 @@ def save_task(user,task):
   save_user(user)
   
 def add_task(task):
-  def txn(task):
+  def txn(task, task_list):
     if task.is_saved():
       return
     
     task.put()
     
-    user = task.parent()
-    user.tasks_count += 1
-
-    save_user(user)
-    
-  db.run_in_transaction(txn, task)
+    task_list.active_tasks_count += 1
+    task_list.put()
+  
+  task_list = task.task_list
+  if task_list.active_tasks_count < MAX_ACTIVE_TASKS:
+    db.run_in_transaction(txn, task, task_list)
 
 def delete_task(user, task):
   def txn(task):
     task = db.get(task.key())
     if task.deleted:
       return
-      
+
+    task_list = task.task_list
+    task_list.active_tasks_count -= 1
+    task_list.put()
+    
     task.deleted = True
     task.task_list = None
     task.put()
-    
-    user = task.parent()
-    user.tasks_count -= 1
-
-    save_user(user)
-
       
   db.run_in_transaction(txn, task)
 
@@ -74,10 +76,9 @@ def undelete_task(task, task_list):
     if not was_deleted:
       return
     
-    user = task.parent()
-    user.tasks_count += 1
-
-    save_user(user)
+    task_list = task.task_list
+    task_list.active_tasks_count += 1
+    task_list.put()
     
   db.run_in_transaction(txn, task, task_list)
 
@@ -94,11 +95,11 @@ def update_task_with_params(user, task, params):
   
   raw_body = param('body', params, None)
   if raw_body is not None:
-    task.body = raw_body
+    task.body = raw_body[:MAX_BODY_LENGTH]
   
   raw_project = param('project', params, None)
   if raw_project is not None:
-    raw_project = raw_project.strip()
+    raw_project = raw_project.strip()[:MAX_PROJECT_LENGTH]
     if len(raw_project) > 0:
       task.project       = raw_project
       task.project_index = slugify(raw_project)
@@ -114,7 +115,7 @@ def update_task_with_params(user, task, params):
     # for updating the MRU contexts list in JavaScript.
     raw_contexts = re.split(r'[,;\s]+', raw_contexts)
     for raw_context in raw_contexts:
-      slug = slugify(raw_context)
+      slug = slugify(raw_context)[:MAX_CONTEXT_LENGTH]
       if len(slug) > 0:
         task.contexts.append(slug)
   

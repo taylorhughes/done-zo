@@ -64,7 +64,7 @@
 <p><a href="{% url tasks.views.delete_list task_list.short_name %}">Delete list</a></p>
 {% endif %}
 <form action="{% url tasks.views.add_list %}" method="GET">
-  <input type="submit" value="Add list" id="add_list">&nbsp;
+  <input type="submit" value="Add list" id="add_list"{% if not can_add_list %} disabled="disabled"{% endif %}>&nbsp;
 </form>
 </div>
 {% endblock %}
