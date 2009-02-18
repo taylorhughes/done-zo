@@ -4,16 +4,21 @@
 
 class Statuses:
   TASKS_PURGED = 'archived'
+  TASKS_NOT_PURGED = 'unarchived'
   TASK_DELETED = 'deleted'
   LIST_DELETED = 'list_deleted'
 
+Messages = {
+  # NOTE: These are output in straight HTML with no encoding. 
+  Statuses.TASKS_PURGED:     "Completed tasks have been archived.",
+  Statuses.TASKS_NOT_PURGED: "No tasks to archive &mdash; complete some first!",
+  Statuses.TASK_DELETED:     "Task has been deleted.",
+  Statuses.LIST_DELETED:     "List has been deleted.",
+}
+
 def get_status_message(status):
-  if status == Statuses.TASKS_PURGED:
-    return "Completed tasks have been archived."
-  if status == Statuses.TASK_DELETED:
-    return "Task has been deleted."
-  if status == Statuses.LIST_DELETED:
-    return "List has been deleted."
+  if status in Messages:
+    return Messages[status]
     
   return None
 

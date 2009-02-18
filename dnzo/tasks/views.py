@@ -186,15 +186,20 @@ def purge_list(request, task_list_name):
   from tasks_data.misc import create_undo
   
   undo = None
+  status = None
   if request.method == "POST":
+    from statusing import Statuses
     archived_tasks = archive_tasks(task_list, user)
-    undo = create_undo(user, task_list=task_list, archived_tasks=archived_tasks)
+    if len(archived_tasks) == 0:
+      status = Statuses.TASKS_NOT_PURGED
+    else:
+      undo = create_undo(user, task_list=task_list, archived_tasks=archived_tasks)
+      status = Statuses.TASKS_PURGED
   
   redirect = referer_redirect(user,request)
   
-  if undo and undo.is_saved():
-    from statusing import Statuses
-    set_status_undo(redirect,Statuses.TASKS_PURGED,undo)
+  if status or undo:
+    set_status_undo(redirect,status,undo)
   
   return redirect
 
@@ -358,6 +363,13 @@ def task(request, task_id=None):
   
   if undo:
     undo = undo.key().id()
+  
+  from environment import IS_DEVELOPMENT
+  if IS_DEVELOPMENT:
+    # simulate this call taking longer as is normal in production
+    from time import sleep
+    from random import random
+    sleep(random() * 2)
   
   if not is_ajax(request):
     return referer_redirect(user, request)

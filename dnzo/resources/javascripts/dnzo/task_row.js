@@ -220,7 +220,7 @@ var TaskRow = Class.create({
     {
       className = td.classNames().toArray().first();
       // Double-clicking the edit/delete link or the checkbox should not edit
-      if (['edit','done'].include(className))
+      if (['done','edit','cancel'].include(className))
       {
         return;
       }
@@ -406,10 +406,14 @@ var TaskRow = Class.create({
     if (! this.requestedTrash)
     {
       this.requestedTrash = true;
+      this.viewRow.hide();
       new Ajax.Request(this.trashcan.href, {
         method: 'get',
         onSuccess: this.doTrash.bind(this),
-        onFailure: this.doFail.bind(this),
+        onFailure: function(xhr){
+          this.viewRow.show();
+          this.doFail(xhr);
+        }.bind(this),
         onComplete: (function(xhr){this.requestedTrash=false;}).bind(this)
       });
     }

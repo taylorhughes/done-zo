@@ -1,7 +1,7 @@
 {% if status %}
   <div id="status">
     <p>
-      {{ status }} 
+      {{ status|safe }} 
       {% if undo %}<a href="{% url tasks.views.undo undo %}">Undo</a>{% endif %}
     </p>
   </div>  <!-- end DIV status -->
