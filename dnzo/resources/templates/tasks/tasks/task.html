@@ -6,10 +6,10 @@
     <input type="checkbox"{% if task.complete %} checked{% endif %} name="complete" value="true" class="complete editing">
   </td>
   <td class="project">
-    <input type="text" value="{% if task.project %}{{ task.project }}{% endif %}" class="text-input task-project" name="project">
+    <input type="text" value="{% if task.project %}{{ task.project }}{% endif %}" class="text-input task-project" name="project" maxlength="30">
   </td>
   <td class="task">
-    <input type="text" value="{{ task.body }}" class="text-input task-body" name="body">
+    <input type="text" value="{{ task.body }}" class="text-input task-body" name="body" maxlength="500">
   </td>
   <td class="context">
     <input type="text" value="{% for context in task.contexts %}@{{ context }} {% endfor %}" class="text-input" name="contexts">

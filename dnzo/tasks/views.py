@@ -370,7 +370,7 @@ def task(request, task_id=None):
     # simulate this call taking longer as is normal in production
     from time import sleep
     from random import random
-    sleep(random() * 2)
+    sleep(random())
   
   if not is_ajax(request):
     return referer_redirect(user, request)
