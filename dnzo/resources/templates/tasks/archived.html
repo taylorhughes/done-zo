@@ -35,9 +35,26 @@
     <th class="context"><span>Context</span></th>
     <th class="due">    <span>Due</span></th>
   </tr>
+{% if tasks %}
   {% for task in tasks %}
     {% include "tasks/tasks/archived_task.html" %}
   {% endfor %}
+{% else %}
+  <tr>
+  <td></td>
+  <td></td>
+  <td>
+    There are no archived tasks to display for
+    {% if filter_title %} 
+      {{ filter_title|lower }}.
+    {% else %}
+      this time period.
+    {% endif %}
+  </td>
+  <td></td>
+  <td></td>
+  </tr>
+{% endif %}
 </table>
 
 {% if tasks|length_is:max_records %}
