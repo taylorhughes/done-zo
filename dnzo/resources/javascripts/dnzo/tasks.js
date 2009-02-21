@@ -255,7 +255,10 @@ var Tasks = {
   
   doFail: function(xhr)
   {
-    alert("Ruh roh! Something went wrong. Please let us know what happened!");
+    var message = "Ruh roh! Something went wrong, and we couldn't perform " + 
+                  "the action you requested. Please refresh the page and try again.\n\n" + 
+                  "If your problems persist, please contact us and let us know what's wrong.";
+    alert(message);
   }
 };
 

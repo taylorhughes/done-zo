@@ -111,9 +111,24 @@ var TaskRow = Class.create({
   
   ignoreCancels: function()
   {
-    Event.stopObserving(this.cancelLink, 'click', this.boundOnClickCancel);
-    this.cancelLink.href = null;
     Event.stopObserving(Tasks.table, Tasks.TASK_EDITING_EVENT, this.boundOnOtherTaskEditing);
+    Event.stopObserving(this.cancelLink, 'click', this.boundOnClickCancel);
+    this.cancelLink.hide();
+    
+    this.editRow.select('input').each(function(e) {
+      e.disable();
+    });
+  },
+  
+  unignoreCancels: function()
+  {
+    Tasks.table.observe(Tasks.TASK_EDITING_EVENT, this.boundOnOtherTaskEditing);
+    this.cancelLink.observe('click', this.boundOnClickCancel);
+    this.cancelLink.show();
+    
+    this.editRow.select('input').each(function(e) {
+      e.enable();
+    });
   },
   
   /*** MISC ***/
@@ -438,13 +453,9 @@ var TaskRow = Class.create({
       
       Tasks.saveTask(action, this.editRow,{
         onSuccess: this.doSave.bind(this),
-        onFailure: this.doFail.bind(this),
+        onFailure: this.doFailSave.bind(this),
         onComplete: (function(xhr){this.isSaving=false;}).bind(this)
       });
-    
-      this.editRow.select('input').each(function(e) {
-        e.disable();
-      })
     
       this.ignoreCancels();
       this.fire(Tasks.TASK_SAVED_EVENT, this.editRow); 
@@ -456,15 +467,31 @@ var TaskRow = Class.create({
     
     // This should not happen unless the task was not saved.
     if (!replaced) {
-      alert(
-        "There was a problem saving your task. \n\n" + 
-        "There is a limit on the number of unfinished tasks -- " +
-        "if you have several pages of unfinished tasks, " + 
-        "try finishing or deleting one before adding a new one again. \n\n" +
-        "If this problem persists, please contact us."
-      );
-      this.destroy();
+      if (xhr.responseText && xhr.responseText.indexOf('task-row') > 0) {      
+        alert(
+          "There was a problem saving your task. \n\n" + 
+          "There is a limit on the number of unfinished tasks -- " +
+          "if you have several pages of unfinished tasks, " + 
+          "try finishing or deleting one before adding a new one again. \n\n" +
+          "If this problem persists, please contact us."
+        );
+        this.destroy();
+      } else {
+        alert(
+          "There was a problem saving your task. \n\n" +
+          "You may have been logged out. Please reload the page to try again."
+        );
+        this.unignoreCancels();
+        this.cancel();
+      }
     }
+  },
+  // This happens on 5xx requests only
+  doFailSave: function(xhr)
+  {
+    this.unignoreCancels();
+    this.cancel();
+    this.doFail(xhr);
   },
   
   completeOrUncomplete: function(complete)
@@ -529,18 +556,18 @@ var TaskRow = Class.create({
   
   replaceRows: function(xhr)
   {
-    // May be adding a new task
-    if (this.viewRow)
-    {
-      this.viewRow.remove();
-    }
-   
     var tbody = this.editRow.parentNode; 
     var temp = Tasks.containerFromResponse(xhr);
     var rows = temp.select('tr');
 
     if (rows.length < 2) {
       return false;
+    }
+    
+    // May be adding a new task
+    if (this.viewRow)
+    {
+      this.viewRow.remove();
     }
 
     var newEditRow = rows.find(function(row){ return row.hasClassName('editable'); });
