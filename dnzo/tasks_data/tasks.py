@@ -18,7 +18,6 @@ MAX_CONTEXT_LENGTH = 30
 
 # Maximum number of undeleted, unarchived tasks for a list.
 MAX_ACTIVE_TASKS   = 100
-
   
 ### TASKS ###
 

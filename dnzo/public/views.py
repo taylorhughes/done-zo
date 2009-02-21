@@ -1,3 +1,5 @@
+# coding=utf-8
+
 from google.appengine.api.users import create_logout_url, get_current_user, is_current_user_admin
 
 from django.shortcuts import render_to_response
@@ -7,8 +9,6 @@ from tasks.redirects import default_list_redirect
 from tasks_data.users import get_dnzo_user
 
 import environment
-
-DEFAULT_LIST_NAME = 'Tasks'
 
 def welcome(request):
   dnzo_user = get_dnzo_user()
@@ -38,6 +38,27 @@ def closed(request):
     'is_development': environment.IS_DEVELOPMENT
   })
 
+
+# This is the default list name
+DEFAULT_LIST_NAME = 'Tasks'
+
+# This is the default set of tasks added for new users
+# This collection is parsed the same way user input is parsed
+DEFAULT_TASKS = (
+  {
+    'body':     u'Welcome to DNZO!'
+  },{
+    'project':  u'DNZO',
+    'body':     u'← You can organize your tasks by project',
+  },{
+    'body':     u'... or by "context", which could mean where you need to be to complete the task. →',
+    'contexts': u'home',
+  },{
+    'body':     u'You can also add due dates! →',
+    'due_date': u'today',
+  },
+)
+
 def signup(request):
   from django.core.urlresolvers import reverse as reverse_url
   from django.http import HttpResponseRedirect
@@ -56,7 +77,7 @@ def signup(request):
 
   from tasks_data.models import TasksUser
   
-  new_user = create_user(current_user, DEFAULT_LIST_NAME)
+  new_user = create_user(current_user, DEFAULT_LIST_NAME, DEFAULT_TASKS)
   
   if invitation:
     from datetime import datetime
