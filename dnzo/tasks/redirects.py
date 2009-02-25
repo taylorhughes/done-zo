@@ -35,7 +35,7 @@ def referer_redirect(user, request):
   referer = get_referer(request)
   if referer is not None:
     return HttpResponseRedirect(referer)
-  return default_list_redirect(user)
+  return most_recent_redirect(user)
 
 def most_recent_redirect(user):
   if user.most_recent_uri:

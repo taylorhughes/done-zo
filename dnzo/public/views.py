@@ -4,7 +4,7 @@ from google.appengine.api.users import create_logout_url, get_current_user, is_c
 
 from django.shortcuts import render_to_response
 
-from tasks.redirects import default_list_redirect
+from tasks.redirects import default_list_redirect, most_recent_redirect
 
 from tasks_data.users import get_dnzo_user
 
@@ -13,7 +13,7 @@ import environment
 def welcome(request):
   dnzo_user = get_dnzo_user()
   if dnzo_user:
-    return default_list_redirect(dnzo_user)
+    return most_recent_redirect(dnzo_user)
 
   nickname = None
   current_user = get_current_user()
