@@ -6,7 +6,7 @@ DNZO = Object.extend(DNZO,{
     if (switcher) switcher.observe('change', DNZO.onSwitchList); 
     
     $$('a.dialog').each(function(dialogLink) {
-      new ModalDialog(dialogLink);
+      new ModalDialog.Ajax(dialogLink);
     });
     
     DNZO.verifyTimezone();

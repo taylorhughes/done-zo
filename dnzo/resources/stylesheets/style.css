@@ -329,6 +329,10 @@ tr.error td {
     .dialog_content li.buttons input {
       vertical-align: 0;
     }
+    
+.error_dialog {
+  width: 400px;
+}
 
 #settings_dialog, #add_list_dialog { 
   width: 300px;

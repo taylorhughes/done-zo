@@ -11,9 +11,10 @@ var Tasks = {
     
     if (!Tasks.table || Tasks.table.hasClassName('archived')) { return; }
     
-    new ModalDialog($('add_list'), {
+    new ModalDialog.Ajax($('add_list'), {
       afterShown: function() {
-        $('new_list_name').activate();
+        var newListName = $('new_list_name');
+        if (newListName) { newListName.activate(); }
       }
     });
     
@@ -253,15 +254,31 @@ var Tasks = {
     return null;
   },
   
-  showError: function(msg)
+  showError: function(message)
   {
-    if (typeof msg == 'undefined')
+    if (typeof message == 'undefined')
     {
-      msg = 'DEFAULT_ERROR';
+      message = 'DEFAULT_ERROR';
     }
     
-    msg = DNZO.Messages[msg];
-    alert(msg);
+    var errorContainer = new Element('div', { className: 'error_dialog dialog_content' });
+    
+    var h2 = new Element('h2');
+    h2.innerHTML = 'Whoops!';
+    errorContainer.appendChild(h2);
+    var ul = new Element('ul');
+    errorContainer.appendChild(ul);
+    
+    DNZO.Messages[message].split("\n").each(function(str){
+      var li = new Element('li');
+      li.innerHTML = str;
+      ul.appendChild(li);
+    });
+    var buttons = new Element('li', { className: 'buttons' });
+    buttons.appendChild(new Element('input', { type: 'submit', value: 'OK', className: 'hide_dialog' }));
+    ul.appendChild(buttons);
+    
+    (new ModalDialog(errorContainer)).show();
   },
   
   doFail: function(xhr)

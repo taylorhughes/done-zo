@@ -20,24 +20,12 @@
  *
  */
 var ModalDialog = Class.create({
-  initialize: function(element, options) 
+  initialize: function(content, options) 
   {
-    if (element.match('a'))
-    {
-      this.href = element.href;
-      this.method = 'get';
-    }
-    else if (element.match('input'))
-    {
-      var form = element.up('form');
-      this.href = form.action;
-      this.method = form.method;
-    }
-    element.observe('click', this.onClickShow.bind(this));
+    this.options = options || {};
     
     this.createElements();
-    
-    this.options = options || {};
+    this.updateContent(content);
   },
   
   createElements: function()
@@ -54,9 +42,7 @@ var ModalDialog = Class.create({
     if (this.container) { this.container.remove(); }
     this.container = new Element('div');
     this.container.addClassName('dialog_container');
-    var innerContainer = new Element('div')
-    innerContainer.addClassName('loading');
-    this.container.appendChild(innerContainer);
+
     this.container.setStyle({
       position: 'absolute',
       display:  'none'
@@ -87,17 +73,31 @@ var ModalDialog = Class.create({
       top:  top + 'px'
     });
   },
-
-  onClickShow: function(event)
+  
+  updateContent: function(content)
   {
-    event.stop();
-    this.show();
+    if (Object.isString(content))
+    {
+      this.container.innerHTML = content;
+    }
+    else
+    {
+      this.container.innerHTML = "";
+      this.container.appendChild(content);
+    }
+    
+    this.container.select('.hide_dialog').each(function(cancelLink){
+      cancelLink.observe('click', this.onClickHide.bind(this));
+    },this);
+    this.position();
   },
+  
   onClickHide: function(event)
   {
     event.stop();
     this.hide();
   },
+
   onScroll: function(event)
   {
     this.position();
@@ -106,11 +106,6 @@ var ModalDialog = Class.create({
   show: function() 
   {
     if (this.effecting) { return; }
-    if (!this.isLoaded)
-    {
-      this.load();
-    }
-    
     this.effecting = true;
     
     // Keep up with the user if he scrolls
@@ -129,42 +124,14 @@ var ModalDialog = Class.create({
   doShow: function()
   {    
     this.effecting = false;
-    
     this.afterShown();
   },
-  
   afterShown: function()
   {
-    if (!this.isLoaded) { return; }
-    
     if (this.options.afterShown)
     {
       this.options.afterShown();
     }
-  },
-  
-  load: function() 
-  {
-    if (!this.isLoading)
-    {
-      new Ajax.Request(this.href, {
-        method: this.method,
-        onSuccess: this.doLoad.bind(this),
-        afterComplete: (function(xhr){this.isLoading=false;}).bind(this)
-      });
-    }
-  },
-  doLoad: function(xhr)
-  {
-    this.container.innerHTML = xhr.responseText;
-    this.container.select('.hide_dialog').each((function(cancelLink){
-      cancelLink.observe('click', this.onClickHide.bind(this));
-    }).bind(this));
-    this.position();
-    
-    this.isLoaded = true;
-    
-    this.afterShown();
   },
   
   hide: function()
@@ -188,3 +155,67 @@ var ModalDialog = Class.create({
     });
   }
 });
+
+ModalDialog.Ajax = Class.create({
+  initialize: function(element, options)
+  {
+    if (element.match('a'))
+    {
+      this.href = element.href;
+      this.method = 'get';
+    }
+    else if (element.match('input'))
+    {
+      var form = element.up('form');
+      this.href = form.action;
+      this.method = form.method;
+    }
+    element.observe('click', this.onClickShow.bind(this));
+    
+    this.options = options || {};
+  },
+
+  createDialog: function()
+  {
+    var loadingContainer = new Element('div')
+    loadingContainer.addClassName('loading');
+    
+    this.dialog = new ModalDialog(loadingContainer,this.options);
+  },
+
+  onClickShow: function(event)
+  {
+    event.stop();
+    
+    if (!this.dialog)
+    {
+      this.createDialog();
+    }
+    this.dialog.show();
+    
+    if (!this.isLoaded)
+    {
+      this.load();
+    }
+  },
+  
+  load: function() 
+  {
+    if (!this.isLoading)
+    {
+      this.isLoading = true;
+      new Ajax.Request(this.href, {
+        method: this.method,
+        onSuccess: this.doLoad.bind(this),
+        onComplete: (function(xhr){this.isLoading=false;}).bind(this)
+      });
+    }
+  },
+  doLoad: function(xhr)
+  {
+    this.dialog.updateContent(xhr.responseText);
+    this.dialog.afterShown();
+    this.isLoaded = true;
+  }
+});
+
