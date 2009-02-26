@@ -424,12 +424,15 @@ var TaskRow = Class.create({
       this.viewRow.hide();
       new Ajax.Request(this.trashcan.href, {
         method: 'get',
-        onSuccess: this.doTrash.bind(this),
-        onFailure: function(xhr){
-          this.viewRow.show();
-          this.doFail(xhr);
-        }.bind(this),
-        onComplete: (function(xhr){this.requestedTrash=false;}).bind(this)
+        onComplete: this.bindOnComplete({
+          onSuccess: this.doTrash,
+          onFailure: function(xhr) {
+            this.viewRow.show();
+          },
+          onComplete: function(xhr) {
+            this.requestedTrash = false;
+          }
+        })
       });
     }
   },
@@ -452,9 +455,16 @@ var TaskRow = Class.create({
       }
       
       Tasks.saveTask(action, this.editRow,{
-        onSuccess: this.doSave.bind(this),
-        onFailure: this.doFailSave.bind(this),
-        onComplete: (function(xhr){this.isSaving=false;}).bind(this)
+        onComplete: this.bindOnComplete({
+          onSuccess: this.doSave,
+          onFailure: function(xhr){
+            this.unignoreCancels();
+            this.cancel();
+          },
+          onComplete: function(xhr){
+            this.isSaving=false;
+          }
+        })
       });
     
       this.ignoreCancels();
@@ -466,32 +476,11 @@ var TaskRow = Class.create({
     var replaced = this.replaceRows(xhr);
     
     // This should not happen unless the task was not saved.
-    if (!replaced) {
-      if (xhr.responseText && xhr.responseText.indexOf('task-row') > 0) {      
-        alert(
-          "There was a problem saving your task. \n\n" + 
-          "There is a limit on the number of unfinished tasks -- " +
-          "if you have several pages of unfinished tasks, " + 
-          "try finishing or deleting one before adding a new one again. \n\n" +
-          "If this problem persists, please contact us."
-        );
-        this.destroy();
-      } else {
-        alert(
-          "There was a problem saving your task. \n\n" +
-          "You may have been logged out. Please reload the page to try again."
-        );
-        this.unignoreCancels();
-        this.cancel();
-      }
+    if (!replaced)
+    {
+      Tasks.showError('TASKS_LIMIT_ERROR');
+      this.destroy();
     }
-  },
-  // This happens on 5xx requests only
-  doFailSave: function(xhr)
-  {
-    this.unignoreCancels();
-    this.cancel();
-    this.doFail(xhr);
   },
   
   completeOrUncomplete: function(complete)
@@ -514,11 +503,9 @@ var TaskRow = Class.create({
     new Ajax.Request(this.editLink.href, {
       method: 'post',
       parameters: params,
-      onSuccess: this.doComplete.bind(this),
-      onFailure: this.doFail.bind(this)
+      onComplete: this.bindOnComplete()
     });
   },
-  doComplete: function(xhr) {},
   
   recordPosition: function()
   {
@@ -540,18 +527,44 @@ var TaskRow = Class.create({
     {
       new Ajax.Request(this.editLink.href, {
         method: 'post',
-        onSuccess: this.doSavePosition.bind(this),
-        onFailure: this.doFail.bind(this),
+        onComplete: this.bindOnComplete({}),
         parameters: this.position
       });
     }
   },
-  doSavePosition: function(xhr) {},
   
-  doFail: function(xhr)
+  bindOnComplete: function(options)
   {
-    // TODO: Do something useful when this fails.
-    Tasks.doFail(xhr);
+    options = options || {};
+    
+    return function(xhr) {
+      var success = true;
+      
+      if (xhr.status == 200)
+      {
+        if (!xhr.responseText || xhr.responseText.indexOf('task-row') < 0)
+        {
+          Tasks.showError('LOGGED_OUT_ERROR');
+          success = false;
+        }
+      }
+      else
+      {
+        Tasks.doFail(xhr);
+        success = false;
+      }
+      
+      if (success)
+      {
+        if (options.onSuccess) { options.onSuccess.bind(this)(xhr); }
+      }
+      else // fail
+      {
+        if (options.onFailure) { options.onFailure.bind(this)(xhr); } 
+      }
+      
+      (options.onComplete || Prototype.emptyFunction).bind(this)(xhr);
+    }.bind(this);
   },
   
   replaceRows: function(xhr)

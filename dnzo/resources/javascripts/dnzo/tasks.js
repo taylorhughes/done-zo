@@ -253,12 +253,20 @@ var Tasks = {
     return null;
   },
   
+  showError: function(msg)
+  {
+    if (typeof msg == 'undefined')
+    {
+      msg = 'DEFAULT_ERROR';
+    }
+    
+    msg = DNZO.Messages[msg];
+    alert(msg);
+  },
+  
   doFail: function(xhr)
   {
-    var message = "Ruh roh! Something went wrong, and we couldn't perform " + 
-                  "the action you requested. Please refresh the page and try again.\n\n" + 
-                  "If your problems persist, please contact us and let us know what's wrong.";
-    alert(message);
+    Tasks.showError();
   }
 };
 
