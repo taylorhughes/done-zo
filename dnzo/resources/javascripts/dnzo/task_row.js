@@ -538,8 +538,10 @@ var TaskRow = Class.create({
     options = options || {};
     
     return function(xhr) {
-      var success = true;
+      // This happens when a request is interrupted.
+      if (!xhr.status || xhr.status == 0) { return; }
       
+      var success = true;
       if (xhr.status == 200)
       {
         if (!xhr.responseText || xhr.responseText.indexOf('task-row') < 0)
