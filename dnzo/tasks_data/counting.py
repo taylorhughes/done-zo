@@ -19,7 +19,7 @@ import random
 
 import time
 
-NUM_NEW_USERS          = 'num-users'
+NUM_NEW_USERS      = 'num-users'
 
 NUM_ACTIVE_TASKS   = 'num-active-tasks'
 NUM_ARCHIVED_TASKS = 'num-archived'
