@@ -10,7 +10,7 @@ exit_unless_confirmed ()
   CONTINUE=""
   while [ "$CONTINUE" = "" ]
   do
-    echo ""
+    echo
     echo "$1 Can we continue? [y/n]"
     read CONTINUE
   done
@@ -22,21 +22,40 @@ exit_unless_confirmed ()
   fi
 }
 
-echo "Updating so we know we're at the head revision ..."
-svn up
-if ! [ $? -eq 0 ]
+if [ "$1" == "staging" ]
 then
-  echo "Subversion update failed; exiting."
-  
-  exit
+  STAGING=true
+  APP_NAME="dnzo-staging"
+  echo "== DEPLOYING DNZO TO STAGING =="
+else
+  STAGING=false
+  APP_NAME="dnzo"
+  echo "== DEPLOYING DNZO FOR REALZ =="
 fi
 
-if [ -n "$(svn status)" ]
+echo
+
+if [ $STAGING == false ]
 then
-  echo "Subversion shows outstanding changes."
-  echo "Please commit those changes before running this script."
+  # REAL DEPLOYMENT.
+  # verify this shit.
   
-  exit
+  echo "Updating so we know we're at the head revision ..."
+  svn up
+  if ! [ $? -eq 0 ]
+  then
+    echo "Subversion update failed; exiting."
+  
+    exit
+  fi
+
+  if [ -n "$(svn status)" ]
+  then
+    echo "Subversion shows outstanding changes."
+    echo "Please commit those changes before running this script."
+  
+    exit
+  fi
 fi
 
 # Update the _min JS/CSS files
@@ -45,8 +64,9 @@ fi
 # Get the current svn revision number.
 REV=$(svn info . | grep Revision | sed -E -e s/[^0-9]+//g)
 
-exit_unless_confirmed "Looks like the revision number is $REV. Is that correct?"
+exit_unless_confirmed "Looks like the revision number is $REV."
 echo "Great, updating dnzo/app.yaml version to match this revision ..."
+
 
 # Update dnzo/app.yaml with the correct revision number.
 sed -E -e \
@@ -54,19 +74,31 @@ sed -E -e \
     dnzo/app.yaml > dnzo/app.yaml.new
 mv dnzo/app.yaml.new dnzo/app.yaml
 
-echo "Commiting the following files for deployment:"
+# Update dnzo/app.yaml with the correct app name
+sed -E -e \
+    "s/^application:[[:space:]]+[a-z-]+/application: $APP_NAME/" \
+    dnzo/app.yaml > dnzo/app.yaml.new
+mv dnzo/app.yaml.new dnzo/app.yaml
 
-echo
-svn status
-echo
-
-svn commit -m "Commit to deploy r$REV at http://$REV.latest.dnzo.appspot.com/"
-if ! [ $? -eq 0 ]
+if [ $STAGING == false ]
 then
-  echo "Subversion commit failed; exiting."
+  # REAL DEPLOYMENT.
+  echo "Commiting the following files for deployment:"
+
+  echo
+  svn status
+  echo
+
+  svn commit -m "Commit to deploy r$REV at http://$REV.latest.dnzo.appspot.com/"
+  if ! [ $? -eq 0 ]
+  then
+    echo "Subversion commit failed; exiting."
   
-  exit
+    exit
+  fi
 fi
+
+exit_unless_confirmed "About to commit application \"$APP_NAME\", version $REV to GAE."
 
 echo "Submitting to App Engine ..."
 
