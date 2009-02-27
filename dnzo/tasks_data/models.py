@@ -104,15 +104,6 @@ class Project(db.Model):
   short_name   = db.StringProperty()
   created_at   = db.DateTimeProperty(auto_now_add=True)
 
-#
-#  Contains pieces of project names that reference projects
-#
-class ProjectIndex(db.Model):
-  index        = db.StringProperty()
-  name         = db.StringProperty()
-  project      = db.ReferenceProperty(Project, collection_name='indexes')
-  last_used_at = db.DateTimeProperty(auto_now_add=True)
-
 class Context(db.Model):
   @classmethod
   def name_to_key_name(self,name):

@@ -24,25 +24,12 @@ indexes:
   - name: created_at
     direction: desc
 
-- kind: ProjectIndex
-  ancestor: yes
-  properties:
-  - name: index
-
 ##### Contexts #####
 
 - kind: Context
   ancestor: yes
   properties:
   - name: name
-
-# Used once in query history.
-- kind: Context
-  ancestor: yes
-
-# Used once in query history.
-- kind: ProjectIndex
-  ancestor: yes
 
 ##### Tasks #####
 
