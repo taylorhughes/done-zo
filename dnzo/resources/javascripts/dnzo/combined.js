@@ -6,7 +6,7 @@ DNZO = Object.extend(DNZO,{
     if (switcher) switcher.observe('change', DNZO.onSwitchList); 
     
     $$('a.dialog').each(function(dialogLink) {
-      new ModalDialog(dialogLink);
+      new ModalDialog.Ajax(dialogLink);
     });
     
     DNZO.verifyTimezone();
@@ -33,11 +33,20 @@ DNZO = Object.extend(DNZO,{
 });
 
 Event.observe(window,'load',DNZO.load);/**
- *  InstantAutocompleter
+ *  InstantAutocompleter v0.1
+ * 
+ *  (c) 2009 Taylor Hughes (taylor@taylor-hughes.com)
+ * 
+ *  InstantAutocompleter is freely distributable under the terms 
+ *  of an MIT-style license. For details, visit:
+ *
+ *    http://code.google.com/p/instant-autocompleter/
+ *
+ *  InstantAutocomplete requires Prototype 1.6.0.4
  *
  *  Usage:
  *
- *    var input = $('input[type=text]');
+ *    var input = $$('input.needs-autocompleting').first();
  *
  *    var collection = ["Apple", "Orange", "Banana"];
  *      == or ==
@@ -48,20 +57,21 @@ Event.observe(window,'load',DNZO.load);/**
  *      firstSelected: false,
  *      // limit on the number of matching results to display
  *      numResults: 5,
- *      // token splitter regex
- *      tokenSplitter: /[^\w\d_-]/,
  *      // regex for what to look for before  match.
  *      // if you want to match any string inside, for example,
  *      // this should be empty.
  *      beforeMatch: /(?:^|\s)/,
  *      // whether or not a tab event should be successful
  *      continueTabOnSelect: true,
+ *      // whether this is a tokenized, multivalue list
+ *      multivalue: false,
+ *      // token splitter regex if this is a multivalue list
+ *      tokenSplitter: /[^\w\d_-]/,
  *      // transform separator typed when you select an item into this one instead
  *      transformSeparator: ', '
  *    };
  *
  *  new InstantAutocompleter(input, collection, options);
- *
  *
  */
 var InstantAutocompleter = Class.create({
@@ -455,24 +465,12 @@ var InstantAutocompleter = Class.create({
  *
  */
 var ModalDialog = Class.create({
-  initialize: function(element, options) 
+  initialize: function(content, options) 
   {
-    if (element.match('a'))
-    {
-      this.href = element.href;
-      this.method = 'get';
-    }
-    else if (element.match('input'))
-    {
-      var form = element.up('form');
-      this.href = form.action;
-      this.method = form.method;
-    }
-    element.observe('click', this.onClickShow.bind(this));
+    this.options = options || {};
     
     this.createElements();
-    
-    this.options = options || {};
+    this.updateContent(content);
   },
   
   createElements: function()
@@ -489,9 +487,7 @@ var ModalDialog = Class.create({
     if (this.container) { this.container.remove(); }
     this.container = new Element('div');
     this.container.addClassName('dialog_container');
-    var innerContainer = new Element('div')
-    innerContainer.addClassName('loading');
-    this.container.appendChild(innerContainer);
+
     this.container.setStyle({
       position: 'absolute',
       display:  'none'
@@ -522,17 +518,31 @@ var ModalDialog = Class.create({
       top:  top + 'px'
     });
   },
-
-  onClickShow: function(event)
+  
+  updateContent: function(content)
   {
-    event.stop();
-    this.show();
+    if (Object.isString(content))
+    {
+      this.container.innerHTML = content;
+    }
+    else
+    {
+      this.container.innerHTML = "";
+      this.container.appendChild(content);
+    }
+    
+    this.container.select('.hide_dialog').each(function(cancelLink){
+      cancelLink.observe('click', this.onClickHide.bind(this));
+    },this);
+    this.position();
   },
+  
   onClickHide: function(event)
   {
     event.stop();
     this.hide();
   },
+
   onScroll: function(event)
   {
     this.position();
@@ -541,11 +551,6 @@ var ModalDialog = Class.create({
   show: function() 
   {
     if (this.effecting) { return; }
-    if (!this.isLoaded)
-    {
-      this.load();
-    }
-    
     this.effecting = true;
     
     // Keep up with the user if he scrolls
@@ -564,42 +569,14 @@ var ModalDialog = Class.create({
   doShow: function()
   {    
     this.effecting = false;
-    
     this.afterShown();
   },
-  
   afterShown: function()
   {
-    if (!this.isLoaded) { return; }
-    
     if (this.options.afterShown)
     {
       this.options.afterShown();
     }
-  },
-  
-  load: function() 
-  {
-    if (!this.isLoading)
-    {
-      new Ajax.Request(this.href, {
-        method: this.method,
-        onSuccess: this.doLoad.bind(this),
-        afterComplete: (function(xhr){this.isLoading=false;}).bind(this)
-      });
-    }
-  },
-  doLoad: function(xhr)
-  {
-    this.container.innerHTML = xhr.responseText;
-    this.container.select('.hide_dialog').each((function(cancelLink){
-      cancelLink.observe('click', this.onClickHide.bind(this));
-    }).bind(this));
-    this.position();
-    
-    this.isLoaded = true;
-    
-    this.afterShown();
   },
   
   hide: function()
@@ -622,7 +599,72 @@ var ModalDialog = Class.create({
       afterFinish: (function() { this.effecting = false; }).bind(this)
     });
   }
-});var TaskRow = Class.create({
+});
+
+ModalDialog.Ajax = Class.create({
+  initialize: function(element, options)
+  {
+    if (element.match('a'))
+    {
+      this.href = element.href;
+      this.method = 'get';
+    }
+    else if (element.match('input'))
+    {
+      var form = element.up('form');
+      this.href = form.action;
+      this.method = form.method;
+    }
+    element.observe('click', this.onClickShow.bind(this));
+    
+    this.options = options || {};
+  },
+
+  createDialog: function()
+  {
+    var loadingContainer = new Element('div')
+    loadingContainer.addClassName('loading');
+    
+    this.dialog = new ModalDialog(loadingContainer,this.options);
+  },
+
+  onClickShow: function(event)
+  {
+    event.stop();
+    
+    if (!this.dialog)
+    {
+      this.createDialog();
+    }
+    this.dialog.show();
+    
+    if (!this.isLoaded)
+    {
+      this.load();
+    }
+  },
+  
+  load: function() 
+  {
+    if (!this.isLoading)
+    {
+      this.isLoading = true;
+      new Ajax.Request(this.href, {
+        method: this.method,
+        onSuccess: this.doLoad.bind(this),
+        onComplete: (function(xhr){this.isLoading=false;}).bind(this)
+      });
+    }
+  },
+  doLoad: function(xhr)
+  {
+    this.dialog.updateContent(xhr.responseText);
+    this.dialog.afterShown();
+    this.isLoaded = true;
+  }
+});
+
+var TaskRow = Class.create({
   
   /*** INITIALIZATION ***/
   
@@ -656,7 +698,7 @@ var ModalDialog = Class.create({
     this.editLink = row.select('.edit>a.edit')[0];
     this.editLink.observe('click', this.onClickEdit.bind(this));
 
-    this.trashcan = row.select('.edit>a.delete')[0];
+    this.trashcan = row.select('.cancel>a.delete')[0];
     this.trashcan.observe('click', this.onClickTrash.bind(this));
 
     var finish = row.select('.complete')[0];
@@ -675,7 +717,7 @@ var ModalDialog = Class.create({
     
     row.observe('keydown', this.onKeyDown.bind(this));
 
-    this.cancelLink = row.select('.edit>a.cancel')[0];
+    this.cancelLink = row.select('.cancel>a.cancel')[0];
     this.boundOnClickCancel = this.onClickCancel.bind(this);
     this.cancelLink.observe('click', this.boundOnClickCancel);
     
@@ -735,9 +777,24 @@ var ModalDialog = Class.create({
   
   ignoreCancels: function()
   {
-    Event.stopObserving(this.cancelLink, 'click', this.boundOnClickCancel);
-    this.cancelLink.href = null;
     Event.stopObserving(Tasks.table, Tasks.TASK_EDITING_EVENT, this.boundOnOtherTaskEditing);
+    Event.stopObserving(this.cancelLink, 'click', this.boundOnClickCancel);
+    this.cancelLink.hide();
+    
+    this.editRow.select('input').each(function(e) {
+      e.disable();
+    });
+  },
+  
+  unignoreCancels: function()
+  {
+    Tasks.table.observe(Tasks.TASK_EDITING_EVENT, this.boundOnOtherTaskEditing);
+    this.cancelLink.observe('click', this.boundOnClickCancel);
+    this.cancelLink.show();
+    
+    this.editRow.select('input').each(function(e) {
+      e.enable();
+    });
   },
   
   /*** MISC ***/
@@ -844,7 +901,7 @@ var ModalDialog = Class.create({
     {
       className = td.classNames().toArray().first();
       // Double-clicking the edit/delete link or the checkbox should not edit
-      if (['edit','done'].include(className))
+      if (['done','edit','cancel'].include(className))
       {
         return;
       }
@@ -1030,11 +1087,18 @@ var ModalDialog = Class.create({
     if (! this.requestedTrash)
     {
       this.requestedTrash = true;
+      this.viewRow.hide();
       new Ajax.Request(this.trashcan.href, {
         method: 'get',
-        onSuccess: this.doTrash.bind(this),
-        onFailure: this.doFail.bind(this),
-        onComplete: (function(xhr){this.requestedTrash=false;}).bind(this)
+        onComplete: this.bindOnComplete({
+          onSuccess: this.doTrash,
+          onFailure: function(xhr) {
+            this.viewRow.show();
+          },
+          onComplete: function(xhr) {
+            this.requestedTrash = false;
+          }
+        })
       });
     }
   },
@@ -1057,14 +1121,17 @@ var ModalDialog = Class.create({
       }
       
       Tasks.saveTask(action, this.editRow,{
-        onSuccess: this.doSave.bind(this),
-        onFailure: this.doFail.bind(this),
-        onComplete: (function(xhr){this.isSaving=false;}).bind(this)
+        onComplete: this.bindOnComplete({
+          onSuccess: this.doSave,
+          onFailure: function(xhr){
+            this.unignoreCancels();
+            this.cancel();
+          },
+          onComplete: function(xhr){
+            this.isSaving=false;
+          }
+        })
       });
-    
-      this.editRow.select('input').each(function(e) {
-        e.disable();
-      })
     
       this.ignoreCancels();
       this.fire(Tasks.TASK_SAVED_EVENT, this.editRow); 
@@ -1072,7 +1139,14 @@ var ModalDialog = Class.create({
   },
   doSave: function(xhr)
   { 
-    this.replaceRows(xhr);
+    var replaced = this.replaceRows(xhr);
+    
+    // This should not happen unless the task was not saved.
+    if (!replaced)
+    {
+      Tasks.showError('TASKS_LIMIT_ERROR');
+      this.destroy();
+    }
   },
   
   completeOrUncomplete: function(complete)
@@ -1095,11 +1169,9 @@ var ModalDialog = Class.create({
     new Ajax.Request(this.editLink.href, {
       method: 'post',
       parameters: params,
-      onSuccess: this.doComplete.bind(this),
-      onFailure: this.doFail.bind(this)
+      onComplete: this.bindOnComplete()
     });
   },
-  doComplete: function(xhr) {},
   
   recordPosition: function()
   {
@@ -1121,31 +1193,68 @@ var ModalDialog = Class.create({
     {
       new Ajax.Request(this.editLink.href, {
         method: 'post',
-        onSuccess: this.doSavePosition.bind(this),
-        onFailure: this.doFail.bind(this),
+        onComplete: this.bindOnComplete({}),
         parameters: this.position
       });
     }
   },
-  doSavePosition: function(xhr) {},
   
-  doFail: function(xhr)
+  bindOnComplete: function(options)
   {
-    // TODO: Do something useful when this fails.
-    Tasks.doFail(xhr);
+    options = options || {};
+    
+    return function(xhr) {
+      // This happens when a request is interrupted.
+      if (!xhr.status || xhr.status == 0) { return; }
+      
+      var success = true;
+      if (xhr.status == 200)
+      {
+        if (!xhr.responseText || xhr.responseText.indexOf('task-ajax-response') < 0)
+        {
+          Tasks.showError('LOGGED_OUT_ERROR');
+          success = false;
+        }
+      }
+      else if (xhr.status == 302)
+      {
+        Tasks.showError('LOGGED_OUT_ERROR');
+        success = false;
+      }
+      else
+      {
+        Tasks.doFail(xhr);
+        success = false;
+      }
+      
+      if (success)
+      {
+        if (options.onSuccess) { options.onSuccess.bind(this)(xhr); }
+      }
+      else // fail
+      {
+        if (options.onFailure) { options.onFailure.bind(this)(xhr); } 
+      }
+      
+      (options.onComplete || Prototype.emptyFunction).bind(this)(xhr);
+    }.bind(this);
   },
   
   replaceRows: function(xhr)
   {
+    var tbody = this.editRow.parentNode; 
+    var temp = Tasks.containerFromResponse(xhr);
+    var rows = temp.select('tr');
+
+    if (rows.length < 2) {
+      return false;
+    }
+    
     // May be adding a new task
     if (this.viewRow)
     {
       this.viewRow.remove();
     }
-   
-    var tbody = this.editRow.parentNode; 
-    var temp = Tasks.containerFromResponse(xhr);
-    var rows = temp.select('tr');
 
     var newEditRow = rows.find(function(row){ return row.hasClassName('editable'); });
     var newViewRow = rows.without(newEditRow)[0];
@@ -1156,6 +1265,8 @@ var ModalDialog = Class.create({
     this.editRow.remove();
     // Re-initialize everything.
     this.initialize(newViewRow, newEditRow);
+    
+    return true;
   },
   
   activate: function(tdClassName)
@@ -1199,9 +1310,10 @@ var ModalDialog = Class.create({
     
     if (!Tasks.table || Tasks.table.hasClassName('archived')) { return; }
     
-    new ModalDialog($('add_list'), {
+    new ModalDialog.Ajax($('add_list'), {
       afterShown: function() {
-        $('new_list_name').activate();
+        var newListName = $('new_list_name');
+        if (newListName) { newListName.activate(); }
       }
     });
     
@@ -1441,9 +1553,36 @@ var ModalDialog = Class.create({
     return null;
   },
   
+  showError: function(message)
+  {
+    if (typeof message == 'undefined')
+    {
+      message = 'DEFAULT_ERROR';
+    }
+    
+    var errorContainer = new Element('div', { className: 'error_dialog dialog_content' });
+    
+    var h2 = new Element('h2');
+    h2.innerHTML = 'Whoops!';
+    errorContainer.appendChild(h2);
+    var ul = new Element('ul');
+    errorContainer.appendChild(ul);
+    
+    DNZO.Messages[message].split("\n").each(function(str){
+      var li = new Element('li');
+      li.innerHTML = str;
+      ul.appendChild(li);
+    });
+    var buttons = new Element('li', { className: 'buttons' });
+    buttons.appendChild(new Element('input', { type: 'submit', value: 'OK', className: 'hide_dialog' }));
+    ul.appendChild(buttons);
+    
+    (new ModalDialog(errorContainer)).show();
+  },
+  
   doFail: function(xhr)
   {
-    alert("Ruh roh! Something went wrong. Please let us know what happened!");
+    Tasks.showError();
   }
 };
 
