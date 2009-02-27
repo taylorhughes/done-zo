@@ -28,11 +28,18 @@ def update_initial_counts(start_key = None):
     from tasks_data.models import Task, TaskList
     import tasks_data.counting as counting
   
-    active_tasks = Task.gql(
-      'WHERE ANCESTOR IS :user AND deleted=:deleted AND archived=:archived',
-      user=user, deleted=False, archived=False
+    lists = TaskList.gql(
+      'WHERE ANCESTOR IS :user AND deleted=:deleted',
+      user=user, deleted=False
     ).fetch(1000)
-    active_tasks = len(active_tasks)
+  
+    active_tasks = 0
+    for task_list in lists:
+      tasks = Task.gql(
+        'WHERE task_list=:task_list AND deleted=:deleted AND archived=:archived',
+        task_list=task_list, deleted=False, archived=False
+      ).fetch(1000)
+      active_tasks += len(tasks)
     
     archived_tasks = Task.gql(
       'WHERE ANCESTOR IS :user AND deleted=:deleted AND archived=:archived',
@@ -40,20 +47,12 @@ def update_initial_counts(start_key = None):
     ).fetch(1000)
     archived_tasks = len(archived_tasks)
     
-    lists = TaskList.gql(
-      'WHERE ANCESTOR IS :user AND deleted=:deleted',
-      user=user, deleted=False
-    ).fetch(1000)
-    lists = len(lists)
-    
     counting.increment(counting.NUM_NEW_USERS)
     
     counting.increment(counting.NUM_ACTIVE_TASKS, active_tasks)
     counting.increment(counting.NUM_ARCHIVED_TASKS, archived_tasks)
-    counting.increment(counting.NUM_TASKS_CREATED, active_tasks + archived_tasks)
     
-    counting.increment(counting.NUM_ACTIVE_LISTS, lists)
-    counting.increment(counting.NUM_LISTS_CREATED, lists)
+    counting.increment(counting.NUM_ACTIVE_LISTS, len(lists))
     
     return True
     

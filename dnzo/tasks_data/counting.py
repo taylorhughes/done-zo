@@ -121,7 +121,11 @@ def add_or_subtract(name, value=0):
     counter.count += value
     counter.put()
   db.run_in_transaction(txn)
-  memcache.incr(name)
+  
+  if value > 0:
+    memcache.incr(name,value)
+  elif value < 0:
+    memcache.decr(name,-value)
   
 def increase_shards(name, num):  
   """Increase the number of shards for a given sharded counter.

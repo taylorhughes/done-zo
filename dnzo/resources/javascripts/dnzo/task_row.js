@@ -550,6 +550,11 @@ var TaskRow = Class.create({
           success = false;
         }
       }
+      else if (xhr.status == 302)
+      {
+        Tasks.showError('LOGGED_OUT_ERROR');
+        success = false;
+      }
       else
       {
         Tasks.doFail(xhr);
