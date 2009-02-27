@@ -218,7 +218,7 @@ def delete_list(request, task_list_name):
   
   undo = None
   if len(get_task_lists(user)) > 1:
-    deleted_tasks = delete_task_list(user, task_list)
+    delete_task_list(user, task_list)
     undo = create_undo(user, request=request, task_list=task_list, list_deleted=True, return_to_referer=True)
   
   redirect = default_list_redirect(user)
@@ -318,7 +318,9 @@ def task(request, task_id=None):
       task.completed_at = None
     
     save_task(user, task)
-    
+
+    task = None
+        
   elif force_delete:
     from tasks_data.tasks import delete_task
     from tasks_data.misc import create_undo
@@ -326,6 +328,8 @@ def task(request, task_id=None):
     status = get_status_message(Statuses.TASK_DELETED)
     delete_task(user,task)
     undo = create_undo(user, task_list=task.task_list, deleted_tasks=[task])
+
+    task = None
     
   elif task_above is not None or task_below is not None:
     before, after = None, None
@@ -352,6 +356,8 @@ def task(request, task_id=None):
     if new_sort:
       task.created_at = new_sort
       save_task(user, task)
+      
+    task = None
     
   elif request.method == "POST":
     update_task_with_params(user, task, request.POST)

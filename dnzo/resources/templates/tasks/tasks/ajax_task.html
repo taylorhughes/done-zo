@@ -1,4 +1,6 @@
 {% include "tasks/status.html" %}
-<table>
+<table id="task-ajax-response">
+  {% if task %}
   {% include "tasks/tasks/task.html" %}
+  {% endif %}
 </table>

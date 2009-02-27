@@ -4,6 +4,8 @@ from google.appengine.ext import db
 from tasks_data.models import TaskList, Undo, Task
 from tasks_data.users import save_user
 
+import tasks_data.counting as counting
+
 MAX_LIST_NAME_LENGTH = 30
 MAX_TASK_LISTS       = 10
 
@@ -46,14 +48,15 @@ def add_task_list(user, list_name):
   
   if short_name:
     clear_lists_memcache(user)
+    counting.list_added()
     return get_task_list(user, short_name)
   else:
     return None
 
-def delete_task_list(user, task_list):
-  def txn(task_list, deleted_tasks):
+def delete_task_list(user, orig_task_list):
+  def txn():
     # Make sure we do not double count
-    task_list = db.get(task_list.key())
+    task_list = db.get(orig_task_list.key())
     if task_list.deleted:
       return 
       
@@ -66,19 +69,18 @@ def delete_task_list(user, task_list):
 
     save_user(user)
     
-  # TODO: Remove possible data inconsistency if the count between 
-  # when we execute this query and when the count is changed changes.
+  db.run_in_transaction(txn)
   deleted_tasks = Task.gql("WHERE task_list=:list AND archived=:archived AND deleted=:deleted",
-                           list=task_list, archived=False, deleted=False).fetch(100)
-  db.run_in_transaction(txn, task_list, deleted_tasks)
-
+                           list=orig_task_list, archived=False, deleted=False).fetch(100)
+  counting.list_deleted(orig_task_list, deleted_tasks)
+  
   clear_lists_memcache(user)
 
   return deleted_tasks
   
-def undelete_task_list(user, task_list):
-  def txn(task_list, deleted_tasks):
-    task_list = db.get(task_list.key())
+def undelete_task_list(user, orig_task_list):
+  def txn():
+    task_list = db.get(orig_task_list.key())
     if not task_list.deleted:
       return
       
@@ -89,14 +91,15 @@ def undelete_task_list(user, task_list):
     user.lists_count += 1
 
     save_user(user)
-
+  
+  db.run_in_transaction(txn)
+  
   # TODO: Remove possible data inconsistency if the count between 
   # when we execute this query and when the count is changed changes.
   deleted_tasks = Task.gql("WHERE task_list=:list AND archived=:archived AND deleted=:deleted",
-                           list=task_list, archived=False, deleted=False).fetch(100)
-
-  db.run_in_transaction(txn, task_list, deleted_tasks)
-  
+                           list=orig_task_list, archived=False, deleted=False).fetch(100)
+  counting.list_undeleted(orig_task_list, deleted_tasks)
+    
   clear_lists_memcache(user)
   
 def get_task_lists(user):
@@ -136,7 +139,11 @@ def get_completed_tasks(task_list, limit=100):
   return tasks.fetch(limit)
   
 def archive_tasks(task_list):
-  def txn(task_list, archived_tasks):
+  archived_tasks = []
+  for task in get_completed_tasks(task_list):
+    archived_tasks.append(task)
+    
+  def txn():
     for task in archived_tasks:
       task.archived = True
       task.put()
@@ -145,16 +152,13 @@ def archive_tasks(task_list):
     task_list.archived_tasks_count += len(archived_tasks)
     task_list.put()
   
-  archived_tasks = []
-  for task in get_completed_tasks(task_list):
-    archived_tasks.append(task)
-    
-  db.run_in_transaction(txn, task_list, archived_tasks)
+  db.run_in_transaction(txn)
+  counting.list_archived(task_list, archived_tasks)
   
   return archived_tasks
   
 def unarchive_tasks(task_list, archived_tasks):
-  def txn(task_list, archived_tasks):
+  def txn():
     for task in archived_tasks:
       task.archived = False
       task.put()
@@ -163,7 +167,8 @@ def unarchive_tasks(task_list, archived_tasks):
     task_list.archived_tasks_count -= len(archived_tasks)
     task_list.put()
 
-  db.run_in_transaction(txn, task_list, archived_tasks)
+  db.run_in_transaction(txn)
+  counting.list_unarchived(task_list, archived_tasks)
   
   
   

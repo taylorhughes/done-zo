@@ -3,6 +3,8 @@ from google.appengine.api import memcache
 
 from tasks_data.models import TasksUser
 
+import tasks_data.counting as counting
+
 def clear_user_memcache(user):
   memcache.delete(key=user.user.email())
   
@@ -54,6 +56,8 @@ def create_user(current_user, list_name, default_tasks=None):
   # Create a default new list for this user
   new_user = TasksUser(user=current_user, email=current_user.email().lower())
   save_user(new_user)
+  
+  counting.user_added()
 
   # add new list for this user
   tasks_list = add_task_list(new_user, list_name)

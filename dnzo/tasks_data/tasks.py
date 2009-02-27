@@ -6,6 +6,7 @@ from tasks_data.models import Task
 from tasks_data.users import save_user
 from tasks_data.misc import save_project, save_contexts
 
+import tasks_data.counting as counting
 
 # This is actually a limitation of the datastore:
 #   string types can only be 500 characters.
@@ -35,7 +36,11 @@ def save_task(user,task):
   save_user(user)
   
 def add_task(task):
-  def txn(task, task_list):
+  task_list = task.task_list
+  if task_list.active_tasks_count >= MAX_ACTIVE_TASKS:
+    return
+    
+  def txn():
     if task.is_saved():
       return
     
@@ -43,14 +48,13 @@ def add_task(task):
     
     task_list.active_tasks_count += 1
     task_list.put()
-  
-  task_list = task.task_list
-  if task_list.active_tasks_count < MAX_ACTIVE_TASKS:
-    db.run_in_transaction(txn, task, task_list)
+    
+  db.run_in_transaction(txn)
+  counting.task_added()
 
-def delete_task(user, task):
-  def txn(task):
-    task = db.get(task.key())
+def delete_task(user, orig_task):
+  def txn():
+    task = db.get(orig_task.key())
     if task.deleted:
       return
 
@@ -62,11 +66,12 @@ def delete_task(user, task):
     task.task_list = None
     task.put()
       
-  db.run_in_transaction(txn, task)
+  db.run_in_transaction(txn)
+  counting.task_deleted()
 
-def undelete_task(task, task_list):
-  def txn(task, task_list):
-    task = db.get(task.key())
+def undelete_task(orig_task, task_list):
+  def txn():
+    task = db.get(orig_task.key())
     was_deleted = task.deleted
     task.deleted = False
     task.task_list = task_list
@@ -75,11 +80,11 @@ def undelete_task(task, task_list):
     if not was_deleted:
       return
     
-    task_list = task.task_list
     task_list.active_tasks_count += 1
     task_list.put()
     
-  db.run_in_transaction(txn, task, task_list)
+  db.run_in_transaction(txn)
+  counting.task_undeleted()
 
 def update_task_with_params(user, task, params):
   from util.misc import param, slugify

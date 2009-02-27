@@ -544,7 +544,7 @@ var TaskRow = Class.create({
       var success = true;
       if (xhr.status == 200)
       {
-        if (!xhr.responseText || xhr.responseText.indexOf('task-row') < 0)
+        if (!xhr.responseText || xhr.responseText.indexOf('task-ajax-response') < 0)
         {
           Tasks.showError('LOGGED_OUT_ERROR');
           success = false;
