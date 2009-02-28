@@ -1,0 +1,18 @@
+{% extends "layouts/admin.html" %}
+
+{% block page_title %}DNZO Admin: Counts{% endblock %}
+
+{% block content %}
+  <h2>DNZO counts</h2>
+  
+  <table>
+    <tr><th>Count name</th><th>Count</th></tr>
+    {% for count in counts %}
+    <tr>
+      <td class="count_name">{{ count.name }}</td>
+      <td>{{ count.count }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+{% endblock %}

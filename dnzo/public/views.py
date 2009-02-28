@@ -69,10 +69,21 @@ def signup(request):
   
   from tasks_data.misc import get_invitation_by_address
   from tasks_data.users import create_user
+  from tasks_data.runtime_settings import get_setting
   
   current_user = get_current_user()
-  invitation = get_invitation_by_address(current_user.email())
-  if not invitation and not is_current_user_admin():
+  allowed      = False
+  invitation   = None
+  
+  if get_setting('registration_open'):
+    allowed = True
+  elif is_current_user_admin():
+    allowed = True
+  else:
+    invitation = get_invitation_by_address(current_user.email())
+    allowed = invitation is not None
+  
+  if not allowed:
     return HttpResponseRedirect(reverse_url('public.views.closed'))
 
   from tasks_data.models import TasksUser

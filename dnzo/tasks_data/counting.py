@@ -73,7 +73,13 @@ class GeneralCounterShard(db.Model):
   name = db.StringProperty(required=True)
   count = db.IntegerProperty(required=True, default=0)
   
-            
+
+def find_all_counts():
+  counts = []
+  for c in GeneralCounterShardConfig.all().order('name'):
+    counts.append({ 'name': c.name, 'count': get_count(c.name) })
+  return counts
+
 def get_count(name):
   """Retrieve the value for a given sharded counter.
   

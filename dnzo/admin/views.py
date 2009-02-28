@@ -111,9 +111,28 @@ def run_migration(request, migration_id):
     })
   
   
+def settings(request):
+  from django.http import HttpResponseRedirect
+  from django.core.urlresolvers import reverse as reverse_url
+  from tasks_data.runtime_settings import find_all, set_setting
   
+  if request.method == "POST":
+    name = param('setting', request.POST, None)
+    value = param('value', request.POST, None)
+    
+    if name and value is not None:
+      set_setting(name,value)
+      return HttpResponseRedirect(reverse_url('admin.views.settings'))
   
+  return render_to_response("admin/settings.html", {
+    'settings': find_all()
+  })
   
+def counts(request):
+  from tasks_data.counting import find_all_counts
+  return render_to_response("admin/counts.html", {
+    'counts': find_all_counts()
+  })
   
   
   

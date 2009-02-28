@@ -37,6 +37,18 @@
       }
       
     #content { margin-left: 150px; }
+    
+    ul, li { margin: 0; padding: 0; }
+    li { 
+      list-style-type: none;
+      margin-bottom: 10px;
+    }
+    
+    td.count_name {
+      width: 200px;
+      font-weight: bold;
+    }
+    
   </style>
   {% block javascripts %}{% endblock %}
 </head>
@@ -48,12 +60,15 @@
     <ul id="nav">
       <li><a href="{% url admin.views.invitations %}">List invitations</a></li>
       <li><a href="{% url admin.views.add_invitation %}">Add invitations</a></li>
+      <li><a href="{% url admin.views.settings %}">Runtime settings</a></li>
+      <li><a href="{% url admin.views.counts %}">Counts</a></li>
       <li><a href="{% url admin.views.migrate_user %}">Migrate user</a></li>
       <li><a href="{% url admin.views.migrations %}">Data migrations</a></li>
     </ul>
     
     <div id="content">
       {% block content %}{% endblock %}
+      <div style="clear: both;">&nbsp;</div>
     </div>
     
   </div>
