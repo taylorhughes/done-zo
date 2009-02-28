@@ -3,7 +3,7 @@
 {% block page_title %}DNZO Admin: Migrate user{% endblock %}
 
 {% block content %}
-  <h2>Migrate user</h2>
+  <h2>Modify user</h2>
   
   {% if error %}
   <p style="color: red; text-align: center">
@@ -15,6 +15,8 @@
     {{ success }}
   </p>
   {% endif %}
+  
+  <h3>Migrate user</h3>
   
   <p>
     This utility should only be used when a user changes the e-mail address
@@ -28,7 +30,17 @@
     <input type="text" name="user_from" size="30">
     into user
     <input type="text" name="user_to" size="30">
-    <input type="submit" value="Switch" onclick="return confirm('Are you sure? This could royally screw everything up for someone.');">
+    <input type="submit" value="SWITCH" onclick="return confirm('Are you sure? This could royally screw everything up for someone.');">
+  </p>
+  </form>
+  
+  <h3>Delete user</h3>
+  
+  <form action="{% url admin.views.delete_user %}" method="POST">
+  <p>
+    Delete user
+    <input type="text" name="user" size="30">
+    <input type="submit" value="DELETE" onclick="return confirm('Are you sure? This could royally screw everything up for someone.');">
   </p>
   </form>
 {% endblock %}

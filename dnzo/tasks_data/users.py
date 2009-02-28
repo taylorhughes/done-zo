@@ -8,8 +8,10 @@ import tasks_data.counting as counting
 def clear_user_memcache(user):
   memcache.delete(key=user.user.email())
   
-def set_user_memcache(user):
-  memcache.set(key=user.user.email(), value=user)
+def set_user_memcache(user, email=None):
+  if not email:
+    email = user.user.email()
+  memcache.set(key=email, value=user)
 
 def users_equal(a,b):
   if a is None and b is None:
@@ -38,6 +40,9 @@ def get_dnzo_user(invalidate_cache=False, google_user=None):
     memcache.set(key=google_user.email(), value=dnzo_user)
 
   return dnzo_user
+  
+def get_dnzo_user_by_email(email):
+  return TasksUser.gql('WHERE email=:email', email=email).get()
   
 def record_user_history(user, request, save=True):
   full_path = request.get_full_path()

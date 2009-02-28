@@ -32,8 +32,11 @@ def task_added():
   increment(NUM_TASKS_CREATED + time.strftime('-%Y-%m'))
   increment(NUM_ACTIVE_TASKS)
 
-def task_deleted():
-  decrement(NUM_ACTIVE_TASKS)
+def task_deleted(archived=False):
+  if archived:
+    decrement(NUM_ARCHIVED_TASKS)
+  else:
+    decrement(NUM_ACTIVE_TASKS)
 def task_undeleted():
   increment(NUM_ACTIVE_TASKS)
   

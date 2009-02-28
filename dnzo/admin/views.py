@@ -4,8 +4,11 @@ from django.shortcuts import render_to_response
 
 from tasks_data.models import Invitation
 from tasks_data.misc import get_invitation_by_address
-from tasks_data.users import clear_user_memcache, save_user, get_dnzo_user
+from tasks_data.users import clear_user_memcache, save_user, get_dnzo_user, get_dnzo_user_by_email
 from util.misc import param
+
+from django.http import HttpResponseRedirect
+from django.core.urlresolvers import reverse as reverse_url
   
   
 def migrate_user(request):
@@ -19,8 +22,8 @@ def migrate_user(request):
     google_user_to = None
     
     try:
-      google_user_from = User(param('user_from', request.POST, None))
-      dnzo_user = get_dnzo_user(invalidate_cache=True, google_user=google_user_from)
+      from_email = param('user_from', request.POST, None)
+      dnzo_user = get_dnzo_user_by_email(from_email)
     
       google_user_to = User(param('user_to', request.POST, None))
       dnzo_user_already = get_dnzo_user(invalidate_cache=True, google_user=google_user_to)
@@ -38,12 +41,74 @@ def migrate_user(request):
       clear_user_memcache(dnzo_user)
       dnzo_user.user = google_user_to
       save_user(dnzo_user)
-      success = "Success! %s is now %s." % (google_user_from.email(), google_user_to.email())
+      success = "Success! %s is now %s." % (from_email, google_user_to.email())
 
-  return render_to_response("admin/migrate_user.html", {
+  else:
+    return HttpResponseRedirect(reverse_url('admin.views.modify_user'))
+
+  return render_to_response("admin/modify_user.html", {
     'error': error,
     'success': success
   })
+  
+def delete_user(request):
+  from google.appengine.api.users import User
+  
+  error = None
+  success = None
+  if request.method == 'POST':
+    from_email = param('user', request.POST, None)
+    dnzo_user = get_dnzo_user_by_email(from_email)
+    
+    if dnzo_user is None:
+      error = "Could not find existing user."
+    else:
+      import tasks_data.counting as counting
+      from tasks_data.models import Task, TaskList, Project, Context, Undo
+      from tasks_data.tasks import delete_task
+      from tasks_data.task_lists import delete_task_list
+      from tasks_data.users import set_user_memcache
+      
+      try:
+        for t in Task.gql('WHERE ANCESTOR IS :user',user=dnzo_user):
+          if not t.deleted:
+            counting.task_deleted(t.archived)
+          t.delete()
+          
+        for t in TaskList.gql('WHERE ANCESTOR IS :user',user=dnzo_user):
+          if not t.deleted:
+            counting.list_deleted(t,[])
+          t.delete()
+        
+        for p in Project.gql('WHERE ANCESTOR IS :user',user=dnzo_user):
+          p.delete()
+        for c in Context.gql('WHERE ANCESTOR IS :user',user=dnzo_user):
+          c.delete()
+        for u in Undo.gql('WHERE ANCESTOR IS :user',user=dnzo_user):
+          u.delete()
+                  
+        dnzo_user.delete()
+        
+        set_user_memcache(None, email=from_email)
+        success = "User %s deleted!" % from_email
+        
+      except:
+        import sys
+        import logging
+        logging.exception("Exception occurred while deleting a user")
+        error = "Exception occurred while saving: %s" % sys.exc_info()[0]
+          
+  else:
+    return HttpResponseRedirect(reverse_url('admin.views.modify_user'))
+    
+      
+  return render_to_response("admin/modify_user.html", {
+    'error': error,
+    'success': success
+  })
+  
+def modify_user(request):
+  return render_to_response("admin/modify_user.html")
   
 def add_invitation(request):
   invitations = []
@@ -112,8 +177,6 @@ def run_migration(request, migration_id):
   
   
 def settings(request):
-  from django.http import HttpResponseRedirect
-  from django.core.urlresolvers import reverse as reverse_url
   from tasks_data.runtime_settings import find_all, set_setting
   
   if request.method == "POST":
