@@ -11,7 +11,7 @@ from tasks.statusing import get_status_undo, set_status_undo, reset_status_undo
 
 from util.misc       import param, is_ajax, slugify
 
-SORTABLE_LIST_COLUMNS = ('complete', 'project_index', 'body', 'due_date', 'created_at', 'context')
+SORTABLE_LIST_COLUMNS = ('complete', 'project_index', 'body', 'due_date', 'created_at', 'contexts_index')
 
 RESULT_LIMIT = 100
 

@@ -123,12 +123,6 @@ th {
     th.sorted.descending a { 
       background-position: right -85px;
     }
-    th.sorted a:hover { 
-      background-position: right -85px;
-    }
-    th.sorted.descending a:hover {
-      background-position: right 8px;
-    }
     
     th.done.sorted a {
       background-image: none;

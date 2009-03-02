@@ -122,6 +122,7 @@ def update_task_with_params(user, task, params):
       slug = slugify(raw_context)[:MAX_CONTEXT_LENGTH]
       if len(slug) > 0:
         task.contexts.append(slug)
+    task.contexts_index = " ".join(task.contexts)
   
   raw_due_date = param('due_date', params, None)
   if raw_due_date is not None:

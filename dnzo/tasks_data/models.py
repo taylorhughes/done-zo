@@ -10,6 +10,7 @@ class TasksUser(db.Model):
   # object without a valid e-mail address after he's changed it under
   # his Google account.
   email         = db.StringProperty()
+  created_at    = db.DateTimeProperty(auto_now_add=True)
     
   # Settings
   hide_project  = db.BooleanProperty(default=False)
@@ -65,10 +66,12 @@ class Task(db.Model):
   complete      = db.BooleanProperty(default=False)
   completed_at  = db.DateTimeProperty()
   
-  project_index = db.StringProperty()
   project       = db.StringProperty()
+  project_index = db.StringProperty()
 
   contexts      = db.StringListProperty()
+  # Used for sorting
+  contexts_index = db.StringProperty()
 
   due_date      = db.DateTimeProperty()
   body          = db.StringProperty()

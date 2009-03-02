@@ -61,9 +61,12 @@ class SortingHeader(Node):
     im_sorted = (resolve_variable(self.current_sorting,context) == self.my_sorting)
     ascending = (resolve_variable(self.direction,context) == 'ASC')
     
-    url = "?order=%s" % self.my_sorting
-    if im_sorted and ascending:
-      url += "&amp;descending=true"
+    if im_sorted and not ascending:
+      url = "?"
+    else:
+      url = "?order=%s" % self.my_sorting
+      if im_sorted and ascending:
+        url += "&amp;descending=true"
           
     class_names = []
     

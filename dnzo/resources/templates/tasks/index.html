@@ -27,7 +27,7 @@
     {% sorting_header "<img src=\"/images/checkmark.gif\" alt=\"checkmark\">" "complete" order direction "done" %}
     {% sorting_header "Project" "project_index" order direction "project" %}
     {% sorting_header "Task" "body" order direction "task" %}
-    <th class="context"><span>Context</span></th>
+    {% sorting_header "Context" "contexts_index" order direction "context" %}
     {% sorting_header "Due" "due_date" order direction "due" %}
   </tr>
   {% for task in tasks %}

@@ -1,27 +1,14 @@
 from google.appengine.ext import db
 
-def update_task_counts(start_key = None):
-  def fn(task_list):
-    from tasks_data.models import Task
-  
-    active_tasks = Task.gql(
-      'WHERE task_list=:task_list AND deleted=:deleted AND archived=:archived',
-      task_list=task_list, deleted=False, archived=False
-    ).fetch(1000)
-    
-    archived_tasks = Task.gql(
-      'WHERE task_list=:task_list AND deleted=:deleted AND archived=:archived',
-      task_list=task_list, deleted=False, archived=True
-    ).fetch(1000)
-    
-    task_list.active_tasks_count = len(active_tasks)
-    task_list.archived_tasks_count = len(archived_tasks)
-    task_list.put()
+def update_context_indexes(start_key = None):
+  def fn(task):
+    task.contexts_index = " ".join(task.contexts)
+    task.put()
     
     return True
     
-  from tasks_data.models import TaskList
-  return do_for_all(TaskList, start_key, fn, 3)
+  from tasks_data.models import Task
+  return do_for_all(Task, start_key, fn, 50)
 
 
 def do_for_all(model_klass, start_key, callback, max_records = 100):
@@ -56,8 +43,8 @@ def get_all_from_key(model_klass, start_key, max_records):
   
 MIGRATIONS = [
   {
-    'name': 'Update task counts', 
-    'slug': 'update_task_counts', 
-    'migration': update_task_counts
+    'name': 'Update context indexes', 
+    'slug': 'update_context_indexes', 
+    'migration': update_context_indexes
   }
 ]

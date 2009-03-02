@@ -99,6 +99,21 @@ indexes:
     direction: desc
   - name: created_at
     
+- kind: Task
+  properties:
+  - name: archived
+  - name: task_list
+  - name: contexts_index
+  - name: created_at
+
+- kind: Task
+  properties:
+  - name: archived
+  - name: task_list
+  - name: contexts_index
+    direction: desc
+  - name: created_at
+    
   ### FILTERED BY PROJECT ###
   
 - kind: Task
@@ -158,6 +173,24 @@ indexes:
   - name: complete
     direction: desc
   - name: created_at
+    
+- kind: Task
+  properties:
+  - name: archived
+  - name: project_index
+  - name: task_list
+  - name: contexts_index
+  - name: created_at
+
+- kind: Task
+  properties:
+  - name: archived
+  - name: project_index
+  - name: task_list
+  - name: contexts_index
+    direction: desc
+  - name: created_at
+
     
   ### FILTERED BY CONTEXT ###
   
@@ -236,6 +269,23 @@ indexes:
     direction: desc
   - name: created_at
 
+- kind: Task
+  properties:
+  - name: archived
+  - name: contexts
+  - name: task_list
+  - name: contexts_index
+  - name: created_at
+
+- kind: Task
+  properties:
+  - name: archived
+  - name: contexts
+  - name: task_list
+  - name: contexts_index
+    direction: desc
+  - name: created_at
+
 ### FILTERED BY DATE ###
 
 - kind: Task
@@ -296,6 +346,22 @@ indexes:
     direction: desc
   - name: created_at
 
+- kind: Task
+  properties:
+  - name: archived
+  - name: due_date
+  - name: task_list
+  - name: contexts_index
+  - name: created_at
+
+- kind: Task
+  properties:
+  - name: archived
+  - name: due_date
+  - name: task_list
+  - name: contexts_index
+    direction: desc
+  - name: created_at
 
 # Archived tasks
 
