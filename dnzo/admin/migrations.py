@@ -8,7 +8,7 @@ def update_context_indexes(start_key = None):
     return True
     
   from tasks_data.models import Task
-  return do_for_all(Task, start_key, fn, 50)
+  return do_for_all(Task, start_key, fn, 20)
 
 
 def do_for_all(model_klass, start_key, callback, max_records = 100):
