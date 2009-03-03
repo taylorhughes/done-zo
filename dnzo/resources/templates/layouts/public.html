@@ -6,6 +6,9 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <title>{% block title %}{% endblock %}</title>
   {% css_tag public %}
+  
+  <meta name="description" content="A to-do list to help you get things done-zo.">
+  <meta name="keywords" content="to-do list, to-do, to do, to do list, getting things done, gtd, tasks, task management">
 </head>
 <body>
   
@@ -15,8 +18,11 @@
   {% block body %}{% endblock %}
   </div>  <!-- end DIV body -->
 
-  <p>by <a href="http://taylor-hughes.com">Taylor Hughes</a> and <a href="http://johnzeratsky.com">John Zeratsky</a></p>
-
+  <p>
+    Send questions or comments to <a href="mailto:support@getdnzo.com">support@getdnzo.com</a>.
+    Built by <a href="http://taylor-hughes.com">Taylor Hughes</a>.
+  </p>
+  
   {% if not is_development %}
   <script type="text/javascript">
   var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");

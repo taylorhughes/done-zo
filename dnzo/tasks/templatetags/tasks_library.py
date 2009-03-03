@@ -146,4 +146,4 @@ class JavaScriptTag(VersionedTag):
 class CSSTag(VersionedTag):
   def render(self, context):
     filename = '/stylesheets/%s/%s.css' % (self.version, self.filename)
-    return '<link rel="stylesheet" href="%s" type="text/css" media="all" />' % filename
+    return '<link rel="stylesheet" href="%s" type="text/css" media="all">' % filename
