@@ -26,14 +26,16 @@ def get_task_list(user, name):
   return TaskList.get_by_key_name(TaskList.name_to_key_name(name), parent=user)
 
 def add_task_list(user, list_name):
-  def txn(user, list_name):
-    user = db.get(user.key())
+  def txn(old_user, list_name):
+    user = db.get(old_user.key())
     
     if not can_add_list(user):
       return None
-      
+    
     user.lists_count += 1
     save_user(user)
+    # the passed-in object should be consistent
+    old_user.lists_count = user.lists_count
     
     short_name = get_new_list_name(user, list_name)
     new_list = TaskList(parent=user, 
