@@ -917,10 +917,12 @@ var TaskRow = Class.create({
     {
       case Event.KEY_RETURN:
         this.save();
+        event.stop();
         break;
         
       case Event.KEY_ESC:
         this.cancel();
+        event.stop();
         break;
     }    
   },
