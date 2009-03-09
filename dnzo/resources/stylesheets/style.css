@@ -12,7 +12,7 @@ address { font-style:normal }
 
 
 body {
-  background: #eee;
+  background-color: #e9e6e6;
   margin: 0;
   padding: 0;
 }
@@ -262,6 +262,11 @@ tr.editable.task-row td.due input {
   tr.editable.task-row td.task input {
     width: 100%;
   }
+
+#add_row:hover td {
+  background: #f7f6f6;
+  cursor: pointer;
+}
 
 table.row-dragging tr.task-row.dragging:hover td,
 tr.dragging td {
