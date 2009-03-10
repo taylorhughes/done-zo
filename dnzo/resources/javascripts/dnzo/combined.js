@@ -1320,12 +1320,11 @@ var TaskRow = Class.create({
     });
     
     Tasks.addRow = Tasks.table.select('#add_row')[0];
-    Tasks.addLink = Tasks.addRow.select('#add')[0];
     
     Tasks.tasksForm = $('tasks_form');
     Tasks.newTaskTableHTML = Tasks.tasksForm.innerHTML;
   
-    Tasks.addLink.observe('click', Tasks.onClickAddTask);
+    Tasks.addRow.observe('click', Tasks.onClickAddTask);
   
     var rows = Tasks.table.select('tr.task-row');
     for (var i = 0; i < rows.length; i += 2)
