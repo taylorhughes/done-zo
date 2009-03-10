@@ -98,9 +98,13 @@ def signup(request):
   return default_list_redirect(new_user)
 
 def handler404(request):
-  return render_to_response("404.html")
+  response = render_to_response("404.html")
+  response['status'] = 404
+  return response
   
 def handler500(request):
-  return render_to_response("500.html")
+  response = render_to_response("500.html")
+  response['status'] = 500
+  return response
   
   
