@@ -40,6 +40,8 @@ def get_tasks_from_memcache(task_list):
   return memcache.get(tasks_memcache_key(task_list))
   
 def set_tasks_memcache(task_list,tasks):
+  if not task_list:
+    return
   return memcache.set(tasks_memcache_key(task_list), tasks)
 
 def get_tasks(task_list, project_index=None, context=None, due_date=None):
@@ -101,7 +103,8 @@ def delete_task(user, orig_task):
     task.deleted = True
     task.task_list = None
     task.put()
-      
+  
+  set_tasks_memcache(orig_task.task_list, None)
   db.run_in_transaction(txn)
   counting.task_deleted()
 
@@ -118,7 +121,8 @@ def undelete_task(orig_task, task_list):
     
     task_list.active_tasks_count += 1
     task_list.put()
-    
+  
+  set_tasks_memcache(task_list, None)
   db.run_in_transaction(txn)
   counting.task_undeleted()
 

@@ -354,7 +354,7 @@ def task(request, task_id=None):
       'task': task,
       'status': status,
       'undo': undo,
-      'task_list': task.task_list
+      'task_list': task and task.task_list
     })
     
 @never_cache

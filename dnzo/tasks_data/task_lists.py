@@ -156,6 +156,8 @@ def archive_tasks(task_list):
   
   db.run_in_transaction(txn)
   counting.list_archived(task_list, archived_tasks)
+  from tasks_data.tasks import set_tasks_memcache
+  set_tasks_memcache(task_list, None)
   
   return archived_tasks
   
@@ -171,6 +173,8 @@ def unarchive_tasks(task_list, archived_tasks):
 
   db.run_in_transaction(txn)
   counting.list_unarchived(task_list, archived_tasks)
+  from tasks_data.tasks import set_tasks_memcache
+  set_tasks_memcache(task_list, None)
   
   
   
