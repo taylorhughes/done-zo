@@ -4,6 +4,8 @@ from google.appengine.api import users
 
 from django.db.models import permalink
 
+import time
+
 class TasksUser(db.Model):
   user          = db.UserProperty()
   # Store this also, because it's nearly impossible to retrieve a user
@@ -57,6 +59,15 @@ class TaskList(db.Model):
 class Task(db.Model):
   task_list     = db.ReferenceProperty(TaskList, collection_name='tasks')
   created_at    = db.DateTimeProperty(auto_now_add=True)
+  
+  @property
+  def created_at_msec(self):
+    # A couple of things to note:
+    #  this is a long instead of a float because str(float_value) results in crap
+    #  all I want is a timestamp with microseconds. but, no. too hard.
+    num = int(time.mktime(self.created_at.timetuple())) * 1000000 + \
+          self.created_at.microsecond
+    return num
   
   # created_at is now overwritten when you re-order tasks in a list,
   # and I'm lazy, so I'm just adding another property to actually

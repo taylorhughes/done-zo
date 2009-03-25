@@ -211,7 +211,7 @@ table.row-dragging tr.task-row:hover td {
       text-decoration: none;
     }
 
-  table.sortable tr.task-row td {
+  table.draggable tr.task-row td {
     cursor: move;
   }
   tr.task-row td {

@@ -19,8 +19,30 @@ MAX_CONTEXT_LENGTH = 30
 
 # Maximum number of undeleted, unarchived tasks for a list.
 MAX_ACTIVE_TASKS   = 100
+
+# Number of tasks to limit in queries
+RESULT_LIMIT = 100
   
 ### TASKS ###
+
+def get_tasks(task_list, project_index=None, context=None, due_date=None):
+  wheres = ['task_list=:task_list AND archived=:archived'] 
+  params = { 'task_list': task_list, 'archived': False }
+
+  if context:
+    wheres.append('contexts=:context')
+    params['context'] = context
+  elif project_index:
+    wheres.append('project_index=:project_index')
+    params['project_index'] = project_index
+  elif due_date:
+    wheres.append('due_date=:due_date')
+    params['due_date'] = due_date
+  
+  gql = 'WHERE %s ORDER BY created_at ASC' % ' AND '.join(wheres)
+  
+  return Task.gql(gql, **params).fetch(RESULT_LIMIT)
+  
 
 def save_task(user,task):
   if not task.is_saved():

@@ -3,6 +3,7 @@ from django.http import Http404
 from django.views.decorators.cache import never_cache
 
 from tasks_data.models     import Task
+from tasks_data.tasks      import get_tasks, RESULT_LIMIT
 from tasks_data.users      import get_dnzo_user, record_user_history
 from tasks_data.task_lists import get_task_list, get_task_lists, can_add_list
 
@@ -10,10 +11,6 @@ from tasks.redirects import default_list_redirect, most_recent_redirect, list_re
 from tasks.statusing import get_status_undo, set_status_undo, reset_status_undo
 
 from util.misc       import param, is_ajax, slugify
-
-SORTABLE_LIST_COLUMNS = ('complete', 'project_index', 'body', 'due_date', 'created_at', 'contexts_index')
-
-RESULT_LIMIT = 100
 
 #### VIEWS ####
 
@@ -54,37 +51,10 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
     if view_date:
       filter_title = date(view_date, 'n-j-y')
 
-  wheres = ['task_list=:task_list AND archived=:archived'] 
-  params = { 'task_list': task_list, 'archived': False }
-
-  if view_context:
-    wheres.append('contexts=:context')
-    params['context'] = view_context
-  elif view_project:
-    wheres.append('project_index=:project_index')
-    params['project_index'] = view_project
-  elif view_date:
-    wheres.append('due_date=:due_date')
-    params['due_date'] = view_date
-    
-  default_order, default_direction = 'created_at', 'ASC'
-  
-  order = str(param('order', request.GET))
-  if order in SORTABLE_LIST_COLUMNS:
-    direction = 'ASC'
-    if param('descending', request.GET) == 'true':
-      direction = 'DESC'
-    
-    order_by = '%s %s, %s %s' % (order, direction, default_order, default_direction)
-    is_sortable = False
-  
-  else:
-    order, direction = default_order, default_direction
-    order_by = '%s %s' % (order, direction)
-    is_sortable = True
-  
-  gql = 'WHERE %s ORDER BY %s' % (' AND '.join(wheres), order_by)
-  tasks = Task.gql(gql, **params).fetch(RESULT_LIMIT)
+  tasks = get_tasks(task_list, 
+                    context=view_context, 
+                    project_index=view_project, 
+                    due_date=view_date)
   
   # SHOW STATUS MESSAGE AND UNDO
   status, undo = get_status_undo(request)
@@ -104,12 +74,9 @@ def list_index(request, task_list_name=None, context_name=None, project_index=No
     'tasks': tasks,
     'task_list': task_list,
     'filter_title': filter_title,
-    'order': order,
-    'direction': direction,
     'status': status,
     'undo': undo,
     'new_task': new_task,
-    'is_sortable': is_sortable,
   }, request, user))
   
   reset_status_undo(response,status,undo)

@@ -25,6 +25,7 @@
   {% endif %}
   </td>
   <td class="cancel">
+    <input type="hidden" value="{{ task.created_at_msec }}" class="created_at">
     <a href="{{ request_uri }}" class="cancel">cancel</a>
   </td>
 </tr>

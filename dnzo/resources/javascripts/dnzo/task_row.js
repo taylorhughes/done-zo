@@ -6,11 +6,6 @@ var TaskRow = Class.create({
   {
     this.editEventsWired = false;
     
-    if (viewRow)
-    {
-      this.viewRow = viewRow;
-      this.wireViewingEvents(this.viewRow);
-    }
     if (editRow)
     {
       this.editRow = editRow;
@@ -18,54 +13,63 @@ var TaskRow = Class.create({
       // we actually need to
       if (!viewRow || this.editRow.visible())
       {
-        this.wireEditingEvents(this.editRow);
+        this.wireEditingEvents();
       }
+    }
+    if (viewRow)
+    {
+      this.viewRow = viewRow;
+      this.wireViewingEvents();
+      this.wireDragging();
+      this.wireSorting();
     }
     
     // Need to keep this around so we can unobserve it later in destroy()
     this.boundOnOtherTaskEditing = this.onOtherTaskEditing.bind(this);
     Tasks.table.observe(Tasks.TASK_EDITING_EVENT, this.boundOnOtherTaskEditing);
+    
+    this.boundOnIdentifyByRow = this.onIdentifyByRow.bind(this);
+    Tasks.table.observe(Tasks.TASK_IDENTIFY_BY_ROW_EVENT, this.boundOnIdentifyByRow);
   },
   
-  wireViewingEvents: function(row)
+  wireViewingEvents: function()
   {
-    this.editLink = row.select('.edit>a.edit')[0];
+    this.editLink = this.viewRow.select('.edit>a.edit')[0];
     this.editLink.observe('click', this.onClickEdit.bind(this));
 
-    this.trashcan = row.select('.cancel>a.delete')[0];
+    this.trashcan = this.viewRow.select('.cancel>a.delete')[0];
     this.trashcan.observe('click', this.onClickTrash.bind(this));
 
-    var finish = row.select('.complete')[0];
+    var finish = this.viewRow.select('.complete')[0];
     finish.observe('click', this.onClickComplete.bind(this));
     
     // For clicking events
-    row.observe('dblclick', this.onDoubleClickViewRow.bind(this));
+    this.viewRow.observe('dblclick', this.onDoubleClickViewRow.bind(this));
     
-    this.wireDragging(this.viewRow);
+    Tasks.table.observe(Tasks.TASKS_DRAGGABLE_EVENT, this.onTasksDraggable.bind(this));
+    Tasks.table.observe(Tasks.TASKS_NOT_DRAGGABLE_EVENT, this.onTasksNotDraggable.bind(this));
   },
   
-  wireEditingEvents: function(row)
+  wireEditingEvents: function()
   {    
-    var save = row.select('.edit>input[type=submit]')[0];
+    var save = this.editRow.select('.edit>input[type=submit]')[0];
     save.observe('click', this.onClickSave.bind(this));
     
-    row.observe('keydown', this.onKeyDown.bind(this));
+    this.editRow.observe('keydown', this.onKeyDown.bind(this));
 
-    this.cancelLink = row.select('.cancel>a.cancel')[0];
+    this.cancelLink = this.editRow.select('.cancel>a.cancel')[0];
     this.boundOnClickCancel = this.onClickCancel.bind(this);
     this.cancelLink.observe('click', this.boundOnClickCancel);
     
-    this.wireProjectAutocomplete(row);
-    this.wireContextAutocomplete(row);
+    this.wireProjectAutocomplete();
+    this.wireContextAutocomplete();
     
     this.editEventsWired = true;
   },
   
-  wireDragging: function(row)
+  wireDragging: function()
   {
-    if (!Tasks.sortable()) { return; }
-    
-    new Draggable(row, {
+    this.dragger = new Draggable(this.viewRow, {
       starteffect: null,
       endeffect:   null,
       
@@ -79,9 +83,27 @@ var TaskRow = Class.create({
     });
   },
   
+  wireSorting: function()
+  {
+    this.boundOnSortRequest = this.onSortRequest.bind(this);
+    Tasks.table.observe(Tasks.TASK_REQUEST_SORT_EVENT, this.boundOnSortRequest);
+
+    var due = $F(this.editRow.select('td.due>input').first()).split("/");
+    due = (due.length < 3) ? "" : due[2] + " " + due[0] + " " + due[1];
+    
+    this.sorting = {
+      done:      this.isCompleted() ? 't' : 'f',
+      project:   $F(this.editRow.select('td.project>input').first()),
+      task:      $F(this.editRow.select('td.task>input').first()),
+      context:   $F(this.editRow.select('td.context>input').first()),
+      due:       due,
+      createdAt: parseInt($F(this.editRow.select('input.created_at').first()))
+    };      
+  },
+  
   wireProjectAutocomplete: function(row)
   {
-    var project = row.select('td.project>input').first();
+    var project = this.editRow.select('td.project>input').first();
 
     new InstantAutocompleter(project, function(){ return DNZO.projects; }, {
       numResults: 5
@@ -90,7 +112,7 @@ var TaskRow = Class.create({
   
   wireContextAutocomplete: function(row)
   {
-    var contexts = row.select('td.context>input').first();
+    var contexts = this.editRow.select('td.context>input').first();
     
     new InstantAutocompleter(contexts, function(){ return DNZO.contexts; }, {
       numResults:    5,
@@ -112,6 +134,11 @@ var TaskRow = Class.create({
   ignoreCancels: function()
   {
     Event.stopObserving(Tasks.table, Tasks.TASK_EDITING_EVENT, this.boundOnOtherTaskEditing);
+    if (this.boundOnSortRequest)
+    {
+      Event.stopObserving(Tasks.table, Tasks.TASK_REQUEST_SORT_EVENT, this.boundOnSortRequest);
+    }
+    Event.stopObserving(Tasks.table, Tasks.TASK_IDENTIFY_BY_ROW_EVENT, this.boundOnIdentifyByRow);
     Event.stopObserving(this.cancelLink, 'click', this.boundOnClickCancel);
     this.cancelLink.hide();
     
@@ -123,6 +150,11 @@ var TaskRow = Class.create({
   unignoreCancels: function()
   {
     Tasks.table.observe(Tasks.TASK_EDITING_EVENT, this.boundOnOtherTaskEditing);
+    if (this.boundOnSortRequest) 
+    {
+      Tasks.table.observe(Tasks.TASK_REQUEST_SORT_EVENT, this.boundOnSortRequest);
+    }
+    Tasks.table.observe(Tasks.TASK_IDENTIFY_BY_ROW_EVENT, this.boundOnIdentifyByRow);
     this.cancelLink.observe('click', this.boundOnClickCancel);
     this.cancelLink.show();
     
@@ -131,7 +163,55 @@ var TaskRow = Class.create({
     });
   },
   
+  /*** SORTING ***/
+  
+  onSortRequest: function(event)
+  {
+    (event.memo || []).push(this);
+  },
+  
+  removeRows: function()
+  {
+    if (this.editRow) this.editRow.remove();
+    if (this.viewRow) this.viewRow.remove();
+  },
+  
+  addRowsBefore: function(element)
+  {
+    if (this.editRow) Insertion.Before(element, this.editRow);
+    if (this.viewRow) Insertion.Before(element, this.viewRow);
+  },
+  
+  compareTo: function(otherTask, column, descending)
+  { 
+    var a = this.sorting[column] || "";
+    var b = otherTask.sorting[column] || "";
+
+    if (typeof descending == "undefined") { descending = false; }
+    
+    // Note: strcmp in this case is not reversed for descending
+    // because we are not reversing the secondary sort order
+    // (we are emulating ORDER BY column DESC created_at ASC)
+    if (!column || DNZO.strcmp(a,b) == 0)
+    { 
+      return this.sorting.createdAt - otherTask.sorting.createdAt;
+      // to sort secondarily by task body
+      //return DNZO.strcmp(this.task(),otherTask.task());
+    }
+
+    var cmp = DNZO.strcmp(a,b);
+    if (descending) { cmp *= -1; }
+    return cmp;
+  },
+  
   /*** MISC ***/
+  
+  taskID: function()
+  {
+    var input = this.viewRow && this.viewRow.select('input.task-id').first();
+    if (input) return input.getValue();
+    return null;
+  },
   
   isEditing: function()
   {
@@ -148,20 +228,20 @@ var TaskRow = Class.create({
     Event.fire((this.viewRow || this.editRow), eventName, memo);
   },
   
-  taskAbove: function()
+  findTaskAbove: function()
   {
     var above = this.viewRow.previousSiblings().find(function(row) { 
       return row.match('tr.task-row') && ! row.hasClassName('editable');
     });
-    return Tasks.idFromViewRow(above);
+    return Tasks.taskFromRow(above);
   },
   
-  taskBelow: function()
+  findTaskBelow: function()
   {
     var below = this.viewRow.nextSiblings().find(function(row) { 
       return row.match('tr.task-row') && ! row.hasClassName('editable');
     });
-    return Tasks.idFromViewRow(below);
+    return Tasks.taskFromRow(below);
   },
   
   /*** EVENT HANDLERS ***/
@@ -269,7 +349,33 @@ var TaskRow = Class.create({
     }
   },
   
+  onIdentifyByRow: function(event)
+  {
+    var row = event.memo && event.memo.row;
+
+    if (row && (this.viewRow == row || this.editRow == row))
+    {
+      event.memo.task = this;
+    }
+    
+    event.stop();
+  },
+  
   /** DRAG AND DROP **/
+  
+  onTasksDraggable: function(event)
+  {
+    this.wireDragging(this.viewRow);
+  },
+  
+  onTasksNotDraggable: function(event)
+  {
+    if (this.dragger) 
+    {
+      this.dragger.destroy();
+      this.dragger = null;
+    }
+  },
   
   onStartDrag: function(draggable, mouseEvent)
   {
@@ -512,9 +618,11 @@ var TaskRow = Class.create({
   recordPosition: function()
   {
     var originalPosition = this.position;
+    this.taskAbove = this.findTaskAbove();
+    this.taskBelow = this.findTaskBelow();
     this.position = {
-      task_above: this.taskAbove(),
-      task_below: this.taskBelow()
+      task_above: this.taskAbove && this.taskAbove.taskID(),
+      task_below: this.taskBelow && this.taskBelow.taskID()
     }
     
     // Returns whether we changed anything
@@ -523,10 +631,21 @@ var TaskRow = Class.create({
   
   savePosition: function()
   {
-    if (!Tasks.sortable()) { return; }
-    
     if (this.recordPosition())
     {
+      var createdAt = this.sorting.createdAt;
+      var above = this.taskAbove && this.taskAbove.sorting.createdAt;
+      var below = this.taskBelow && this.taskBelow.sorting.createdAt;
+      if (!below) {
+        var d = new Date();
+        createdAt = (d.getTime() - (d.getTimezoneOffset() * 60)) * 1000;
+      } else if (!above) {
+        createdAt = below - 100;
+      } else {
+        createdAt = above + parseInt((below - above) / 2.0);
+      }
+      this.sorting.createdAt = createdAt;
+      
       new Ajax.Request(this.editLink.href, {
         method: 'post',
         onComplete: this.bindOnComplete({}),

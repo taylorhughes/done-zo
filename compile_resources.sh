@@ -8,7 +8,7 @@ COMBINED_JS_OUTPUT=(
   "dnzo/combined.js"
 )
 COMBINE_JS=(
-  "ext/prototype.js ext/scriptaculous.js ext/effects.js ext/controls.js ext/dragdrop.js"
+  "ext/prototype.js ext/scriptaculous.js ext/effects.js ext/controls.js ext/dragdrop.js ext/xtensions.js"
   "dnzo/application.js dnzo/instant_autocompleter.js dnzo/modal_dialog.js dnzo/task_row.js dnzo/tasks.js"
 )
 

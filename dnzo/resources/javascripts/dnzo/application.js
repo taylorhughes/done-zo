@@ -12,6 +12,15 @@ DNZO = Object.extend(DNZO,{
     DNZO.verifyTimezone();
   },
   
+  strcmp: function(a,b)
+  {
+    a = a.toLowerCase();
+    b = b.toLowerCase();
+  
+    if (a==b) { return 0; }
+    return a < b ? -1 : 1;
+  },
+  
   onSwitchList: function(event)
   {
     document.location.href = $F(event.element());

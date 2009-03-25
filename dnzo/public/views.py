@@ -1,7 +1,8 @@
 # coding=utf-8
 
-from google.appengine.api.users import create_logout_url, get_current_user, is_current_user_admin
+from google.appengine.api.users import create_logout_url, create_login_url, get_current_user, is_current_user_admin
 
+from django.core.urlresolvers import reverse as reverse_url
 from django.shortcuts import render_to_response
 
 from tasks.redirects import default_list_redirect, most_recent_redirect
@@ -19,10 +20,11 @@ def welcome(request):
   current_user = get_current_user()
   if current_user:
     nickname = current_user.nickname()
-    
+  
   return render_to_response("public/index.html", {
     'nickname': nickname,
     'logout_url': create_logout_url('/'),
+    'login_url': create_login_url(reverse_url('tasks.views.redirect')),
     'is_development': environment.IS_DEVELOPMENT
   })
   

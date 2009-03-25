@@ -3,12 +3,19 @@ var Tasks = {
   TASK_EDITING_EVENT: 'tasks:task_editing',
   TASK_CANCEL_EDITING_EVENT: 'tasks:task_cancel_editing',
   
+  // events used in sorting
+  TASK_IDENTIFY_BY_ROW_EVENT: 'tasks:task_identify',
+  TASK_REQUEST_SORT_EVENT: 'tasks:request_sort',
+  
+  // events for when the table becomes draggable
+  TASKS_DRAGGABLE_EVENT: 'tasks:draggable',
+  TASKS_NOT_DRAGGABLE_EVENT: 'tasks:not_draggable',
+  
   HIDE_STATUS_DELAY: 15, // seconds
   
   load: function(event)
   {
     Tasks.table = $('tasks_list');
-    
     if (!Tasks.table || Tasks.table.hasClassName('archived')) { return; }
     
     new ModalDialog.Ajax($('add_list'), {
@@ -24,6 +31,8 @@ var Tasks = {
     Tasks.newTaskTableHTML = Tasks.tasksForm.innerHTML;
   
     Tasks.addRow.observe('click', Tasks.onClickAddTask);
+    
+    Tasks.wireSortingEvents();
   
     var rows = Tasks.table.select('tr.task-row');
     for (var i = 0; i < rows.length; i += 2)
@@ -34,10 +43,111 @@ var Tasks = {
     }
     
     Tasks.setHideStatus();
+    
+    Tasks.wireHistory();
   },
   
-  sortable: function() {
-    return Tasks.table.hasClassName('sortable');
+  wireSortingEvents: function()
+  {
+    Tasks.table.select('th>a').each(function(sortingLink) {
+      sortingLink.observe('click',Tasks.onClickSort);
+    });
+  },
+  
+  wireHistory: function()
+  {
+    Tasks.onHistoryChange();
+    History.Observer.observe('all', Tasks.onHistoryChange);
+    History.Observer.start();
+  },
+  
+  addHistoryEvent: function(data)
+  {
+    History.setMultiple(data);
+  },
+  
+  draggable: function()
+  {
+    return Tasks.table.hasClassName('draggable');
+  },
+  
+  onHistoryChange: function(name)
+  {
+    Tasks.sort(History.get('order'), History.get('descending'));
+  },
+  
+  onClickSort: function(event)
+  {
+    event.stop();
+    
+    var link = event.element();
+    link = link.match('a') ? link : link.up('a');
+    var headerCell = link.up('th');
+    
+    var column = link.href.match(/order=([\w_]+)/)[1];
+    var descending = false;
+        
+    if (headerCell.match('.sorted.descending'))
+    {      
+      column = null;
+    }
+    else if (headerCell.match('.sorted'))
+    {
+      descending = true;
+    }
+    
+    var data = { order: column || "" };
+    if (column && descending) {
+      data.descending = true;
+    } else {
+      data.descending = null;
+    }
+    Tasks.addHistoryEvent(data);
+    
+    Tasks.sort(column,descending);
+  },
+  
+  sort: function(column,descending)
+  {    
+    Tasks.cancelAll();
+    
+    Tasks.table.select('th').each(function(cell){
+      ['sorted','descending'].each(function(c){cell.removeClassName(c)});
+      if (cell.hasClassName(column)) {
+        cell.addClassName('sorted');
+        if (descending) {
+          cell.addClassName('descending');
+        }
+      }
+    });
+    
+    // TaskRows that are listening add themselves to the event.memo array
+    var rows = Event.fire(Tasks.table, Tasks.TASK_REQUEST_SORT_EVENT, []).memo;
+    
+    // Then we sort them
+    rows.sort(function(a,b){
+      return a.compareTo(b,column,descending);
+    });
+    
+    rows.each(function(row){
+      row.removeRows();
+      row.addRowsBefore(Tasks.addRow);
+    });
+    
+    if (column && Tasks.table.hasClassName('draggable')) {
+      Event.fire(Tasks.table,Tasks.TASKS_NOT_DRAGGABLE_EVENT);
+      Tasks.table.removeClassName('draggable');
+    } else if (!column) {
+      Event.fire(Tasks.table,Tasks.TASKS_DRAGGABLE_EVENT);
+      Tasks.table.addClassName('draggable');
+    }
+  },
+  
+  taskFromRow: function(row)
+  {
+    // This fires an event asking for the TaskRow object that has this row to identify itself
+    var e = Event.fire(Tasks.table, Tasks.TASK_IDENTIFY_BY_ROW_EVENT, { row: row });
+    return e.memo.task;
   },
   
   onClickAddTask: function(event)
@@ -243,14 +353,6 @@ var Tasks = {
     var temp = new Element('div');
     temp.innerHTML = xhr.responseText;
     return temp;
-  },
-  
-  idFromViewRow: function(row)
-  {
-    var input = row && row.select('input.task-id').first();
-    if (input)
-      return input.getValue();
-    return null;
   },
   
   showError: function(message)

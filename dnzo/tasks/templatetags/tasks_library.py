@@ -4,7 +4,6 @@ from django.template.defaultfilters import date
 from datetime import datetime
 
 import re
-import logging
 
 import environment
 
@@ -43,47 +42,21 @@ def spans_around(string, to_highlight):
 @register.tag
 def sorting_header(parser, token):
   try:
-    tag_name, my_name, my_sorting, current_sorting, direction, class_name = token.split_contents()
+    tag_name, my_name, my_sorting = token.split_contents()
   except ValueError:
     raise template.TemplateSyntaxError, "%r tag requires exactly four arguments" % token.contents.split()[0]
   
-  return SortingHeader(my_name[1:-1], my_sorting[1:-1], current_sorting, direction, class_name[1:-1])
+  return SortingHeader(my_name[1:-1], my_sorting[1:-1])
   
 class SortingHeader(Node):
-  def __init__(self, my_name, my_sorting, current_sorting, direction, class_name):
+  def __init__(self, my_name, my_sorting):
     self.my_name = my_name
     self.my_sorting = my_sorting
-    self.current_sorting = current_sorting
-    self.direction = direction
-    self.class_name = class_name
     
   def render(self, context):
-    im_sorted = (resolve_variable(self.current_sorting,context) == self.my_sorting)
-    ascending = (resolve_variable(self.direction,context) == 'ASC')
-    
-    if im_sorted and not ascending:
-      url = "?"
-    else:
-      url = "?order=%s" % self.my_sorting
-      if im_sorted and ascending:
-        url += "&amp;descending=true"
+    url = "#order=%s" % self.my_sorting
           
-    class_names = []
-    
-    if self.class_name:
-      class_names.append(self.class_name)
-      
-    if im_sorted:
-      class_names.append('sorted')
-      if not ascending:
-        class_names.append('descending')
-    
-    if len(class_names) > 0:
-      class_names = ' class="%s"' % (' '.join(class_names))
-    else:
-      class_names = ''
-
-    return '<th%s><a href="%s">%s</a></th>' % (class_names, url, self.my_name)
+    return '<th class="%s"><a href="%s">%s</a></th>' % (self.my_sorting, url, self.my_name)
     
 @register.tag
 def javascript_tag(parser, token):
