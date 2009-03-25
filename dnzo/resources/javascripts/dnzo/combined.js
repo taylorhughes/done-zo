@@ -1276,11 +1276,13 @@ var TaskRow = Class.create({
     {
       params['force_complete'] = true;
       this.viewRow.addClassName('completed');
+      this.sorting.done = 't';
     }
     else
     {
       params['force_uncomplete'] = true;
       this.viewRow.removeClassName('completed');
+      this.sorting.done = 'f';
     }
     
     new Ajax.Request(this.editLink.href, {
