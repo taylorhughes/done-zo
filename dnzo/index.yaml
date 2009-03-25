@@ -38,34 +38,7 @@ indexes:
   - name: archived
   - name: task_list
   - name: created_at
-    
-  ### Tasks FILTERED BY PROJECT ###
-  
-- kind: Task
-  properties:
-  - name: archived
-  - name: project_index
-  - name: task_list
-  - name: created_at
-    
-  ### Tasks FILTERED BY CONTEXT ###
-  
-- kind: Task
-  properties:
-  - name: archived
-  - name: contexts
-  - name: task_list
-  - name: created_at
 
-  ### Tasks FILTERED BY DATE ###
-
-- kind: Task
-  properties:
-  - name: archived
-  - name: due_date
-  - name: task_list
-  - name: created_at
-  
 # Archived tasks
 
 - kind: Task

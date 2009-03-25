@@ -1,4 +1,4 @@
-
+from google.appengine.api import memcache
 from google.appengine.ext import db
 
 from tasks_data.models import Task
@@ -25,25 +25,38 @@ RESULT_LIMIT = 100
   
 ### TASKS ###
 
-def get_tasks(task_list, project_index=None, context=None, due_date=None):
+def get_tasks_from_datastore(task_list):
   wheres = ['task_list=:task_list AND archived=:archived'] 
   params = { 'task_list': task_list, 'archived': False }
 
-  if context:
-    wheres.append('contexts=:context')
-    params['context'] = context
-  elif project_index:
-    wheres.append('project_index=:project_index')
-    params['project_index'] = project_index
-  elif due_date:
-    wheres.append('due_date=:due_date')
-    params['due_date'] = due_date
-  
   gql = 'WHERE %s ORDER BY created_at ASC' % ' AND '.join(wheres)
-  
-  return Task.gql(gql, **params).fetch(RESULT_LIMIT)
-  
 
+  return Task.gql(gql, **params).fetch(RESULT_LIMIT)
+    
+def tasks_memcache_key(task_list):
+  return '%s-tasks' % str(task_list.key())
+  
+def get_tasks_from_memcache(task_list):
+  return memcache.get(tasks_memcache_key(task_list))
+  
+def set_tasks_memcache(task_list,tasks):
+  return memcache.set(tasks_memcache_key(task_list), tasks)
+
+def get_tasks(task_list, project_index=None, context=None, due_date=None):
+  tasks = get_tasks_from_memcache(task_list)
+  if not tasks:
+    tasks = get_tasks_from_datastore(task_list)
+    set_tasks_memcache(task_list, tasks)
+
+  if context:
+    tasks = filter(lambda t: context in t.contexts, tasks)
+  if project_index:
+    tasks = filter(lambda t: project_index == t.project_index, tasks)
+  if due_date:
+    tasks = filter(lambda t: due_date == t.due_date, tasks)
+    
+  return tasks
+  
 def save_task(user,task):
   if not task.is_saved():
     add_task(task)
@@ -54,7 +67,8 @@ def save_task(user,task):
     save_project(user, task.project)
   if len(task.contexts) > 0:
     save_contexts(user, task.contexts)
-    
+  
+  set_tasks_memcache(task.task_list, None)
   save_user(user)
   
 def add_task(task):
