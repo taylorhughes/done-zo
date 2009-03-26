@@ -137,7 +137,7 @@ var Tasks = {
     if (column && Tasks.table.hasClassName('draggable')) {
       Event.fire(Tasks.table,Tasks.TASKS_NOT_DRAGGABLE_EVENT);
       Tasks.table.removeClassName('draggable');
-    } else if (!column) {
+    } else if (!column && !Tasks.table.hasClassName('draggable')) {
       Event.fire(Tasks.table,Tasks.TASKS_DRAGGABLE_EVENT);
       Tasks.table.addClassName('draggable');
     }
