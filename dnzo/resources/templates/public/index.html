@@ -5,16 +5,22 @@ DNZO - Helps you get things done-zo.
 {% endblock %}
 
 {% block h1 %}
-DNZO
+<h1 id="logo">DNZO</h1>
+<p id="tagline">Helps you get things done-zo.</p>
 {% endblock %}
 
 {% block body %}
-<p>Helps you get things done-zo.</p>
-<p>
+<p id="signin">
   <a href="{{ login_url }}">Sign in</a>
-  with your Google Account and get started right away.
+  with your Google Account and get started right away!
 </p>
 <p>
-  Don&rsquo;t have a Google Account? <a href="{{ login_url }}">Create one</a>.
+  With a <strong>DNZO to-do list</strong>, you can:
 </p>
+<ul>
+  <li><strong>Quickly add new tasks</strong> to clear your head.</li>
+  <li><strong>Sort and filter</strong> your tasks by project, context and due date.</li>
+  <li>Add <strong>multiple lists</strong> to better organize disparate tasks.</li>
+  <li>Archive completed tasks and track what you&rsquo;ve done.</li>
+</ul>
 {% endblock %}
