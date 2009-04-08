@@ -89,7 +89,14 @@ var TaskRow = Class.create({
     Tasks.table.observe(Tasks.TASK_REQUEST_SORT_EVENT, this.boundOnSortRequest);
 
     var due = $F(this.editRow.select('td.due>input').first()).split("/");
-    due = (due.length < 3) ? "" : due[2] + " " + due[0] + " " + due[1];
+    if (due.length == 3)
+    {
+      due = due[2] + 
+        ((due[0].length == 1) ? "0" : "") + due[0] + 
+        ((due[1].length == 1) ? "0" : "") + due[1];
+    } else {
+      due = "";
+    }
     
     this.sorting = {
       done:      this.isCompleted() ? 't' : 'f',
