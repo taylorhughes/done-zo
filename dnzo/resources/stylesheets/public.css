@@ -8,14 +8,13 @@ address { font-style:normal }
 body {
   background: #eee;
   font-family: "Helvetica Neue", helvetica, sans-serif;
-  min-width: 800px;
+  font-size: 14px;
 }
 a {
   color: #666;
 }
 p {
   color: #666;
-  font-size: 14px;
   line-height: 1.2;
   margin-top: 18px;
   margin-bottom: 12px;
@@ -28,43 +27,49 @@ h1 {
   margin-bottom: 12px;
 }
 
-h1, p, ul {
-  margin-left: 20%;
+h1, p {
+  margin-left: 10%;
+  margin-right: 10%;
 }
 
 #logo {
   display: block;
   text-indent: -10000px;
   background: url(/images/dnzo_big.png) top left no-repeat;
-  height: 110px;
+  height: 80px;
 }
   #tagline { display: none; }
 
 #body {
   background: white;
-  padding-top: 36px;
-  padding-bottom: 13px;
+  padding: 20px 10% 20px 10%;
+  height: 265px;
+  min-width: 700px;
 }
-  #body p, #body li {
-    color: black;
-    font-size: 20px;
-    margin-top: 0;
-    margin-bottom: 24px;
-  }
   #body a {
     color: #CC2E2E;
   }
-    #body #signin {
-      float: right;
-      margin-top: -135px;
-      width: 250px;
-      font-size: 16px;
-      padding: 10px;
-      padding-right: 20px;
-      background: #ff9;
-      text-align: center;
-    }
+  #body p, #body li {
+    color: black;
+    margin: 0 0 20px 0;
+  }   
     #body li {
       list-style-type: square;
-    }  
-  
+    }
+ 
+  #body #signin {
+    font-size: 16px;
+    margin-right: 340px;
+    padding: 10px;
+    background: #ff9;
+    text-align: center;
+  }
+
+  #body #screencast {
+    float: right;
+    margin: 0 0 0 20px;
+  }
+    #body #screencast img {
+      border: 1px solid black;
+    }
+
