@@ -1,4 +1,8 @@
+from ragendja.settings_pre import *
+
 import environment
+
+MEDIA_VERSION  = environment.MAJOR_VERSION
 
 DEBUG          = environment.IS_DEVELOPMENT
 TEMPLATE_DEBUG = environment.IS_DEVELOPMENT
@@ -15,11 +19,6 @@ TEMPLATE_LOADERS = (
 TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
-ADMINS = (
-    # ('Your Name', 'your_email@domain.com'),
-    ('Taylor Hughes', 'taylor@taylor-hughes.com'),
-)
-
 MIDDLEWARE_CLASSES = (
   # does things like APPEND_SLASH for URLs
   'django.middleware.common.CommonMiddleware',
@@ -34,7 +33,10 @@ TEMPLATE_DIRS = (
 )
 
 INSTALLED_APPS = (
+  'appenginepatcher',
   'tasks',
   'public',
   'admin',
 )
+
+from ragendja.settings_post import *
