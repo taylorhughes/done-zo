@@ -39,4 +39,6 @@ INSTALLED_APPS = (
   'admin',
 )
 
+DJANGO_STYLE_MODEL_KIND = False
+
 from ragendja.settings_post import *
