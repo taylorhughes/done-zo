@@ -1,6 +1,6 @@
 import re
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import calendar
 
 def get_sunday(offset_mins):
@@ -55,8 +55,15 @@ HUMAN_RANGES = (
 RE_TODAY    = re.compile(r'^today$', re.I)
 RE_TOMORROW = re.compile(r'^tom{1,2}or{1,2}ow$', re.I)
 RE_DAY      = re.compile(r'^(mon|tue|wed|thu|fri|sat|sun)\w*$', re.I)
-RE_DATE     = re.compile(r'^(\d{1,2})\D+(\d{1,2})(?:\D+(\d{1,4}))?$')
+RE_SPLIT    = re.compile(r'[^a-z0-9]+', re.I)
 
+def parse_month(month_string):
+  for i in range(1,13):
+    if date(2008, i, 1).strftime('%B')[0:3].lower() in month_string.lower():
+      return i
+  
+  return None
+  
 def parse_date(date_string, offset_mins=0, output_utc=False):
   if not date_string:
     return None
@@ -69,41 +76,77 @@ def parse_date(date_string, offset_mins=0, output_utc=False):
   today = datetime(*now.timetuple()[0:3])
   
   value = None
-  
-  match = RE_DATE.match(date_string)
-  if match:
-    m, d, y = match.groups()
-    m = int(m)
-    d = int(d)
-    if y:
-      y = int(y)
-      if y < 100:
-        y += 2000
-      elif y < 2000:
-        y = None
-        
-    if not y:
-      y = now.timetuple()[0]
-      if datetime(y, m, d) < today:
-        y += 1
-      
-    value = datetime(y, m, d)
     
   if RE_TODAY.match(date_string):
     value = today
     
-  if RE_TOMORROW.match(date_string):
+  elif RE_TOMORROW.match(date_string):
     value = today + timedelta(days=1)
     
-  match = RE_DAY.match(date_string)
-  if match:
-    day = match.groups()[0].lower()
+  elif RE_DAY.match(date_string):
+    day = RE_DAY.match(date_string).groups()[0].lower()
     next_day = today + timedelta(days=1)
     while next_day.strftime("%a").lower() != day:
       next_day += timedelta(days=1)
     value = next_day
   
+  else:
+    parts = RE_SPLIT.split(date_string)
+    digits = [int(p)    for p in parts if re.match(r'^\d+$', p)]
+    words =  [p.lower() for p in parts if re.match(r'^[a-z]+$', p.lower())]
+    parts = digits + words
+    
+    if (len(parts) == 2 or len(parts) == 3) and len(words) <= 1:
+      m, d, y = None, None, None
+      
+      if words:
+        m = parse_month(words.pop())
+        
+      while digits:
+        max_d = max(digits)
+        if max_d > 31 and not y:
+          y = max_d
+          digits.remove(y)
+          continue
+        elif max_d > 12 and not d:
+          d = max_d
+          digits.remove(d)
+          continue
+
+        break
+    
+      digits.reverse()
+    
+      if digits and not m:
+        m = digits.pop()
+      if digits and not d:
+        d = digits.pop()
+      if digits and not y:
+        y = digits.pop()
+    
+      try:
+        if y:
+          if y < 100 and y > 50:
+            y += 1900
+          elif y <= 50:
+            y += 2000
+          elif y < 1950:
+            y = None
+            
+        else:
+          y = now.timetuple()[0]
+          if datetime(y, m, d) < today:
+            y += 1
+      
+        value = datetime(y, m, d)
+      
+      except:
+        pass
+      
+
   if value and output_utc:
     value += timedelta(minutes=offset_mins)
   
   return value
+  
+  
