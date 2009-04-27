@@ -5,17 +5,17 @@ from util.human_time import parse_date
 
 class HumanTimeTestCase(unittest.TestCase):
   months = [
-    ['jan', 'january', 'janu'],
-    ['feb', 'february'],
-    ['mar', 'march'], 
-    ['apr', 'april'],
-    ['may'],
-    ['jun', 'june'],
+    ['jan', 'january', 'janu', 'JAN', 'January'],
+    ['feb', 'february', 'FeB', 'February'],
+    ['mar', 'march', 'March'], 
+    ['apr', 'april', 'April'],
+    ['may', "MAY"],
+    ['jun', 'june', 'JUNE'],
     ['jul', 'july'],
-    ['aug', 'august'],
+    ['aug', 'august', "AUG"],
     ['sep', 'sept', 'september'],
     ['oct', 'october'],
-    ['nov', 'november'],
+    ['nov', 'november', "NOV"],
     ['dec', 'december'],
   ]
   
@@ -91,6 +91,7 @@ class HumanTimeTestCase(unittest.TestCase):
       'abc 1 2009',
       'poop a doop',
       'feb 31',
+      'fe 28 2009', # fe is not a month
       'feb 29 2009', # not a leap year
       '31 31',
       '2 1 202',
