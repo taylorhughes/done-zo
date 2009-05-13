@@ -15,6 +15,7 @@ body {
   background-color: #e9e6e6;
   margin: 0;
   padding: 0;
+  min-width: 700px;
 }
 body,
 .text-input {
