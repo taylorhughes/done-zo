@@ -1,0 +1,39 @@
+
+### TASKS ###
+
+{
+  id: id,
+  body: string,
+  project: string,
+  due_date: date,
+  contexts: [context string, context string],
+  task_list => task_list_id,
+  complete: true,
+  archived: true,
+  deleted: false,
+}
+
+/t      # POST => new task
+/t/123  # GET => task details
+/t/123  # POST => edit task details, returns new task details
+/t/123  # DELETE => delete task
+
+# GET => list all tasks for a task list
+/t/?task_list=<task_list_id>
+
+# GET => list all tasks updated since
+/t/?updated_since=<date> 
+
+### TASK LISTS ###
+
+{
+  id:      string,
+  name:    name,
+  deleted: false,
+}
+
+/l       # POST => new list
+/l       # GET => lists all task lists
+/l/tasks # POST => noop
+/l/tasks # DELETE => delete list
+
