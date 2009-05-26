@@ -92,6 +92,25 @@ class Task(db.Model):
   # Need this so we can filter it out in the archived tasks list
   deleted       = db.BooleanProperty(default=False)
 
+  def to_dict(self):
+    return {
+      'id': self.key().id(),
+      'created_at': str(self.real_created_at),
+
+      'body':     self.body,
+      'project':  self.project,
+      'contexts': self.contexts,
+      'due_date': str(self.due_date),
+
+      'complete': self.complete,
+      'archived': self.archived,
+      'deleted':  self.deleted,
+    }
+
+  def to_json(self):
+    from django.utils import simplejson as json
+    return json.dumps(self.to_dict())
+
   @permalink
   def get_absolute_url(self):
     return ('tasks.views.task', None, {
