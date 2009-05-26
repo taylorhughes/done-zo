@@ -8,8 +8,7 @@ urlpatterns = patterns('',
   (r'^account/transparent/$', 'tasks.views.transparent_settings'),
   
   #  /username/t/id => specific task
-  (r'^t/(?P<task_id>\d+)/$', 'tasks.views.task'),
-  (r'^t/$', 'tasks.views.task'),
+  (r'^t/(?:(?P<task_id>\d+)/)?$', 'tasks.views.task'),
   #  /username/u/id => undo
   (r'^u/(?P<undo_id>\d+)/$', 'tasks.views.undo'),
   
