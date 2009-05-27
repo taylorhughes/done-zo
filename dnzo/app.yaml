@@ -22,7 +22,11 @@ handlers:
 - url: /images
   static_dir: resources/images
   expiration: 30d
-  
+
+- url: /api/.+
+  script: api/main.py
+  login: required
+
 - url: /admin/.+
   script: common/appenginepatch/main.py
   login:  admin

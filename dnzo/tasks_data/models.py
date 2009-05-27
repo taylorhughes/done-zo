@@ -2,7 +2,7 @@
 from google.appengine.ext import db
 from google.appengine.api import users
 
-from django.db.models import permalink
+#from django.db.models import permalink
 
 import time
 
@@ -33,7 +33,7 @@ class TasksUser(db.Model):
   mru_projects  = db.StringListProperty()
   mru_contexts  = db.StringListProperty()
   
-  @permalink
+  #@permalink
   def get_absolute_url(self):
     return('tasks.views.redirect')
     
@@ -50,7 +50,7 @@ class TaskList(db.Model):
   def name_to_key_name(self,name):
     return "list(%s)" % name
     
-  @permalink
+  #@permalink
   def get_absolute_url(self):
     return ('tasks.views.list_index', None, {
       'task_list_name': self.short_name
@@ -111,7 +111,7 @@ class Task(db.Model):
     from django.utils import simplejson as json
     return json.dumps(self.to_dict())
 
-  @permalink
+  #@permalink
   def get_absolute_url(self):
     return ('tasks.views.task', None, {
       'task_id': self.key().id()
@@ -166,7 +166,7 @@ class Undo(db.Model):
       archived.append(db.get(key))
     return archived
 
-  @permalink
+  #@permalink
   def get_absolute_url(self):
     return ('tasks.views.undo', None, {
       'undo_id': self.key().id()
