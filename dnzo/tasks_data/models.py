@@ -2,8 +2,6 @@
 from google.appengine.ext import db
 from google.appengine.api import users
 
-#from django.db.models import permalink
-
 import time
 
 class TasksUser(db.Model):
@@ -32,11 +30,8 @@ class TasksUser(db.Model):
   # Autocompletes
   mru_projects  = db.StringListProperty()
   mru_contexts  = db.StringListProperty()
-  
-  #@permalink
-  def get_absolute_url(self):
-    return('tasks.views.redirect')
-    
+
+
 class TaskList(db.Model):
   name          = db.StringProperty()
   short_name    = db.StringProperty()
@@ -49,12 +44,6 @@ class TaskList(db.Model):
   @classmethod
   def name_to_key_name(self,name):
     return "list(%s)" % name
-    
-  #@permalink
-  def get_absolute_url(self):
-    return ('tasks.views.list_index', None, {
-      'task_list_name': self.short_name
-    })
 
 class Task(db.Model):
   task_list     = db.ReferenceProperty(TaskList, collection_name='tasks')
@@ -107,16 +96,6 @@ class Task(db.Model):
       'deleted':  self.deleted,
     }
 
-  def to_json(self):
-    from django.utils import simplejson as json
-    return json.dumps(self.to_dict())
-
-  #@permalink
-  def get_absolute_url(self):
-    return ('tasks.views.task', None, {
-      'task_id': self.key().id()
-    })
-
   def editing():
     def fset(self, value):
       self.__editing = value
@@ -128,6 +107,7 @@ class Task(db.Model):
   def __init__(self, *args, **kwargs):
     self.editing = False
     db.Model.__init__(self, *args, **kwargs)
+
   
 class Project(db.Model):
   @classmethod
@@ -137,12 +117,14 @@ class Project(db.Model):
   short_name   = db.StringProperty()
   created_at   = db.DateTimeProperty(auto_now_add=True)
 
+
 class Context(db.Model):
   @classmethod
   def name_to_key_name(self,name):
     return "context(%s)" % name
   name         = db.StringProperty()
   last_used_at = db.DateTimeProperty(auto_now_add=True)
+
 
 class Undo(db.Model):
   task_list      = db.ReferenceProperty(TaskList, collection_name='undos')
@@ -166,11 +148,6 @@ class Undo(db.Model):
       archived.append(db.get(key))
     return archived
 
-  #@permalink
-  def get_absolute_url(self):
-    return ('tasks.views.undo', None, {
-      'undo_id': self.key().id()
-    })
 
 class Invitation(db.Model):
   email_address = db.StringProperty()
