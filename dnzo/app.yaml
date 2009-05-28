@@ -25,7 +25,7 @@ handlers:
 
 - url: /api/.+
   script: api/main.py
-  login: required
+  #login: required
 
 - url: /admin/.+
   script: common/appenginepatch/main.py
