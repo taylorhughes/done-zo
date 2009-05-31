@@ -31,6 +31,10 @@ handlers:
   script: common/appenginepatch/main.py
   login:  admin
   
+- url: /test.*
+  login: admin
+  script: gaeunit.py
+  
 - url: /
   script: common/appenginepatch/main.py
   

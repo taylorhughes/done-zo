@@ -65,7 +65,9 @@ class TaskHandler(BaseAPIRequestHandler):
   @operates_on_task
   def delete(self, dnzo_user, task):
     """Deletes a given task."""
-    pass
+    from tasks_data.tasks import delete_task
+    delete_task(task)
+    self.json_response(task=task)
     
   @operates_on_task
   def put(self, dnzo_user, task):
