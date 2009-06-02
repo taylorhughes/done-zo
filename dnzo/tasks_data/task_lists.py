@@ -9,6 +9,10 @@ import tasks_data.counting as counting
 MAX_LIST_NAME_LENGTH = 30
 MAX_TASK_LISTS       = 10
 
+# This is the default list name
+DEFAULT_LIST_NAME = 'Tasks'
+
+
 ### MEMCACHING ###
 
 def user_lists_key(user):
@@ -28,7 +32,6 @@ def get_task_list(user, name):
 def add_task_list(user, list_name):
   def txn(old_user, list_name):
     user = db.get(old_user.key())
-    
     if not can_add_list(user):
       return None
     
@@ -42,10 +45,11 @@ def add_task_list(user, list_name):
       key_name=TaskList.name_to_key_name(short_name),
       short_name=short_name,
       name=list_name)
+      
     new_list.put()
     
     return short_name
-    
+  
   short_name = db.run_in_transaction(txn, user, list_name[:MAX_LIST_NAME_LENGTH])
   
   if short_name:

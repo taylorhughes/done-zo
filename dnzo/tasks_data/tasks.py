@@ -1,3 +1,5 @@
+# coding=utf-8
+
 from google.appengine.api import memcache
 from google.appengine.ext import db
 
@@ -22,7 +24,24 @@ MAX_ACTIVE_TASKS   = 100
 
 # Number of tasks to limit in queries
 RESULT_LIMIT = 100
-  
+
+# This is the default set of tasks added for new users
+# This collection is parsed the same way user input is parsed
+DEFAULT_TASKS = (
+  {
+    'body':     u'Welcome to DNZO!'
+  },{
+    'project':  u'DNZO',
+    'body':     u'← You can organize your tasks by project',
+  },{
+    'body':     u'... or by "context", which could mean where you need to be to complete the task. →',
+    'contexts': u'home',
+  },{
+    'body':     u'You can also add due dates! →',
+    'due_date': u'today',
+  },
+)
+
 ### TASKS ###
 
 def get_tasks_from_datastore(task_list):

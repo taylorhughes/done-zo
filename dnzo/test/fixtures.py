@@ -1,17 +1,27 @@
-from google.appengine.api import users
+import logging
 
-from public.views import DEFAULT_LIST_NAME, DEFAULT_TASKS
+from google.appengine.api import users, memcache
+
+from tasks_data.task_lists import DEFAULT_LIST_NAME
+from tasks_data.tasks import DEFAULT_TASKS
 
 from tasks_data.models import *
 from tasks_data.users import create_user
 
 MODELS = (Task, TaskList, TasksUser, Project, Context, Undo)
-DUMMY_USER_ADDRESS = 'ima@user.com'
 
-def destroy_fixtures():
+DUMMY_USER_ADDRESS = 'ima@user.com'
+ANOTHER_USER_ADDRESS = 'another@user.com'
+
+def destroy_fixtures():    
   for klass in MODELS:
     for obj in klass.all():
       obj.delete()
+      
+  if memcache.flush_all():
+    logging.info("Flushed cache.")
+  else:
+    logging.error("Failed to flush cache!")
       
 def fixture_user():
   return users.User(DUMMY_USER_ADDRESS)
@@ -21,6 +31,8 @@ def fixture_dnzo_user():
   
 def create_fixtures():
   create_user(fixture_user(), DEFAULT_LIST_NAME, DEFAULT_TASKS)
+  # Create another user so we have some other stuff in the datastore to *not* see
+  create_user(users.User(ANOTHER_USER_ADDRESS), DEFAULT_LIST_NAME, DEFAULT_TASKS)
       
 def setup_fixtures():
   destroy_fixtures()

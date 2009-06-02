@@ -57,7 +57,7 @@ def save_user(user):
   
 def create_user(current_user, list_name, default_tasks=None):
   from tasks_data.task_lists import add_task_list
-  
+
   # Create a default new list for this user
   new_user = TasksUser(user=current_user, email=current_user.email().lower())
   save_user(new_user)
@@ -66,7 +66,7 @@ def create_user(current_user, list_name, default_tasks=None):
 
   # add new list for this user
   tasks_list = add_task_list(new_user, list_name)
-  
+
   # add new default tasks for this user
   from tasks_data.models import Task
   from tasks_data.tasks  import update_task_with_params, save_task
