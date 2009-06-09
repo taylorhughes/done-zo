@@ -1,6 +1,4 @@
-{% extends "layouts/logged_in.html" %}
-
-{% load tasks_library %}
+{% extends "../layouts/logged_in.html" %}
 
 {% block page_title %}DNZO / {{ task_list.name }}{% if filter_title %} / {{ filter_title }}{% endif %}{% endblock %}
 
@@ -31,11 +29,11 @@
     {% sorting_header "Due" "due" %}
   </tr>
   {% for task in tasks %}
-    {% include "tasks/tasks/task.html" %}
+    {% include "tasks/task.html" %}
   {% endfor %}
   <tr id="add_row">
     <td></td>
-    <td colspan="6"><a href="{% url tasks.views.task %}">Add task</a></td>
+    <td colspan="6"><a href="{% dnzo_url task %}">Add task</a></td>
   </tr>
 </table>
 
@@ -43,17 +41,17 @@
 <p>Results limited to {{ max_records }} items.</p>
 {% endif %}
 
-<form method="POST" id="tasks_form" action="{% url tasks.views.task %}?task_list={{task_list.short_name}}">
+<form method="POST" id="tasks_form" action="{% dnzo_url task %}?task_list={{task_list.short_name}}">
   <table id="new_task_table">
-  {% with new_task as task %}
-    {% include "tasks/tasks/task.html" %}
-  {% endwith %}
+  {% for task in new_tasks %}
+    {% include "tasks/task.html" %}
+  {% endfor %}
   </table>
 </form>
 {% endblock %}
 
 {% block footer %}
-<form action="{% url tasks.views.purge_list task_list.short_name %}" method="POST">
+<form action="{% dnzo_url purge_list task_list.short_name %}" method="POST">
 <p id="archive">
     <input type="submit" value="Archive completed tasks">&nbsp;
 </p>
@@ -61,9 +59,9 @@
 
 <div id="new-delete">
 {% if not task_lists|length_is:1 %}
-<p><a href="{% url tasks.views.delete_list task_list.short_name %}">Delete list</a></p>
+<p><a href="{% dnzo_url delete_list task_list.short_name %}">Delete list</a></p>
 {% endif %}
-<form action="{% url tasks.views.add_list %}" method="GET">
+<form action="{% dnzo_url add_list %}" method="GET">
   <input type="submit" value="Add list" id="add_list"{% if not can_add_list %} disabled="disabled"{% endif %}>&nbsp;
 </form>
 </div>

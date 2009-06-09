@@ -1,84 +1,80 @@
-# coding=utf-8
 
 from google.appengine.api.users import create_logout_url, create_login_url, get_current_user, is_current_user_admin
 
-from django.core.urlresolvers import reverse as reverse_url
-from django.shortcuts import render_to_response
+from application_handler import DNZORequestHandler
 
-from tasks.redirects import default_list_redirect, most_recent_redirect
-
-from tasks_data.users import get_dnzo_user
-
+from urls import map_url
 import environment
+import logging
 
-def welcome(request):
-  dnzo_user = get_dnzo_user()
-  if dnzo_user:
-    return most_recent_redirect(dnzo_user)
+class WelcomeHandler(DNZORequestHandler):
+  def get(self):
+    if self.dnzo_user:
+      self.most_recent_redirect()
+      return
+    
+    nickname = None
+    current_user = get_current_user()
+    if current_user:
+      nickname = current_user.nickname()
+  
+    return self.render("public/index.html",
+      nickname=nickname,
+      logout_url=create_logout_url('/'),
+      login_url=create_login_url(map_url('redirect')),
+      is_development=environment.IS_DEVELOPMENT
+    )
 
-  nickname = None
-  current_user = get_current_user()
-  if current_user:
-    nickname = current_user.nickname()
+class SignupHandler(DNZORequestHandler):
+  def get(self):  
+    if self.dnzo_user:
+      self.most_recent_redirect()
+      return
+    
+    from tasks_data.misc import get_invitation_by_address
+    from tasks_data.users import create_user
+    from tasks_data.runtime_settings import get_setting
+    
+    current_user = get_current_user()
+    allowed      = False
+    invitation   = None
   
-  return render_to_response("public/index.html", {
-    'nickname': nickname,
-    'logout_url': create_logout_url('/'),
-    'login_url': create_login_url(reverse_url('tasks.views.redirect')),
-    'is_development': environment.IS_DEVELOPMENT
-  })
+    if get_setting('registration_open'):
+      allowed = True
+    elif is_current_user_admin():
+      allowed = True
+    else:
+      invitation = get_invitation_by_address(current_user.email())
+      allowed = invitation is not None
   
-def closed(request):
-  nickname = None
-  current_user = get_current_user()
-  if current_user:
-    nickname = current_user.nickname()
-  
-  return render_to_response("public/signup/closed.html", {
-    'nickname': nickname,
-    'logout_url': create_logout_url('/'),
-    'is_development': environment.IS_DEVELOPMENT
-  })
+    if not allowed:
+      self.redirect(map_url('signup_closed'))
+      return
 
-def signup(request):
-  from django.core.urlresolvers import reverse as reverse_url
-  from django.http import HttpResponseRedirect
+    from tasks_data.models import TasksUser
+    from tasks_data.tasks import DEFAULT_TASKS
+    from tasks_data.task_lists import DEFAULT_LIST_NAME
   
-  current_user = get_dnzo_user()
-  if current_user:
-    return HttpResponseRedirect(reverse_url('tasks.views.redirect'))
+    self.dnzo_user = create_user(current_user, DEFAULT_LIST_NAME, DEFAULT_TASKS)
   
-  from tasks_data.misc import get_invitation_by_address
-  from tasks_data.users import create_user
-  from tasks_data.runtime_settings import get_setting
-  
-  current_user = get_current_user()
-  allowed      = False
-  invitation   = None
-  
-  if get_setting('registration_open'):
-    allowed = True
-  elif is_current_user_admin():
-    allowed = True
-  else:
-    invitation = get_invitation_by_address(current_user.email())
-    allowed = invitation is not None
-  
-  if not allowed:
-    return HttpResponseRedirect(reverse_url('public.views.closed'))
+    if invitation:
+      from datetime import datetime
+      invitation.registered_at = datetime.now()
+      invitation.put()
+      
+    self.default_list_redirect()
 
-  from tasks_data.models import TasksUser
-  from tasks_data.tasks import DEFAULT_TASKS
-  from tasks_data.task_lists import DEFAULT_LIST_NAME
+class ClosedHandler(DNZORequestHandler):
+  def get(self):
+    nickname = None
+    current_user = get_current_user()
+    if current_user:
+      nickname = current_user.nickname()
   
-  new_user = create_user(current_user, DEFAULT_LIST_NAME, DEFAULT_TASKS)
-  
-  if invitation:
-    from datetime import datetime
-    invitation.registered_at = datetime.now()
-    invitation.put()
-  
-  return default_list_redirect(new_user)
-
+    self.render("public/signup/closed.html",
+      nickname=nickname,
+      logout_url=create_logout_url('/'),
+      is_development=environment.IS_DEVELOPMENT
+    )
   
   

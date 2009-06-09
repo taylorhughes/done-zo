@@ -5,17 +5,22 @@
 import re
 
 def param(name, collection, default=None):
-  if name in collection:
-    return collection[name].strip()
+  if hasattr(collection, 'get'):
+    return collection.get(name, default)
+  elif name in collection:
+    return str(collection[name]).strip()
   return default
-
-def is_ajax(request):
-  ajax_header = 'HTTP_X_REQUESTED_WITH'
-  return (ajax_header in request.META and request.META[ajax_header] == 'XMLHttpRequest')
   
-def slugify(string):
-  from django.template.defaultfilters import slugify
-  return str(slugify(string))
+def slugify(value):
+    """
+    Stolen from Django 1.0.2:
+    Normalizes string, converts to lowercase, removes non-alpha characters,
+    and converts spaces to hyphens.
+    """
+    import unicodedata
+    value = unicodedata.normalize('NFKD', unicode(value)).encode('ascii', 'ignore')
+    value = unicode(re.sub('[^\w\s-]', '', value).strip().lower())
+    return str(re.sub('[-\s]+', '-', value))
   
 def indexize(string):
   if not string:
@@ -24,11 +29,6 @@ def indexize(string):
   string = re.sub(r'\s+', ' ', string)
   string = re.sub(r'[^0-9a-z\s]+', '', string)
   return string
-  
-def get_referer(request):
-  if 'HTTP_REFERER' in request.META:
-    return request.META['HTTP_REFERER']
-  return None
   
 def zpad(string):
   if not string:

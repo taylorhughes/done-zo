@@ -28,7 +28,7 @@ class BaseAPIRequestHandler(webapp.RequestHandler):
     self.error(404)
     self.json_response(error="Not found")
 
-class TasksHandler(BaseAPIRequestHandler):
+class APITasksHandler(BaseAPIRequestHandler):
   @dnzo_login_required
   def get(self, dnzo_user):
     """Return all tasks, optionally filtered on various querystring parameters."""
@@ -45,7 +45,7 @@ class TasksHandler(BaseAPIRequestHandler):
     newly created task as a JSON object."""
     pass
 
-class TaskHandler(BaseAPIRequestHandler):
+class APITaskHandler(BaseAPIRequestHandler):
   def operates_on_task(fn):
     """Decorator for a TaskHandler task to """
     @dnzo_login_required
@@ -74,7 +74,7 @@ class TaskHandler(BaseAPIRequestHandler):
     """Modify the attributes of an existing task."""
     pass
     
-class TaskListHandler(BaseAPIRequestHandler):
+class APITaskListHandler(BaseAPIRequestHandler):
   @dnzo_login_required
   def get(self, task_list_name):
     """Returns the name of a task and how many tasks are in it."""
@@ -84,7 +84,7 @@ class TaskListHandler(BaseAPIRequestHandler):
     """Deletes a task list."""
     pass
   
-class TaskListsHandler(BaseAPIRequestHandler):
+class APITaskListsHandler(BaseAPIRequestHandler):
   def get(self):
     """Returns a list of all the task lists in the system."""
     pass

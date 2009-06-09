@@ -1,4 +1,3 @@
-{% load tasks_library %}
 <!DOCTYPE HTML>
 <html>
 <head>
@@ -6,23 +5,23 @@
   <title>{% block page_title %}{% endblock %}</title>
 
   {% css_tag style %}
-  {% include "tasks/js_vars.js" %}
+  {% include "../tasks/js_vars.js" %}
 </head>
 <body>
   
   <div id="header">
     <p id="branding-lists">
       <span>DNZO</span>&nbsp;
-      {% include "tasks/switcher.html" %}
+      {% include "../tasks/switcher.html" %}
     </p>
     <p id="user">
       <strong>{{ user.user.nickname }}</strong> -
-      <a href="{% url tasks.views.settings %}" class="dialog">Settings</a> -
+      <a href="{% dnzo_url settings %}" class="dialog">Settings</a> -
       <a href="{{ logout_url }}">Sign out</a>
     </p>
   </div>  <!-- end DIV header -->
   
-  {% include "tasks/status.html" %}
+  {% include "../tasks/status.html" %}
   
   <div id="body">
     {% block preheader %}{% endblock %}

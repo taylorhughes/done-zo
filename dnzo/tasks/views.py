@@ -1,161 +1,111 @@
-from django.shortcuts import render_to_response
-from django.http import Http404
-from django.views.decorators.cache import never_cache
 
 from tasks_data.models     import Task
 from tasks_data.tasks      import get_tasks, RESULT_LIMIT
 from tasks_data.users      import get_dnzo_user, record_user_history
 from tasks_data.task_lists import get_task_list, get_task_lists, can_add_list
+  
+import environment
+from google.appengine.api.users import create_logout_url
 
-from tasks.redirects import default_list_redirect, most_recent_redirect, list_redirect, access_error_redirect, referer_redirect
-from tasks.statusing import get_status_undo, set_status_undo, reset_status_undo
-
-from util.misc       import param, is_ajax, slugify
+import logging
 
 #### VIEWS ####
 
-@never_cache
-def list_index(request, task_list_name=None, context_name=None, project_index=None, due_date=None):
-  user = get_dnzo_user()
-  if not user:
-    return access_error_redirect()
-  
-  task_list = get_task_list(user, task_list_name)
-  if not task_list or task_list.deleted:
-    raise Http404
+from application_handler import DNZORequestHandler, dnzo_login_required
 
-  record_user_history(user, request)
-  
-  # FILTER 
-  filter_title = None
-  view_project = None
-  view_project_name = None
-  if project_index:
-    from tasks_data.misc import get_project_by_short_name
-    view_project_name = get_project_by_short_name(user, project_index)
-    if view_project_name:
-      filter_title = view_project_name
-      view_project = project_index
+def operates_on_task_list(fn):
+  @dnzo_login_required
+  def wrapper(self, task_list_name, *args):
+    task_list = get_task_list(self.dnzo_user, task_list_name)
+    if not task_list or task_list.deleted:
+      self.not_found()
     else:
-      return list_redirect(user, task_list)
-  view_context = None
-  if context_name:
-    view_context = context_name
-    filter_title = "@%s" % context_name
-  view_date = None
-  if due_date:
-    from util.human_time import parse_date
-    from django.template.defaultfilters import date
+      fn(self, task_list, *args)
+
+  return wrapper
+
+class DNZOLoggedInRequestHandler(DNZORequestHandler):
+  def always_includes(self):
+    previous = super(DNZOLoggedInRequestHandler,self).always_includes()
+    previous.update({
+      'request_uri': self.request.url,
+      'task_lists': get_task_lists(self.dnzo_user),
+      'can_add_list': can_add_list(self.dnzo_user),
+      'is_production': environment.IS_PRODUCTION,
+      'max_records': RESULT_LIMIT,
+      'logout_url': create_logout_url('/'),
+    })
+    return previous
+
+class TaskListHandler(DNZOLoggedInRequestHandler):
+  @operates_on_task_list
+  def get(self, task_list, project_index=None, context_name=None, due_date=None):
+    record_user_history(self.dnzo_user, self.request)
+  
+    # FILTER 
+    filter_title = None
+    view_project = None
+    view_project_name = None
+    if project_index:
+      from tasks_data.misc import get_project_by_short_name
+      view_project_name = get_project_by_short_name(self.dnzo_user, project_index)
+      if view_project_name:
+        filter_title = view_project_name
+        view_project = project_index
+      else:
+        self.list_redirect(task_list)
+        return
+        
+    view_context = None
+    if context_name:
+      view_context = context_name
+      filter_title = "@%s" % context_name
+    view_date = None
+    if due_date:
+      from util.human_time import parse_date
     
-    view_date = parse_date(due_date)
+      view_date = parse_date(due_date)
+      if view_date:
+        filter_title = view_date.strftime('%m-%d-%Y')
+
+    tasks = get_tasks(task_list, 
+                      context=view_context, 
+                      project_index=view_project, 
+                      due_date=view_date)
+  
+    # SHOW STATUS MESSAGE AND UNDO
+    status, undo = self.get_status_undo()
+    
+    new_task_attrs = {'body': '', 'parent': self.dnzo_user}
+    if view_context:
+      new_task_attrs['contexts'] = [view_context]
+    if view_project:
+      new_task_attrs['project'] = view_project_name
     if view_date:
-      filter_title = date(view_date, 'n-j-y')
-
-  tasks = get_tasks(task_list, 
-                    context=view_context, 
-                    project_index=view_project, 
-                    due_date=view_date)
+      new_task_attrs['due_date'] = view_date
   
-  # SHOW STATUS MESSAGE AND UNDO
-  status, undo = get_status_undo(request)
-  
-  new_task_attrs = {'body': '', 'parent': user}
-  if view_context:
-    new_task_attrs['contexts'] = [view_context]
-  if view_project:
-    new_task_attrs['project'] = view_project_name
-  if view_date:
-    new_task_attrs['due_date'] = view_date
-  
-  new_task = Task(**new_task_attrs)
-  new_task.editing = True
+    new_task = Task(**new_task_attrs)
+    new_task.editing = True
     
-  response = render_to_response('tasks/index.html', always_includes({
-    'tasks': tasks,
-    'task_list': task_list,
-    'filter_title': filter_title,
-    'status': status,
-    'undo': undo,
-    'new_task': new_task,
-  }, request, user))
-  
-  reset_status_undo(response,status,undo)
-  
-  return response
+    self.render('tasks/index.html', 
+      tasks=tasks,
+      task_list=task_list,
+      filter_title=filter_title,
+      status=status,
+      undo=undo,
+      new_tasks=[new_task],
+    )
 
-@never_cache
-def archived_index(request, task_list_name=None, context_name=None, project_index=None):
-  user = get_dnzo_user()
-  if not user:
-    return access_error_redirect()
-
-  from util.human_time import parse_date, HUMAN_RANGES
-  
-  offset=0
-  if user.timezone_offset_mins:
-    offset = user.timezone_offset_mins
-  
-  given_range  = param('range', request.GET, None)
-
-  start = param('start', request.GET, None)
-  start = parse_date(start, user.timezone_offset_mins or 0, output_utc=True)
-  stop  = param('stop', request.GET, None)
-  stop  = parse_date(stop,  user.timezone_offset_mins or 0, output_utc=True)
-
-  filter_title = None
-  if start is not None and stop is not None:
-    from django.template.defaultfilters import date
-    
-    filter_title = '%s to %s' % (date(start,'n-j-y'), date(stop,'n-j-y'))
-
-  else:
-    range_slugs = [r['slug'] for r in HUMAN_RANGES]
-    try:
-      index = range_slugs.index(given_range)
-    except:
-      given_range = 'this-week'
-      index = range_slugs.index(given_range)
-      
-    start, stop  = HUMAN_RANGES[index]['range'](offset)
-    filter_title = HUMAN_RANGES[index]['name']
-  
-  gql = 'WHERE ANCESTOR IS :user AND archived=:archived AND deleted=:deleted ' + \
-        'AND completed_at >= :start AND completed_at < :stop ORDER BY completed_at DESC'
-
-  tasks = Task.gql(gql, 
-    user=user,
-    archived=True,
-    deleted=False,
-    start=start,
-    stop=stop
-  ).fetch(RESULT_LIMIT)
-    
-  return render_to_response('tasks/archived.html', always_includes({
-    'tasks': tasks,
-    'stop':  stop,
-    'start': start,
-    'ranges': HUMAN_RANGES,
-    'chosen_range': given_range,
-    'filter_title': filter_title
-  }, request, user))
-
-@never_cache
-def purge_list(request, task_list_name):
-  user = get_dnzo_user()
-  if not user:
-    return access_error_redirect()
-  
-  task_list = get_task_list(user, task_list_name)
-  if not task_list:
-    raise Http404
-    
-  from tasks_data.task_lists import archive_tasks
-  from tasks_data.misc import create_undo
-  
-  undo = None
-  status = None
-  if request.method == "POST":
+class PurgeTaskListHandler(DNZOLoggedInRequestHandler):
+  @operates_on_task_list
+  def post(self, task_list, project_index=None, context_name=None, due_date=None):
+    from tasks_data.task_lists import archive_tasks
+    from tasks_data.misc import create_undo
     from statusing import Statuses
+  
+    undo = None
+    status = None
+
     archived_tasks = archive_tasks(task_list)
     if len(archived_tasks) == 0:
       status = Statuses.TASKS_NOT_PURGED
@@ -163,274 +113,179 @@ def purge_list(request, task_list_name):
       undo = create_undo(user, task_list=task_list, archived_tasks=archived_tasks)
       status = Statuses.TASKS_PURGED
   
-  redirect = referer_redirect(user,request)
-  
-  if status or undo:
-    set_status_undo(redirect,status,undo)
-  
-  return redirect
-
-@never_cache
-def delete_list(request, task_list_name):
-  user = get_dnzo_user()
-  if not user:
-    return access_error_redirect()
-  
-  task_list = get_task_list(user, task_list_name)
-  if not task_list:
-    raise Http404
-  
-  from tasks_data.task_lists import delete_task_list
-  from tasks_data.misc import create_undo
-  
-  undo = None
-  if len(get_task_lists(user)) > 1:
-    delete_task_list(user, task_list)
-    undo = create_undo(user, request=request, task_list=task_list, list_deleted=True, return_to_referer=True)
-  
-  redirect = default_list_redirect(user)
-  
-  if undo and undo.is_saved():
-    from statusing import Statuses
-    set_status_undo(redirect,Statuses.LIST_DELETED,undo)
-  
-  return redirect
-
-@never_cache
-def add_list(request):
-  user = get_dnzo_user()
-  if not user:
-    return access_error_redirect()
-  
-  from tasks_data.task_lists import add_task_list
-  
-  new_name = param('name', request.POST, '')
-  new_list = None
-  if request.method == "POST":
-    if len(slugify(new_name)) > 0:
-      new_list = add_task_list(user, new_name)
-      if new_list:
-        return list_redirect(user, new_list)
+    if status or undo:
+      self.set_status_undo(status,undo)
       
-  elif is_ajax(request): # GET
-    return render_to_response('tasks/lists/add.html', {
-      'user': user
-    })
-    
-  return referer_redirect(user,request)
-
-@never_cache
-def undo(request, undo_id):
-  user = get_dnzo_user()
-  if not user:
-    return access_error_redirect()
-
-  from tasks_data.misc import do_undo
-  from tasks_data.models import Undo
-  from tasks_data.users import users_equal
-
-  task_list = None
-  try:
-    undo = Undo.get_by_id(int(undo_id), parent=user)
+    self.referer_redirect()
       
-    if undo:
-      if not users_equal(undo.parent(), user):
-        return access_error_redirect()
-      do_undo(user, undo)
-      task_list = undo.task_list
-          
-  except:
-    import logging
-    logging.exception("Error undoing!")
-  
-  if undo.return_uri:
-    from django.http import HttpResponseRedirect
-    return HttpResponseRedirect(undo.return_uri)
+class DeleteTaskListHandler(DNZOLoggedInRequestHandler):
+  @operates_on_task_list
+  def get(self, task_list, project_index=None, context_name=None, due_date=None):
+    pass
     
-  else:
-    return referer_redirect(user, request)
+    
 
-@never_cache
-def task(request, task_id=None):
-  user = get_dnzo_user()
-  if not user:
-    return access_error_redirect()
+class ArchivedListHandler(DNZOLoggedInRequestHandler):
+  @dnzo_login_required
+  def get(self):
+    from util.human_time import parse_date, HUMAN_RANGES
   
-  if task_id:
-    task = Task.get_by_id(int(task_id), parent=user)
-    if not task:
-      raise Http404
-  else:
-    task = Task(parent=user, body='')
-    
-  from tasks_data.tasks import update_task_with_params, save_task
-    
-  force_complete   = param('force_complete', request.POST, None)
-  force_uncomplete = param('force_uncomplete', request.POST, None)
-  force_delete     = param('delete', request.GET, None)
+    offset=0
+    if self.dnzo_user.timezone_offset_mins:
+      offset = self.dnzo_user.timezone_offset_mins
   
-  task_above = param('task_above', request.POST, None)
-  task_below = param('task_below', request.POST, None)
-  
-  status = None
-  undo = None
-  
-  if force_complete or force_uncomplete:
-    if force_complete:
-      from datetime import datetime
-      task.complete = True
-      task.completed_at = datetime.utcnow()
-    if force_uncomplete: 
-      task.complete = False
-      task.completed_at = None
-    
-    save_task(user, task)
+    given_range  = self.request.get('range', None)
 
-    task = None
+    start = self.request.get('start', None)
+    start = parse_date(start, self.dnzo_user.timezone_offset_mins or 0, output_utc=True)
+    stop  = self.request.get('stop', None)
+    stop  = parse_date(stop,  self.dnzo_user.timezone_offset_mins or 0, output_utc=True)
+
+    filter_title = None
+    if start is not None and stop is not None:
+      from django.template.defaultfilters import date
+    
+      filter_title = '%s to %s' % (date(start,'n-j-y'), date(stop,'n-j-y'))
+
+    else:
+      range_slugs = [r['slug'] for r in HUMAN_RANGES]
+      try:
+        index = range_slugs.index(given_range)
+      except:
+        given_range = 'this-week'
+        index = range_slugs.index(given_range)
+      
+      start, stop  = HUMAN_RANGES[index]['range'](offset)
+      filter_title = HUMAN_RANGES[index]['name']
+  
+    gql = 'WHERE ANCESTOR IS :user AND archived=:archived AND deleted=:deleted ' + \
+          'AND completed_at >= :start AND completed_at < :stop ORDER BY completed_at DESC'
+
+    tasks = Task.gql(gql, 
+      user=self.dnzo_user,
+      archived=True,
+      deleted=False,
+      start=start,
+      stop=stop
+    ).fetch(RESULT_LIMIT)
+    
+    self.render('tasks/archived.html',
+      tasks=tasks,
+      stop=stop,
+      start=start,
+      ranges=HUMAN_RANGES,
+      chosen_range=given_range,
+      filter_title=filter_title
+    )
+    
+class TaskHandler(DNZOLoggedInRequestHandler):
+  @dnzo_login_required
+  def get(self, task_id=None):
+    self.post(task_id)
+  
+  @dnzo_login_required
+  def post(self, task_id=None):
+    if task_id:
+      task = Task.get_by_id(int(task_id), parent=self.dnzo_user)
+      if not task:
+        self.not_found()
+        return
+    else:
+      task = Task(parent=user, body='')
+    
+    from tasks_data.tasks import update_task_with_params, save_task
+    
+    force_complete   = self.request.get('force_complete', None)
+    force_uncomplete = self.request.get('force_uncomplete', None)
+    force_delete     = self.request.get('delete', None)
+  
+    task_above = self.request.get('task_above', None)
+    task_below = self.request.get('task_below', None)
+  
+    status = None
+    undo = None
+  
+    if force_complete or force_uncomplete:
+      if force_complete:
+        from datetime import datetime
+        task.complete = True
+        task.completed_at = datetime.utcnow()
+      if force_uncomplete: 
+        task.complete = False
+        task.completed_at = None
+    
+      save_task(self.dnzo_user, task)
+
+      task = None
         
-  elif force_delete:
-    from tasks_data.tasks import delete_task
-    from tasks_data.misc import create_undo
-    from tasks.statusing import get_status_message, Statuses
-    status = get_status_message(Statuses.TASK_DELETED)
-    delete_task(user,task)
-    undo = create_undo(user, task_list=task.task_list, deleted_tasks=[task])
+    elif force_delete:
+      from tasks_data.tasks import delete_task
+      from tasks_data.misc import create_undo
+      from tasks.statusing import get_status_message, Statuses
+      status = get_status_message(Statuses.TASK_DELETED)
+      delete_task(self.dnzo_user,task)
+      undo = create_undo(self.dnzo_user, task_list=task.task_list, deleted_tasks=[task])
 
-    task = None
+      task = None
     
-  elif task_above is not None or task_below is not None:
-    before, after = None, None
-    if task_above:
-      task_above = Task.get_by_id(int(task_above), parent=user)
+    elif task_above is not None or task_below is not None:
+      before, after = None, None
       if task_above:
-        before = task_above.created_at
-    if task_below:
-      task_below = Task.get_by_id(int(task_below), parent=user)
+        task_above = Task.get_by_id(int(task_above), parent=self.dnzo_user)
+        if task_above:
+          before = task_above.created_at
       if task_below:
-        after = task_below.created_at
+        task_below = Task.get_by_id(int(task_below), parent=self.dnzo_user)
+        if task_below:
+          after = task_below.created_at
         
-    from datetime import datetime, timedelta
-    new_sort = None  
-    if before and after:
-      new_sort = before + ((after - before) / 2)
-    elif before:
-      # last task
-      new_sort = datetime.utcnow()
-    elif after:
-      # first task
-      new_sort = after - timedelta(hours=1)
+      from datetime import datetime, timedelta
+      new_sort = None  
+      if before and after:
+        new_sort = before + ((after - before) / 2)
+      elif before:
+        # last task
+        new_sort = datetime.utcnow()
+      elif after:
+        # first task
+        new_sort = after - timedelta(hours=1)
     
-    if new_sort:
-      task.created_at = new_sort
-      save_task(user, task)
+      if new_sort:
+        task.created_at = new_sort
+        save_task(self.dnzo_user, task)
       
-    task = None
+      task = None
     
-  elif request.method == "POST":
-    update_task_with_params(user, task, request.POST)
+    else:
+      update_task_with_params(self.dnzo_user, task, self.request)
 
-    task_list = param('task_list',request.GET,None)
-    if task_list:
-      task.task_list = get_task_list(user, task_list)
+      task_list = self.request.get('task_list',None) and get_task_list(self.dnzo_user, task_list)
+      if task_list:
+        task.task_list = task_list
+      elif not task.task_list:
+        self.not_found()
+        return
 
-    save_task(user, task)
+      save_task(self.dnzo_user, task)
   
-  if undo:
-    undo = undo.key().id()
+    if undo:
+      undo = undo.key().id()
   
-  from environment import IS_DEVELOPMENT
-  if IS_DEVELOPMENT:
-    # simulate this call taking longer as is normal in production
-    from time import sleep
-    from random import random
-    sleep(random())
+    from environment import IS_DEVELOPMENT
+    if IS_DEVELOPMENT:
+      # simulate this call taking longer as is normal in production
+      from time import sleep
+      from random import random
+      sleep(random())
   
-  if not is_ajax(request):
-    return referer_redirect(user, request)
+    if not self.is_ajax():
+      self.referer_redirect()
     
-  else:
-    return render_to_response('tasks/tasks/ajax_task.html', {
-      'user': user,
-      'task': task,
-      'status': status,
-      'undo': undo,
-      'task_list': task and task.task_list
-    })
-    
-@never_cache
-def settings(request):
-  user = get_dnzo_user()
-  if not user:
-    return access_error_redirect()
-    
-  if request.method == "POST":
-    from tasks_data.users import save_user
-    
-    user.hide_project  = param('show_project',  request.POST, None) is None
-    user.hide_contexts = param('show_contexts', request.POST, None) is None
-    user.hide_due_date = param('show_due_date', request.POST, None) is None
-    
-    save_user(user)
-    
-  elif is_ajax(request):
-    return render_to_response('tasks/settings.html', {
-      'user': user
-    })
-
-  return referer_redirect(user, request)
-
-@never_cache
-def transparent_settings(request):
-  user = get_dnzo_user()
-  if not user:
-    return access_error_redirect()
-    
-  if request.method == "POST":
-    from tasks_data.users import save_user
-    
-    offset = param('offset', request.POST, None)
-    try:
-      user.timezone_offset_mins = int(offset)
-      save_user(user)
-      
-    except:
-      import logging
-      logging.error("Couldn't update timezone offset to %s" % offset)
-    
-  if is_ajax(request):
-    from django.http import HttpResponse
-    return HttpResponse("OK")
-  else:
-    return referer_redirect(user, request)
-
-@never_cache
-def redirect(request, username=None):
-  user = get_dnzo_user()
-  if user:
-    return most_recent_redirect(user)
-  else:
-    from django.core.urlresolvers import reverse as reverse_url
-    from django.http import HttpResponseRedirect
-    return HttpResponseRedirect(reverse_url('public.views.signup'))
-
-#### UTILITY METHODS ####
-
-def always_includes(params=None, request=None, user=None):
-  if not params:
-    params = {}
-    
-  if request:
-    params['request_uri']  = request.get_full_path()
-  if user:
-    params['task_lists']   = get_task_lists(user)
-    params['user']         = user
-    params['can_add_list'] = can_add_list(user)
-  
-  import environment
-  from google.appengine.api.users import create_logout_url
-  
-  params['is_production']  = environment.IS_PRODUCTION
-  params['logout_url']     = create_logout_url('/')
-  params['max_records']    = RESULT_LIMIT
-  
-  return params
+    else:
+      self.render('tasks/tasks/ajax_task.html',
+        user=self.dnzo_user,
+        task=task,
+        status=status,
+        undo=undo,
+        task_list=(task and task.task_list)
+      )

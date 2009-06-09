@@ -1,6 +1,4 @@
-{% extends "layouts/logged_in.html" %}
-
-{% load tasks_library %}
+{% extends "../layouts/logged_in.html" %}
 
 {% block page_title %}DNZO / Archived Tasks{% endblock %}
 
@@ -18,7 +16,7 @@
     {% endfor %}
     <span>or</span>
   </p>
-  <form method="get" action="{% url tasks.views.archived_index %}">
+  <form method="get" action="{% url ArchivedListHandler %}">
     <input type="text" value="{{ start|adjust_date:user|date:"n/j/y" }}" class="date" name="start"> to
     <input type="text" value="{{ stop|adjust_date:user|date:"n/j/y" }}" class="date" name="stop">
     <input type="submit" value="go">
@@ -37,7 +35,7 @@
   </tr>
 {% if tasks %}
   {% for task in tasks %}
-    {% include "tasks/tasks/archived_task.html" %}
+    {% include "tasks/archived_task.html" %}
   {% endfor %}
 {% else %}
   <tr>

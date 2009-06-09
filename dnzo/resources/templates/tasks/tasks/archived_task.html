@@ -1,5 +1,3 @@
-{% load tasks_library %}
-
 <tr class="task-row{% if task.complete and not task.archived %} completed{% endif %}">
   <td class="list">
     {{ task.task_list.name }}

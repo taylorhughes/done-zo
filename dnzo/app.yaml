@@ -1,5 +1,5 @@
 application: dnzo
-version: 297
+version: 308
 runtime: python
 api_version: 1
 
@@ -28,7 +28,7 @@ handlers:
   #login: required
 
 - url: /admin/.+
-  script: common/appenginepatch/main.py
+  script: main.py
   login:  admin
   
 - url: /test.*
@@ -36,8 +36,8 @@ handlers:
   script: gaeunit.py
   
 - url: /
-  script: common/appenginepatch/main.py
+  script: main.py
   
 - url: /.+
-  script: common/appenginepatch/main.py
+  script: main.py
   login:  required
