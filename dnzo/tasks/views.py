@@ -127,7 +127,13 @@ class DeleteTaskListHandler(DNZOLoggedInRequestHandler):
     undo = None
     if len(get_task_lists(self.dnzo_user)) > 1:
       delete_task_list(self.dnzo_user, task_list)
-      undo = create_undo(self.dnzo_user, request=self.request, task_list=task_list, list_deleted=True, return_uri=self.referer_uri())
+      undo = create_undo(
+        self.dnzo_user,
+        request=self.request,
+        task_list=task_list,
+        list_deleted=True,
+        return_uri=self.referer_uri()
+      )
     
     if undo and undo.is_saved():
       from statusing import Statuses
@@ -158,7 +164,7 @@ class AddTaskListHandler(DNZOLoggedInRequestHandler):
 class SettingsHandler(DNZOLoggedInRequestHandler):
   @dnzo_login_required
   def get(self):
-    self.render('tasks/settings.html', user=self.dnzo_user)
+    self.render('tasks/settings.html')
     
   @dnzo_login_required    
   def post(self):
@@ -257,7 +263,7 @@ class TaskHandler(DNZOLoggedInRequestHandler):
         self.not_found()
         return
     else:
-      task = Task(parent=user, body='')
+      task = Task(parent=self.dnzo_user, body='')
     
     from tasks_data.tasks import update_task_with_params, save_task
     
@@ -325,7 +331,8 @@ class TaskHandler(DNZOLoggedInRequestHandler):
     else:
       update_task_with_params(self.dnzo_user, task, self.request)
 
-      task_list = self.request.get('task_list',None) and get_task_list(self.dnzo_user, task_list)
+      task_list = self.request.get('task_list', None) 
+      task_list = task_list and get_task_list(self.dnzo_user, task_list)
       if task_list:
         task.task_list = task_list
       elif not task.task_list:
@@ -355,7 +362,29 @@ class TaskHandler(DNZOLoggedInRequestHandler):
         undo=undo,
         task_list=(task and task.task_list)
       )
+
+class UndoHandler(DNZOLoggedInRequestHandler):
+  def get(self, undo_id):
+    from tasks_data.models import Undo
+    from tasks_data.misc import do_undo
+    from tasks_data.users import users_equal
+
+    try:
+      undo = Undo.get_by_id(int(undo_id), parent=self.dnzo_user)
       
+      if undo:
+        if not users_equal(undo.parent(), self.dnzo_user):
+          return access_error_redirect()
+        do_undo(self.dnzo_user, undo)
+          
+    except:
+      logging.exception("Error undoing!")
+    
+    if undo.return_uri:
+      self.redirect(undo.return_uri)
+    else:
+      self.referer_redirect()
+
 class RedirectHandler(DNZOLoggedInRequestHandler):
   def get(self):
     if self.dnzo_user:

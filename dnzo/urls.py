@@ -19,7 +19,7 @@ PUBLIC_URLS = [
 
 from tasks.views import TaskListHandler, AddTaskListHandler, PurgeTaskListHandler, \
   DeleteTaskListHandler, ArchivedListHandler, TaskHandler, TransparentSettingsHandler, \
-  SettingsHandler, RedirectHandler
+  SettingsHandler, RedirectHandler, UndoHandler
 
 list_pattern = r'^/l/(?P<task_list_name>[a-z0-9][a-z0-9_-]*)'
 TASKS_URLS = [  
@@ -53,8 +53,9 @@ TASKS_URLS = [
   #  /username/t/id => specific task
   (r'^/t/(?P<task_id>\d+)/?', TaskHandler),
   (r'^/t/$', TaskHandler),
-  #  /username/u/id => undo
-#  (r'^u/(?P<undo_id>\d+)/$', 'tasks.views.undo'),
+
+  #  /u/id => undo
+  (r'^/u/(?P<undo_id>\d+)/$', UndoHandler),
   
   (r'^/signin/?$', RedirectHandler),
 ]

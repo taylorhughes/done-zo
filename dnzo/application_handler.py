@@ -10,6 +10,9 @@ TEMPLATES_DIR = 'resources/templates/'
 COOKIE_STATUS = 'dnzo-status'
 COOKIE_UNDO   = 'dnzo-undo'
 
+AJAX_HEADER   = 'X-Requested-With'
+REFERER_HEADER = 'Referer'
+
 webapp.template.register_template_library('templating')
 
 def dnzo_login_required(fn):
@@ -25,7 +28,6 @@ class DNZORequestHandler(webapp.RequestHandler):
   def __init__(self):
     from tasks_data.users import get_dnzo_user
     self.dnzo_user = get_dnzo_user()
-    
     self.__cookie_set = None
     
   def login_required(self):
@@ -36,9 +38,8 @@ class DNZORequestHandler(webapp.RequestHandler):
     self.render('404.html')
 
   def is_ajax(self):
-    for header in ['HTTP_X_REQUESTED_WITH', 'X-Requested-With']:
-      if header in self.request.headers and self.request.headers[header] == 'XMLHttpRequest':
-        return True
+    if AJAX_HEADER in self.request.headers and self.request.headers[AJAX_HEADER] == 'XMLHttpRequest':
+      return True
     return False
   
   #
@@ -94,8 +95,8 @@ class DNZORequestHandler(webapp.RequestHandler):
     self.redirect(self.url_for('TaskListHandler', task_list.short_name))
     
   def referer_uri(self):
-    if 'HTTP_REFERER' in self.request.headers:
-      return self.request.headers['HTTP_REFERER']
+    if REFERER_HEADER in self.request.headers:
+      return self.request.headers[REFERER_HEADER]
     return None
     
   def referer_redirect(self):
@@ -125,7 +126,8 @@ class DNZORequestHandler(webapp.RequestHandler):
     if path:
       self.__cookie_set[key]['Path'] = path
       
-    self.response.headers['Set-Cookie'] = self.__cookie_set.output(header='')
+    for cookie in self.__cookie_set.output(header='').split('\n'):
+      self.response.headers.add_header('Set-Cookie', cookie)
     
   #
   # STATUSING
@@ -133,7 +135,6 @@ class DNZORequestHandler(webapp.RequestHandler):
   def get_status_undo(self):
     import Cookie
     from tasks.statusing import get_status_message
-    from util.misc       import param
     
     status = None
     
@@ -142,12 +143,11 @@ class DNZORequestHandler(webapp.RequestHandler):
       status = cookie[COOKIE_STATUS].value
       
     try:
-      from util.misc import param
-      undo = int(param(COOKIE_UNDO, cookie, None))
+      undo = int(cookie[COOKIE_UNDO].value)
     except:
       undo = None
       
-    self.reset_status_undo(status,undo)
+    self.reset_status_undo(status, undo)
     return (get_status_message(status), undo)
 
   def reset_status_undo(self, status=None, undo=None):
