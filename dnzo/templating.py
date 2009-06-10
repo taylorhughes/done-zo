@@ -65,26 +65,6 @@ def spans_around(string, to_highlight):
   return re.sub(regex, '<span>\g<0></span>', string)
   
 @register.tag
-def dnzo_url(parser, token):
-  return UrlBody(token.split_contents()[1:])
-
-class UrlBody(Node):
-  def __init__(self, tokens):
-    self.tokens = tokens
-  def render(self, context):
-    tokens = []
-    for token in self.tokens:
-      try:
-        tokens.append(resolve_variable(token, context))
-      except:
-        tokens.append(token)
-    
-    from urls import map_url
-    url = map_url(*tokens) or u''
-
-    return url
-  
-@register.tag
 def sorting_header(parser, token):
   try:
     tag_name, my_name, my_sorting = token.split_contents()

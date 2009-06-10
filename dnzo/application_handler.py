@@ -54,7 +54,10 @@ class DNZORequestHandler(webapp.RequestHandler):
     
     response = template.render(template_path, template_values, True)
 
-    self.response.out.write(response)
+    self.render_text(response)
+
+  def render_text(self, text):
+    self.response.out.write(text)
 
   def always_includes(self):
     return {
@@ -64,6 +67,11 @@ class DNZORequestHandler(webapp.RequestHandler):
   #
   # REDIRECTS
   #
+  def url_for(self, handler_name, *args):
+    app = webapp.WSGIApplication.active_instance
+    handler = app.get_registered_handler_by_name(handler_name)
+    return handler.get_url(implicit_args=True, *args)
+    
   def access_error_redirect(self):
     # TODO: Redirect to some kind of 5xx access denied error.
     logging.error("Access error; redirecting to /.")
@@ -83,14 +91,18 @@ class DNZORequestHandler(webapp.RequestHandler):
       return self.redirect('/')
 
   def list_redirect(self, task_list):
-    from urls import list_url
-    self.redirect(list_url(task_list))
+    self.redirect(self.url_for('TaskListHandler', task_list.short_name))
+    
+  def referer_uri(self):
+    if 'HTTP_REFERER' in self.request.headers:
+      return self.request.headers['HTTP_REFERER']
+    return None
     
   def referer_redirect(self):
     '''Redirect a user to where he came from. If he didn't come from anywhere,
       refer him to a default location.'''
-    if 'HTTP_REFERER' in self.request.headers:
-      referer = self.request.headers['HTTP_REFERER']
+    referer = self.referer_uri()
+    if referer:
       self.redirect(referer)
     else:
       self.most_recent_redirect()

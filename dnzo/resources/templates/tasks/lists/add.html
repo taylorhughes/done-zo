@@ -2,14 +2,14 @@
 
   <h2>Add a new list</h2>
 
-  <form action="{% url tasks.views.add_list %}" method="POST">
+  <form action="{% url AddTaskListHandler %}" method="POST">
     <ul>
       <li>
         <input type="text" value="" name="name" id="new_list_name" maxlength="30">
       </li>
       <li class="buttons">
         <input type="submit" value="Add list">
-        <a href="{% url tasks.views.redirect %}" class="hide_dialog">cancel</a>
+        <a href="{% url RedirectHandler %}" class="hide_dialog">cancel</a>
       </li>
     </ul>
   </form>

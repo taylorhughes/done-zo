@@ -33,7 +33,7 @@
   {% endfor %}
   <tr id="add_row">
     <td></td>
-    <td colspan="6"><a href="{% dnzo_url task %}">Add task</a></td>
+    <td colspan="6"><a href="{% url TaskHandler %}">Add task</a></td>
   </tr>
 </table>
 
@@ -41,7 +41,7 @@
 <p>Results limited to {{ max_records }} items.</p>
 {% endif %}
 
-<form method="POST" id="tasks_form" action="{% dnzo_url task %}?task_list={{task_list.short_name}}">
+<form method="POST" id="tasks_form" action="{% url TaskHandler %}?task_list={{task_list.short_name}}">
   <table id="new_task_table">
   {% for task in new_tasks %}
     {% include "tasks/task.html" %}
@@ -51,7 +51,7 @@
 {% endblock %}
 
 {% block footer %}
-<form action="{% dnzo_url purge_list task_list.short_name %}" method="POST">
+<form action="{% url PurgeTaskListHandler task_list.short_name %}" method="POST">
 <p id="archive">
     <input type="submit" value="Archive completed tasks">&nbsp;
 </p>
@@ -59,9 +59,9 @@
 
 <div id="new-delete">
 {% if not task_lists|length_is:1 %}
-<p><a href="{% dnzo_url delete_list task_list.short_name %}">Delete list</a></p>
+<p><a href="{% url DeleteTaskListHandler task_list.short_name %}">Delete list</a></p>
 {% endif %}
-<form action="{% dnzo_url add_list %}" method="GET">
+<form action="{% url AddTaskListHandler %}" method="GET">
   <input type="submit" value="Add list" id="add_list"{% if not can_add_list %} disabled="disabled"{% endif %}>&nbsp;
 </form>
 </div>

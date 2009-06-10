@@ -99,8 +99,7 @@ def create_undo(user,
                 list_deleted=False, 
                 deleted_tasks=None,
                 archived_tasks=None,
-                return_uri=None,
-                return_to_referer=False):
+                return_uri=None):
                 
   undo = Undo(parent=user)
   
@@ -116,9 +115,6 @@ def create_undo(user,
     undo.task_list = task_list
     undo.list_deleted = list_deleted
   
-  if return_uri is None and request and return_to_referer:
-    from util.misc import get_referer
-    return_uri = get_referer(request)
   undo.return_uri = return_uri
 
   undo.put()

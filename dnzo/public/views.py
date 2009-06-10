@@ -3,7 +3,6 @@ from google.appengine.api.users import create_logout_url, create_login_url, get_
 
 from application_handler import DNZORequestHandler
 
-from urls import map_url
 import environment
 import logging
 
@@ -21,7 +20,7 @@ class WelcomeHandler(DNZORequestHandler):
     return self.render("public/index.html",
       nickname=nickname,
       logout_url=create_logout_url('/'),
-      login_url=create_login_url(map_url('redirect')),
+      login_url=create_login_url(self.url_for('RedirectHandler')),
       is_development=environment.IS_DEVELOPMENT
     )
 
@@ -48,7 +47,7 @@ class SignupHandler(DNZORequestHandler):
       allowed = invitation is not None
   
     if not allowed:
-      self.redirect(map_url('signup_closed'))
+      self.redirect(self.url_for('ClosedHandler'))
       return
 
     from tasks_data.models import TasksUser

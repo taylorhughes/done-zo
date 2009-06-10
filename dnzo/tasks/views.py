@@ -120,10 +120,76 @@ class PurgeTaskListHandler(DNZOLoggedInRequestHandler):
       
 class DeleteTaskListHandler(DNZOLoggedInRequestHandler):
   @operates_on_task_list
-  def get(self, task_list, project_index=None, context_name=None, due_date=None):
-    pass
+  def get(self, task_list):
+    from tasks_data.task_lists import delete_task_list
+    from tasks_data.misc import create_undo
+  
+    undo = None
+    if len(get_task_lists(self.dnzo_user)) > 1:
+      delete_task_list(self.dnzo_user, task_list)
+      undo = create_undo(self.dnzo_user, request=self.request, task_list=task_list, list_deleted=True, return_uri=self.referer_uri())
     
+    if undo and undo.is_saved():
+      from statusing import Statuses
+      self.set_status_undo(Statuses.LIST_DELETED, undo)
+  
+    self.default_list_redirect()
+      
+class AddTaskListHandler(DNZOLoggedInRequestHandler):
+  @dnzo_login_required
+  def get(self):
+    self.render('tasks/lists/add.html')
     
+  @dnzo_login_required    
+  def post(self):
+    from tasks_data.task_lists import add_task_list
+    from util.misc import slugify
+  
+    new_name = self.request.get('name', '')
+    new_list = None
+    if len(slugify(new_name)) > 0:
+      new_list = add_task_list(self.dnzo_user, new_name)
+      if new_list:
+        self.list_redirect(new_list)
+        return
+        
+    self.referer_redirect()
+    
+class SettingsHandler(DNZOLoggedInRequestHandler):
+  @dnzo_login_required
+  def get(self):
+    self.render('tasks/settings.html', user=self.dnzo_user)
+    
+  @dnzo_login_required    
+  def post(self):
+    from tasks_data.users import save_user
+    
+    self.dnzo_user.hide_project  = self.request.get('show_project',  None) is None
+    self.dnzo_user.hide_contexts = self.request.get('show_contexts', None) is None
+    self.dnzo_user.hide_due_date = self.request.get('show_due_date', None) is None
+    
+    save_user(self.dnzo_user)
+    
+    self.referer_redirect()
+  
+class TransparentSettingsHandler(DNZOLoggedInRequestHandler):
+  @dnzo_login_required
+  def post(self):
+    from tasks_data.users import save_user
+  
+    offset = self.request.get('offset', None)
+    try:
+      user.timezone_offset_mins = int(offset)
+      save_user(user)
+    
+    except:
+      import logging
+      logging.error("Couldn't update timezone offset to %s" % offset)
+  
+    if self.is_ajax():
+      self.render_text("OK")
+    else:
+      self.referer_redirect()
 
 class ArchivedListHandler(DNZOLoggedInRequestHandler):
   @dnzo_login_required
@@ -289,3 +355,10 @@ class TaskHandler(DNZOLoggedInRequestHandler):
         undo=undo,
         task_list=(task and task.task_list)
       )
+      
+class RedirectHandler(DNZOLoggedInRequestHandler):
+  def get(self):
+    if self.dnzo_user:
+      self.most_recent_redirect()
+    else:
+      self.redirect(self.url_for('SignupHandler'))

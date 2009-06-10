@@ -35,7 +35,7 @@
   </td>
   <td class="project">
     {% if task.project %}
-    <a href="{% dnzo_url list_project task_list.short_name task.project_index %}">{{ task.project }}</a>
+    <a href="{% url TaskListHandler task_list.short_name,project_index=task.project_index %}">{{ task.project }}</a>
     {% endif %}
   </td>
   <td class="task">
@@ -43,12 +43,12 @@
   </td>
   <td class="context">
     {% for context in task.contexts %}
-      <a href="{% dnzo_url list_context task_list.short_name context %}">@{{ context }}</a>
+      <a href="{% url TaskListHandler task_list.short_name,context_name=context %}">@{{ context }}</a>
     {% endfor %}
   </td>
   <td class="due">
     {% if task.due_date %}
-      <a href="{% dnzo_url list_due task_list.short_name task.due_date|date:"m-d-y" %}">{{ task.due_date|short_date }}</a>
+      <a href="{% url TaskListHandler task_list.short_name,due_date=task.due_date|date:"m-d-y" %}">{{ task.due_date|short_date }}</a>
     {% endif %}
   </td>
   <td class="edit">
