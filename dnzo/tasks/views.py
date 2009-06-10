@@ -110,7 +110,7 @@ class PurgeTaskListHandler(DNZOLoggedInRequestHandler):
     if len(archived_tasks) == 0:
       status = Statuses.TASKS_NOT_PURGED
     else:
-      undo = create_undo(user, task_list=task_list, archived_tasks=archived_tasks)
+      undo = create_undo(self.dnzo_user, task_list=task_list, archived_tasks=archived_tasks)
       status = Statuses.TASKS_PURGED
   
     if status or undo:
@@ -185,8 +185,8 @@ class TransparentSettingsHandler(DNZOLoggedInRequestHandler):
   
     offset = self.request.get('offset', None)
     try:
-      user.timezone_offset_mins = int(offset)
-      save_user(user)
+      self.dnzo_user.timezone_offset_mins = int(offset)
+      save_user(self.dnzo_user)
     
     except:
       import logging
