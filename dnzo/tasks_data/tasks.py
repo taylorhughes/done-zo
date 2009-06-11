@@ -32,12 +32,12 @@ DEFAULT_TASKS = (
     'body':     u'Welcome to DNZO!'
   },{
     'project':  u'DNZO',
-    'body':     u'You can organize your tasks by project',
+    'body':     u'← You can organize your tasks by project',
   },{
-    'body':     u'... or by "context", which could mean where you need to be to complete the task.', #' →',
+    'body':     u'... or by "context", which could mean where you need to be to complete the task. →',
     'contexts': u'home',
   },{
-    'body':     u'You can also add due dates!', #' →',
+    'body':     u'You can also add due dates! →',
     'due_date': u'today',
   },
 )
