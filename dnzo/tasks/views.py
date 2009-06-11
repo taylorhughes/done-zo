@@ -156,7 +156,10 @@ class DeleteTaskListHandler(DNZOLoggedInRequestHandler):
 class AddTaskListHandler(DNZOLoggedInRequestHandler):
   @dnzo_login_required
   def get(self):
-    self.render('tasks/lists/add.html')
+    if self.is_ajax():
+      self.render('tasks/lists/add.html')
+    else:
+      self.referer_redirect()
     
   @dnzo_login_required    
   def post(self):

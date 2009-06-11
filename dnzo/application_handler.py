@@ -37,6 +37,14 @@ class DNZORequestHandler(webapp.RequestHandler):
     self.error(404)
     self.render('404.html')
 
+  def handle_exception(self, exception, debug_mode):
+    if debug_mode:
+      super(DNZORequestHandler,self).handle_exception(exception,debug_mode)
+    else:
+      logging.exception("An exception occurred. Rendered a 500 error message. Yikes!")
+      self.error(500)
+      self.render('500.html')
+
   def is_ajax(self):
     if AJAX_HEADER in self.request.headers and self.request.headers[AJAX_HEADER] == 'XMLHttpRequest':
       return True
@@ -164,3 +172,10 @@ class DNZORequestHandler(webapp.RequestHandler):
       self.set_cookie(COOKIE_STATUS, status, max_age=60)
     if undo is not None:
       self.set_cookie(COOKIE_UNDO, str(undo.key().id()), max_age=60)
+
+class NotFoundHandler(DNZORequestHandler):
+  def get(self):
+    self.not_found()
+  def post(self):
+    self.not_found()
+    

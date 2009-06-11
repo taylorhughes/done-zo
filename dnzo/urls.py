@@ -59,6 +59,8 @@ TASKS_URLS = [
   (r'^/signin/?$', RedirectHandler),
 ]
 
-ALL_URLS = API_URLS + PUBLIC_URLS + TASKS_URLS
+from application_handler import NotFoundHandler
+
+ALL_URLS = API_URLS + PUBLIC_URLS + TASKS_URLS + [(r'^/.*', NotFoundHandler)]
 
   
