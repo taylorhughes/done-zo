@@ -73,6 +73,9 @@ class DNZORequestHandler(webapp.RequestHandler):
     handler = app.get_registered_handler_by_name(handler_name)
     return handler.get_url(implicit_args=True, *args)
     
+  def redirect_to(self,*args):
+    self.redirect(self.url_for(*args))
+    
   def access_error_redirect(self):
     # TODO: Redirect to some kind of 5xx access denied error.
     logging.error("Access error; redirecting to /.")
@@ -92,7 +95,7 @@ class DNZORequestHandler(webapp.RequestHandler):
       return self.redirect('/')
 
   def list_redirect(self, task_list):
-    self.redirect(self.url_for('TaskListHandler', task_list.short_name))
+    self.redirect_to('TaskListHandler', task_list.short_name)
     
   def referer_uri(self):
     if REFERER_HEADER in self.request.headers:

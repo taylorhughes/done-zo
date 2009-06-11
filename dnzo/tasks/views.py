@@ -402,4 +402,8 @@ class RedirectHandler(DNZOLoggedInRequestHandler):
     if self.dnzo_user:
       self.most_recent_redirect()
     else:
-      self.redirect(self.url_for('SignupHandler'))
+      self.redirect_to('SignupHandler')
+      
+      
+      
+      

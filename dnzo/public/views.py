@@ -47,7 +47,7 @@ class SignupHandler(DNZORequestHandler):
       allowed = invitation is not None
   
     if not allowed:
-      self.redirect(self.url_for('ClosedHandler'))
+      self.redirect_to('ClosedHandler')
       return
 
     from tasks_data.models import TasksUser
