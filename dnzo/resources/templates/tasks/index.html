@@ -3,7 +3,7 @@
 {% block page_title %}DNZO / {{ task_list.name }}{% if filter_title %} / {{ filter_title }}{% endif %}{% endblock %}
 
 {% block header %}
-  {% if filter_title %}<a href="{% url tasks.views.list_index task_list.short_name %}">{% endif %}
+  {% if filter_title %}<a href="{% url TaskListHandler task_list.short_name %}">{% endif %}
   {{ task_list.name }}{% if filter_title %}</a> / {{ filter_title }}{% endif %}
 {% endblock %}
 

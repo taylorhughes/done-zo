@@ -15,12 +15,12 @@ from application_handler import DNZORequestHandler, dnzo_login_required
 
 def operates_on_task_list(fn):
   @dnzo_login_required
-  def wrapper(self, task_list_name, *args):
+  def wrapper(self, task_list_name, *args, **kwargs):
     task_list = get_task_list(self.dnzo_user, task_list_name)
     if not task_list or task_list.deleted:
       self.not_found()
     else:
-      fn(self, task_list, *args)
+      fn(self, task_list, *args, **kwargs)
 
   return wrapper
 
@@ -95,7 +95,19 @@ class TaskListHandler(DNZOLoggedInRequestHandler):
       undo=undo,
       new_tasks=[new_task],
     )
-
+    
+class ProjectTaskListHandler(TaskListHandler):
+  def get(self,task_list_name,arg):
+    super(ProjectTaskListHandler,self).get(task_list_name,project_index=arg)
+    
+class ContextTaskListHandler(TaskListHandler):
+  def get(self,task_list_name,arg):
+    super(ContextTaskListHandler,self).get(task_list_name,context_name=arg)
+    
+class DueTaskListHandler(TaskListHandler):
+  def get(self,task_list_name,arg):
+    super(DueTaskListHandler,self).get(task_list_name,due_date=arg)
+  
 class PurgeTaskListHandler(DNZOLoggedInRequestHandler):
   @operates_on_task_list
   def post(self, task_list, project_index=None, context_name=None, due_date=None):

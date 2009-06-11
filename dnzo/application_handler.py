@@ -17,11 +17,11 @@ webapp.template.register_template_library('templating')
 
 def dnzo_login_required(fn):
   """Decorator for a BaseAPIRequestHelper to make it require a DNZO login."""
-  def logged_in_wrapper(self, *args):
+  def logged_in_wrapper(self, *args, **kwargs):
     if not self.dnzo_user:
       self.login_required()
     else:
-      fn(self, *args)
+      fn(self, *args, **kwargs)
   return logged_in_wrapper
   
 class DNZORequestHandler(webapp.RequestHandler):

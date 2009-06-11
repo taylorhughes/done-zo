@@ -17,34 +17,33 @@ PUBLIC_URLS = [
   (r'^/signup/closed.html$', ClosedHandler),
 ]
 
-from tasks.views import TaskListHandler, AddTaskListHandler, PurgeTaskListHandler, \
-  DeleteTaskListHandler, ArchivedListHandler, TaskHandler, TransparentSettingsHandler, \
-  SettingsHandler, RedirectHandler, UndoHandler
+from tasks.views import TaskListHandler, ProjectTaskListHandler, ContextTaskListHandler, DueTaskListHandler, \
+  AddTaskListHandler, PurgeTaskListHandler, DeleteTaskListHandler, ArchivedListHandler, \
+  TransparentSettingsHandler, SettingsHandler, RedirectHandler, \
+  TaskHandler, UndoHandler
 
 list_pattern = r'^/l/(?P<task_list_name>[a-z0-9][a-z0-9_-]*)'
 TASKS_URLS = [  
   #  /l/
   (r'^/l/?$', AddTaskListHandler),
-  # /l/list_name/
-  (list_pattern + r'/?$', TaskListHandler),
-
-  # /username/l/list_name/delete
-  (list_pattern + r'/delete/?$', DeleteTaskListHandler),
   
   # archived list
   (r'^/l/_archived/?$', ArchivedListHandler),
   
-  #  /l/list_name/in/project
-  #  /l/list_name/at/context
-  #  /l/list_name/on/12-02-2005
-  (list_pattern + r'(?:' + 
-                  r'/for/(?P<project_index>[0-9a-z_-]+)|' + 
-                  r'/at/(?P<context_name>[0-9a-z_-]+)|' +
-                  r'/on/(?P<due_date>\d{2}-\d{2}-\d{2})' + 
-                  r')?/?$',
-                  TaskListHandler),
-                  
-  # /username/l/list_name/purge
+  # /l/list_name
+  # /l/list_name/in/project
+  # /l/list_name/at/context
+  # /l/list_name/on/12-02-2005
+  (list_pattern + r'/?$',TaskListHandler),
+  # we can't use named parameters to differentiate urls so they need different handlers:
+  (list_pattern + r'/for/(?P<project_index>[0-9a-z_-]+)/?$', ProjectTaskListHandler),
+  (list_pattern + r'/at/(?P<context_name>[0-9a-z_-]+)/?$', ContextTaskListHandler),
+  (list_pattern + r'/on/(?P<due_date>\d{2}-\d{2}-\d{2})/?$', DueTaskListHandler),
+
+  # /username/l/list_name/delete
+  (list_pattern + r'/delete/?$', DeleteTaskListHandler),
+  
+  # /l/list_name/purge
   (list_pattern + r'/purge/?$', PurgeTaskListHandler),
   
   (r'^/account/?$', SettingsHandler),
