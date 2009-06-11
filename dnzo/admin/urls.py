@@ -1,14 +1,16 @@
-from django.conf.urls.defaults import patterns
+from admin.views import AddInvitationHandler, InvitationsHandler, ModifyUserHandler, \
+  MigrateUserHandler, DeleteUserHandler, SettingsHandler, CountsHandler, MigrationsHandler, \
+  RunMigrationHandler
 
-urlpatterns = patterns('',
-  (r'^add_invitation.html$', 'admin.views.add_invitation'),
-  (r'^invitations.html$', 'admin.views.invitations'),
-  (r'^modify_user.html$', 'admin.views.modify_user'),
-  (r'^migrate_user.html$', 'admin.views.migrate_user'),
-  (r'^delete_user.html$', 'admin.views.delete_user'),
-  (r'^settings.html$', 'admin.views.settings'),
-  (r'^counts.html$', 'admin.views.counts'),
+ADMIN_URLS = (
+  (r'^/admin/add_invitation.html$', AddInvitationHandler),
+  (r'^/admin/invitations.html$', InvitationsHandler),
+  (r'^/admin/modify_user.html$', ModifyUserHandler),
+  (r'^/admin/migrate_user.html$', MigrateUserHandler),
+  (r'^/admin/delete_user.html$', DeleteUserHandler),
+  (r'^/admin/settings.html$', SettingsHandler),
+  (r'^/admin/counts.html$', CountsHandler),
 
-  (r'^migrations.html$', 'admin.views.migrations'),
-  (r'^run_migration/(?P<migration_id>[a-z_-]+)$', 'admin.views.run_migration'),
+  (r'^/admin/migrations.html$', MigrationsHandler),
+  (r'^/admin/run_migration/(?P<migration_id>[a-z_-]+)$', RunMigrationHandler),
 )

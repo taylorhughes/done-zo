@@ -1,4 +1,4 @@
-{% extends "layouts/admin.html" %}
+{% extends "../layouts/admin.html" %}
 
 {% block page_title %}DNZO Admin: Add invitations{% endblock %}
 
@@ -20,6 +20,6 @@
     {% endfor %}
   </ul>
   
-  <p>Why not <a href="{% url admin.views.add_invitation %}">add some more</a>?</p>
+  <p>Why not <a href="{% url AddInvitationHandler %}">add some more</a>?</p>
 
 {% endblock %}

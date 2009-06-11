@@ -1,4 +1,4 @@
-{% extends "layouts/admin.html" %}
+{% extends "../layouts/admin.html" %}
 
 {% block page_title %}DNZO Admin: Add invitations{% endblock %}
 
@@ -12,11 +12,11 @@
       <li>{{ address }}</li>
       {% endfor %}
     </ul>
-    <p>Why not <a href="{% url admin.views.add_invitation %}">add some more</a>?</p>
+    <p>Why not <a href="{% url AddInvitationHandler %}">add some more</a>?</p>
   {% else %}
     <p>Type e-mail addresses, separated by whitespace/newlines, in this box and click &ldquo;Add.&rdquo;</p>
   
-    <form action="{% url admin.views.add_invitation %}" method="POST">
+    <form action="{% url AddInvitationHandler %}" method="POST">
       <textarea name="addresses" rows="5" cols="60"></textarea><br/>
       <input type="submit" value="Add!">
     </form>

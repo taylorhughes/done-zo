@@ -1,4 +1,4 @@
-{% extends "layouts/admin.html" %}
+{% extends "../layouts/admin.html" %}
 
 {% block page_title %}DNZO Admin: Migrate user{% endblock %}
 
@@ -24,7 +24,7 @@
     this utility should be treated with <strong>extreme caution</strong>.
   </p>
   
-  <form action="{% url admin.views.migrate_user %}" method="POST">
+  <form action="{% url MigrateUserHandler %}" method="POST">
   <p>
     Change user
     <input type="text" name="user_from" size="30">
@@ -36,7 +36,7 @@
   
   <h3>Delete user</h3>
   
-  <form action="{% url admin.views.delete_user %}" method="POST">
+  <form action="{% url DeleteUserHandler %}" method="POST">
   <p>
     Delete user
     <input type="text" name="user" size="30">

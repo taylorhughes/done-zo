@@ -23,12 +23,8 @@ handlers:
   static_dir: resources/images
   expiration: 30d
 
-- url: /api/.+
-  script: api/main.py
-  #login: required
-
 - url: /admin/.+
-  script: main.py
+  script: admin/main.py
   login:  admin
   
 - url: /test.*
@@ -38,6 +34,10 @@ handlers:
 - url: /
   script: main.py
   
+- url: /api/.+
+  script: main.py
+  # login not required
+
 - url: /.+
   script: main.py
   login:  required

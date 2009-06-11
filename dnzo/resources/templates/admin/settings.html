@@ -1,4 +1,4 @@
-{% extends "layouts/admin.html" %}
+{% extends "../layouts/admin.html" %}
 
 {% block page_title %}DNZO Admin: Settings{% endblock %}
 
@@ -9,7 +9,7 @@
     {% for setting in settings %}
     <li>
       {{ setting.name }}: {% if setting.value %}{{ setting.value }}{% else %}(none){% endif %}
-      <form action="{% url admin.views.settings %}" method="POST">
+      <form action="{% url SettingsHandler %}" method="POST">
         <input type="hidden" name="setting" value="{{ setting.name }}">
         <input type="text" name="value" value="{{ setting.value }}">
         <input type="submit" value="save">

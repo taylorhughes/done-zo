@@ -58,12 +58,12 @@
     <h1>DNZO</h1>
     
     <ul id="nav">
-      <li><a href="{% url admin.views.invitations %}">List invitations</a></li>
-      <li><a href="{% url admin.views.add_invitation %}">Add invitations</a></li>
-      <li><a href="{% url admin.views.settings %}">Runtime settings</a></li>
-      <li><a href="{% url admin.views.counts %}">Counts</a></li>
-      <li><a href="{% url admin.views.migrate_user %}">Modify user</a></li>
-      <li><a href="{% url admin.views.migrations %}">Data migrations</a></li>
+      <li><a href="{% url InvitationsHandler %}">List invitations</a></li>
+      <li><a href="{% url AddInvitationHandler %}">Add invitations</a></li>
+      <li><a href="{% url SettingsHandler %}">Runtime settings</a></li>
+      <li><a href="{% url CountsHandler %}">Counts</a></li>
+      <li><a href="{% url ModifyUserHandler %}">Modify user</a></li>
+      <li><a href="{% url MigrationsHandler %}">Data migrations</a></li>
     </ul>
     
     <div id="content">

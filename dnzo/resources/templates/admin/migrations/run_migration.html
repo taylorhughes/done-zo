@@ -1,4 +1,4 @@
-{% extends "layouts/admin.html" %}
+{% extends "../../layouts/admin.html" %}
 
 {% block page_title %}DNZO Admin: Running migration {{ migration.name }}{% endblock %}
 
@@ -10,7 +10,7 @@
 {% block content %}
   <h2>
     Running migration: 
-    <a id="migration_link" href="{% url admin.views.run_migration migration.slug %}">{{ migration.name }}</a>
+    <a id="migration_link" href="{% url RunMigrationHandler migration.slug %}">{{ migration.name }}</a>
   </h2>
   
   <ul id="progress">
