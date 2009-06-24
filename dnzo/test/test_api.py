@@ -14,8 +14,10 @@ from django.utils import simplejson as json
 from urls import API_URLS, API_PREFIX
 from test.fixtures import setup_fixtures, DUMMY_USER_ADDRESS, ANOTHER_USER_ADDRESS
 
-from tasks_data.models import Task, TasksUser
+from tasks_data.models import Task, TasksUser, TaskList
 from tasks_data.tasks import DEFAULT_TASKS
+
+from copy import deepcopy
 
 BOGUS_IDS = ('abc', '-1', '0.1234', '1.', '.1', ' 123 ', '99999')
 TASK_PATH = path.join(API_PREFIX,'t')
@@ -31,7 +33,19 @@ class TaskAPITest(unittest.TestCase):
     os.environ['USER_EMAIL'] = self.dnzo_user.email
     
   def test_post_task(self):
+    task_list = TaskList.gql('where ancestor is :user', user=self.dnzo_user).get()
     for task_data in DEFAULT_TASKS:
+      task_data = deepcopy(task_data)
+      
+      response = self.app.post(TASK_PATH, params=task_data, expect_errors=True)
+      self.assertTrue('task_list' not in task_data, "Should not be submitting a task list, wtf?")
+      self.assertEqual('400 Bad Request', response.status, "Response should be 400 because no task list was provided, but was %s." % response.status)
+      
+      task_data['task_list'] = 'not-a-list'
+      response = self.app.post(TASK_PATH, params=task_data, expect_errors=True)
+      self.assertEqual('400 Bad Request', response.status, "Response should be 400 because a fake list was provided.")
+      
+      task_data['task_list'] = task_list.short_name
       response = self.app.post(TASK_PATH, params=task_data)
       self.assertEqual('200 OK', response.status)
       
@@ -43,6 +57,34 @@ class TaskAPITest(unittest.TestCase):
       self.assertEqual('200 OK', response.status, "Should be able to GET /t/id")
       
       self.assertEqual(task_data['body'], dictresponse['body'], "Body should be equal to what we posted!")
+      
+  def test_put_task(self):
+    tasks = Task.gql('where ancestor is :user',user=self.dnzo_user).fetch(1000)
+    self.assertTrue(len(tasks) > 0, "There should be some tasks from the user.")
+    for task in tasks:
+      task_id = str(task.key().id())
+      
+      new_project = "New Project"
+      appendage = "here's something added to the task body!"
+      changes = { 'body': task.body + appendage, 'project': new_project }
+      response = self.app.put(path.join(TASK_PATH, task_id), params=changes)
+      self.assertEqual('200 OK', response.status)
+      
+      response = self.app.get(path.join(TASK_PATH,task_id))
+      self.assertEqual('200 OK', response.status)
+      task_dict = json.loads(response.body)['task']
+      self.assertEqual(changes['body'], task_dict['body'], "New body should reflect changes, but was %s!" % repr(task_dict['body']))
+      self.assertEqual(changes['project'], task_dict['project'], "New project should reflect changes!")
+      
+    another_user = TasksUser.gql('WHERE user=:1', users.User(ANOTHER_USER_ADDRESS)).get()
+    tasks = Task.gql('where ancestor is :user',user=another_user).fetch(1000)
+    self.assertTrue(len(tasks) > 0, "There should be some tasks from another user.")
+    for task in tasks:
+      appendage = "here's something added to the task body!"
+      changes = { 'body': task.body + appendage }
+      task_id = str(task.key().id())
+      response = self.app.put(path.join(API_PREFIX,'t',task_id), expect_errors=True, params=changes)
+      self.assertEqual('404 Not Found', response.status, "Should not allow PUT against another person's tasks")
       
   def test_get_task(self):
     all_tasks_response = self.app.get(TASK_PATH)

@@ -85,6 +85,7 @@ class Task(db.Model):
     return {
       'id': self.key().id(),
       'created_at': str(self.real_created_at),
+      'sort_date': str(self.created_at),
 
       'body':     self.body,
       'project':  self.project,
