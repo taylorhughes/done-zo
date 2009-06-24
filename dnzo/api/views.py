@@ -1,5 +1,6 @@
 from google.appengine.ext import webapp
 from tasks_data.users import get_dnzo_user
+from django.utils import simplejson as json
 
 def dnzo_login_required(fn):
   """Decorator for a BaseAPIRequestHelper to make it require a DNZO login."""
@@ -12,13 +13,21 @@ def dnzo_login_required(fn):
   return logged_in_wrapper
   
 class BaseAPIRequestHandler(webapp.RequestHandler):
+  def __init__(self):
+    self.__errored = False
+  
   def json_response(self, *args, **kwargs):
-    from django.utils import simplejson as json
     response_body = json.dumps(kwargs)
+    if 'error' in kwargs and not self.__errored:
+      self.error(500)
     self.generate(response_body)
 
   def generate(self, response):
     self.response.out.write(response)
+
+  def error(self, *args):
+    self.__errored = True
+    super(BaseAPIRequestHandler, self).error(*args)
 
   def login_required(self):
     self.error(403)
@@ -33,9 +42,12 @@ class APITasksHandler(BaseAPIRequestHandler):
   def get(self, dnzo_user):
     """Return all tasks, optionally filtered on various querystring parameters."""
     from tasks_data.models import Task
-    data = {
-      'tasks': map(lambda t: t.to_dict(), Task.all())
-    }
+    tasks = Task.gql(
+      'where ancestor is :user and deleted=:deleted and archived=:archived',
+      user=dnzo_user, deleted=False, archived=False
+    )
+
+    data = { 'tasks': map(lambda t: t.to_dict(), tasks) }
     
     self.json_response(**data)
   
@@ -43,8 +55,22 @@ class APITasksHandler(BaseAPIRequestHandler):
   def post(self, dnzo_user):
     """Create a new task with the JSONized input and return the 
     newly created task as a JSON object."""
-    pass
+    from tasks_data.models import Task
+    from tasks_data.tasks import update_task_with_params
+    try:
+      task = Task(parent=dnzo_user)
+      update_task_with_params(dnzo_user, task, self.request)
+      task.put()
 
+    except:
+      task = None
+      
+    if not task:
+      self.json_response(error="Could not create task!")
+    else:
+      self.json_response(task=task.to_dict())
+    
+    
 class APITaskHandler(BaseAPIRequestHandler):
   def operates_on_task(fn):
     """Decorator for a TaskHandler task to """

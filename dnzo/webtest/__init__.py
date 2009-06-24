@@ -155,8 +155,14 @@ class TestApp(object):
         """
         environ = self._make_environ(extra_environ)
         # @@: Should this be all non-strings?
-        if isinstance(params, (list, tuple, dict)):
+        if isinstance(params, dict):
+            new_params = {}
+            for k in params:
+              new_params[k] = unicode(params[k]).encode('utf-8')
+            params = new_params
+        elif isinstance(params, (list, tuple)):
             params = urllib.urlencode(params)
+            
         if hasattr(params, 'items'):
             params = urllib.urlencode(params.items())
         if upload_files:
