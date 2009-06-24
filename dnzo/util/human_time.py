@@ -64,6 +64,20 @@ def parse_month(month_string):
   
   return None
   
+def parse_datetime(date_string):
+  """Turns a string like 2009-06-24 04:30:24.906035 into a datetime."""
+  if not date_string or not isinstance(date_string, (str,unicode)):
+    return None
+    
+  digits = [int(p) for p in re.findall(r'\d+', date_string)]
+  try:
+    date = datetime(*digits[:7])
+    return date
+  except:
+    pass
+    
+  return None
+  
 def parse_date(date_string, offset_mins=0, output_utc=False):
   if not date_string:
     return None

@@ -47,10 +47,23 @@ class APITasksHandler(BaseAPIRequestHandler):
   def get(self, dnzo_user):
     """Return all tasks, optionally filtered on various querystring parameters."""
     from tasks_data.models import Task
-    tasks = Task.gql(
-      'where ancestor is :user and deleted=:deleted and archived=:archived',
-      user=dnzo_user, deleted=False, archived=False
-    )
+    
+    updated_since = self.request.get('updated_since', None)
+    if updated_since:
+      from util.human_time import parse_datetime
+      updated_since = parse_datetime(updated_since)
+    
+    if updated_since:
+      tasks = Task.gql(
+        'where ancestor is :user and updated_at >= :updated_since',
+        user=dnzo_user, updated_since=updated_since
+      )
+
+    else:
+      tasks = Task.gql(
+        'where ancestor is :user and deleted=:deleted and archived=:archived',
+        user=dnzo_user, deleted=False, archived=False
+      )
 
     data = { 'tasks': map(lambda t: t.to_dict(), tasks) }
     
@@ -101,7 +114,7 @@ class APITaskHandler(BaseAPIRequestHandler):
   def delete(self, dnzo_user, task):
     """Deletes a given task."""
     from tasks_data.tasks import delete_task
-    delete_task(task)
+    delete_task(dnzo_user, task)
     self.json_response(task=task.to_dict())
     
   @operates_on_task
@@ -122,7 +135,7 @@ class APITaskHandler(BaseAPIRequestHandler):
 class APITaskListHandler(BaseAPIRequestHandler):
   @dnzo_login_required
   def get(self, task_list_name):
-    """Returns the name of a task and how many tasks are in it."""
+    """Returns the name of a task list and how many tasks are in it."""
     pass
   
   def delete(self, task_list_name):

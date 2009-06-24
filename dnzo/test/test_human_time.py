@@ -1,7 +1,7 @@
 import unittest
 
 from datetime import date, datetime, timedelta
-from util.human_time import parse_date
+from util.human_time import parse_date, parse_datetime
 
 class HumanTimeTestCase(unittest.TestCase):
   months = [
@@ -30,6 +30,28 @@ class HumanTimeTestCase(unittest.TestCase):
   )
   
   today = datetime(*datetime.utcnow().timetuple()[0:3])
+  
+  def test_parse_datetime(self):
+    no_goes = (
+      "nothin here!",
+      "02 04 2009", # 2009 is too big for a day
+      "1203984019284102498",
+      "",
+      None
+    )
+    for no_go in no_goes:
+      parsed = parse_datetime(no_go)
+      self.assertEqual(None, parsed, "Should not have been able to parse %s as a date, but got %s." % (no_go, parsed) )
+  
+    goes = (
+      ("2009 02 04", (2009,2,4)),
+      ("1995 2 4 5:32:50.12", (1995, 2, 4, 5, 32, 50, 12)),
+      (u"2009-06-24 05:17:55.370572", (2009,6,24,5,17,55,370572))
+    )
+    for go, gotuple in goes:
+      parsed = parse_datetime(go)
+      self.assertEqual(datetime(*gotuple), parsed, "Parsed representation should be equal; provided %s, got %s." % (go, parsed))
+      
   
   def test_parse_date(self):
     def get_date(date_tuple):
@@ -86,7 +108,7 @@ class HumanTimeTestCase(unittest.TestCase):
       self.assertEquals(correct, parsed, "'%s' should have been parsed as %s, but was %s!" % (k, correct.strftime(datef), parsed.strftime(datef)))
 
   def test_not_parsable(self):
-    should_not_parse = (
+    not_parsable = (
       '2000 2000 2000',
       'abc 1 2009',
       'poop a doop',
@@ -98,8 +120,7 @@ class HumanTimeTestCase(unittest.TestCase):
       '2 1 202',
       '2a2a2009',
     )
-
-    for bad in should_not_parse:
+    for bad in not_parsable:
       parsed = parse_date(bad)
       parsed = parsed and parsed.strftime('%B %d %Y')
       self.assertEqual(None, parsed, "'%s' should NOT have been parsed, but it was %s!" % (bad, parsed))

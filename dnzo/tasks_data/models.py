@@ -48,15 +48,7 @@ class TaskList(db.Model):
 class Task(db.Model):
   task_list     = db.ReferenceProperty(TaskList, collection_name='tasks')
   created_at    = db.DateTimeProperty(auto_now_add=True)
-  
-  @property
-  def created_at_msec(self):
-    # A couple of things to note:
-    #  this is a long instead of a float because str(float_value) results in crap
-    #  all I want is a timestamp with microseconds. but, no. too hard.
-    num = int(time.mktime(self.created_at.timetuple())) * 1000000 + \
-          self.created_at.microsecond
-    return num
+  updated_at    = db.DateTimeProperty(auto_now=True)
   
   # created_at is now overwritten when you re-order tasks in a list,
   # and I'm lazy, so I'm just adding another property to actually
@@ -80,6 +72,15 @@ class Task(db.Model):
   archived      = db.BooleanProperty(default=False)
   # Need this so we can filter it out in the archived tasks list
   deleted       = db.BooleanProperty(default=False)
+
+  @property
+  def created_at_msec(self):
+    # A couple of things to note:
+    #  this is a long instead of a float because str(float_value) results in crap
+    #  all I want is a timestamp with microseconds. but, no. too hard.
+    num = int(time.mktime(self.created_at.timetuple())) * 1000000 + \
+          self.created_at.microsecond
+    return num
 
   def to_dict(self):
     return {
