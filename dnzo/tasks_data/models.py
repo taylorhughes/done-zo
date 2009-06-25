@@ -90,8 +90,9 @@ class Task(db.Model):
 
       'body':     self.body,
       'project':  self.project,
+      'project_key': self.project_index,
       'contexts': self.contexts,
-      'due_date': str(self.due_date),
+      'due_date': self.due_date and str(self.due_date),
 
       'complete': self.complete,
       'archived': self.archived,

@@ -52,6 +52,9 @@ class APITasksHandler(BaseAPIRequestHandler):
     if updated_since:
       from util.human_time import parse_datetime
       updated_since = parse_datetime(updated_since)
+      if not updated_since:
+        self.bad_request("Could not parse supplied date.")
+        return
     
     if updated_since:
       tasks = Task.gql(
