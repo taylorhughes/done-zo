@@ -14,8 +14,10 @@ from django.utils import simplejson as json
 from urls import API_URLS, API_PREFIX
 from test.fixtures import setup_fixtures, DUMMY_USER_ADDRESS, ANOTHER_USER_ADDRESS
 
+from util.human_time import parse_datetime
+
 from tasks_data.models import Task, TasksUser, TaskList
-from tasks_data.tasks import DEFAULT_TASKS
+from tasks_data.tasks import DEFAULT_TASKS, get_tasks
 
 from copy import deepcopy
 
@@ -23,6 +25,7 @@ from datetime import datetime
 
 BOGUS_IDS = ('abc', '-1', '0.1234', '1.', '.1', ' 123 ', '99999')
 TASK_PATH = path.join(API_PREFIX,'t')
+LIST_PATH = path.join(API_PREFIX,'l')
 
 class TaskAPITest(unittest.TestCase):
   def setUp(self):
@@ -33,37 +36,81 @@ class TaskAPITest(unittest.TestCase):
     
     # make it look like the request is coming from this user
     os.environ['USER_EMAIL'] = self.dnzo_user.email
+  
+  def test_get_task_lists(self):
+    task_list = TaskList.gql('where ancestor is :user', user=self.dnzo_user).get()
+
+    response = self.app.get(LIST_PATH)
+    self.assertTrue('200 OK' in response.status)
     
-  def test_updated_since(self):
-    tasks = Task.gql('where ancestor is :user',user=self.dnzo_user).fetch(1000)
-    self.assertTrue(len(tasks) > 0, "There should be some tasks from the user.")
+    self.assertTrue(json.dumps(task_list.name) in response.body, "Task list name should appear in response body")
     
-    now = datetime.utcnow()
+    task_lists = json.loads(response.body)['task_lists']
+    self.assertEquals(task_list.name, task_lists[0]['name'], "Task list name should be the same!")
+
+    self.assertEqual(1, len(task_lists), "There should only be one task list!")
     
-    response = self.app.get(TASK_PATH, params={ 'updated_since': now })
-    task_dicts = json.loads(response.body)['tasks']
-    self.assertEqual(0, len(task_dicts), "There should be no tasks updated since now.")
+    tasks = get_tasks(task_list=task_list)
+    self.assertEqual(len(tasks), task_lists[0]['tasks_count'], "Tasks count is not accurate!")
     
-    old_now = now
+  def test_post_task_lists(self):
+    task_list_name = "Another task list"
+    from util.misc import slugify
+    slug = slugify(task_list_name)
     
-    for task in tasks:
-      task_id = str(task.key().id())
-      
-      changes = { 'body': task.body + "!!!!!!!" }
-      response = self.app.put(path.join(TASK_PATH, task_id), params=changes)
-      self.assertEqual('200 OK', response.status)
-      
-      response = self.app.get(TASK_PATH, params={ 'updated_since': now })
-      task_dicts = json.loads(response.body)['tasks']
-      self.assertEqual(1, len(task_dicts), "There should be ONE task updated since now, the one we just changed.")
-      
-      now = datetime.utcnow()
-      
-    response = self.app.get(TASK_PATH, params={ 'updated_since': old_now })
-    task_dicts = json.loads(response.body)['tasks']
-    self.assertEqual(len(tasks), len(task_dicts), "The list of updated tasks should be the same as the number of tasks since we just cahnged all of them.")
+    response = self.app.post(LIST_PATH, expect_errors=True)
+    self.assertTrue("400 Bad Request" in response.status, "Response should be bad because we didn't supply a task list name")
     
+    response = self.app.post(LIST_PATH, params={ 'task_list_name': task_list_name })
+    self.assertTrue(json.dumps(slug) in response, "Slug should appear in new task as the key")
     
+    new_task_list = json.loads(response.body)['task_list']
+    self.assertEqual(task_list_name, new_task_list['name'], "New task list name should be the one we provided!")
+    self.assertEqual(slug, new_task_list['key'], "Key for the new list should be the slug we created")
+    
+    response = self.app.get(LIST_PATH)
+    task_list_dicts = json.loads(response.body)['task_lists']
+    task_lists = TaskList.gql('where ancestor is :user', user=self.dnzo_user).fetch(100)
+
+    self.assertEqual(len(task_lists), len(task_list_dicts), "Response did not contain all of our task lists apparently")
+
+  def test_get_task_list(self):
+    task_list = TaskList.gql('where ancestor is :user', user=self.dnzo_user).get()
+    response = self.app.get(path.join(LIST_PATH, str(task_list.short_name)))
+    self.assertTrue(json.dumps(task_list.name) in response.body, "Response should contain new task name")
+    
+    task_list_dict = json.loads(response.body)['task_list']
+    self.assertEqual(task_list.name, task_list_dict['name'])
+    self.assertEqual(task_list.short_name, task_list_dict['key'])
+    self.assertEqual(task_list.deleted, task_list_dict['deleted'])
+    
+  def test_delete_task_list(self):
+    task_list = TaskList.gql('where ancestor is :user', user=self.dnzo_user).get()
+    response = self.app.get(path.join(LIST_PATH, str(task_list.short_name)))
+    task_list_dict = json.loads(response.body)['task_list']
+
+    self.assertTrue(not task_list_dict['deleted'], "Task list should not be deleted.")
+    
+    response = self.app.delete(path.join(LIST_PATH, str(task_list.short_name)), expect_errors=True)
+    
+    self.assertTrue('400 Bad Request' in response.status, "Status should be 400 because we're deleting the only list")
+
+    response = self.app.get(path.join(LIST_PATH, str(task_list.short_name)))
+    task_list_dict = json.loads(response.body)['task_list']
+    self.assertTrue(not task_list_dict['deleted'], "Task list should NOT be deleted!")
+
+    # ADD A NEW TASK LIST, now we can delete the first one.
+    self.app.post(LIST_PATH, params={ 'task_list_name': "Another task list!" })
+    
+    response = self.app.delete(path.join(LIST_PATH, str(task_list.short_name)))
+    task_list_dict = json.loads(response.body)['task_list']
+    self.assertTrue(task_list_dict['deleted'], "Task list should be deleted now.")
+    
+    response = self.app.get(LIST_PATH)
+    self.assertTrue(not json.dumps(task_list.short_name) in response.body, "Deleted task list should NOT be in this list!")
+
+    
+        
   def test_post_task(self):
     task_list = TaskList.gql('where ancestor is :user', user=self.dnzo_user).get()
     for task_data in DEFAULT_TASKS:
@@ -145,9 +192,54 @@ class TaskAPITest(unittest.TestCase):
       response = self.app.delete(path.join(API_PREFIX,'t',task_id), expect_errors=True)
       self.assertEqual('404 Not Found', response.status, "Should not allow DELETE against another person's tasks")
       
+
+  def test_updated_since(self):
+    tasks = list(Task.gql('where ancestor is :user',user=self.dnzo_user).fetch(1000))
+    tasks.reverse()
+    self.assertTrue(len(tasks) > 0, "There should be some tasks from the user.")
+    
+    now = datetime.utcnow()
+    
+    response = self.app.get(TASK_PATH, params={ 'updated_since': now })
+    task_dicts = json.loads(response.body)['tasks']
+    self.assertEqual(0, len(task_dicts), "There should be no tasks updated since now.")
+    
+    old_now = now
+    
+    for task in tasks:
+      task_id = str(task.key().id())
       
+      changes = { 'body': task.body + "!!!!!!!" }
+      response = self.app.put(path.join(TASK_PATH, task_id), params=changes)
+      self.assertEqual('200 OK', response.status)
+      
+      response = self.app.get(TASK_PATH, params={ 'updated_since': now })
+      task_dicts = json.loads(response.body)['tasks']
+      self.assertEqual(1, len(task_dicts), "There should be ONE task updated since now, the one we just changed.")
+      
+      now = datetime.utcnow()
+      
+    response = self.app.get(TASK_PATH, params={ 'updated_since': old_now })
+    task_dicts = json.loads(response.body)['tasks']
+    self.assertTrue(len(task_dicts) != 0, "Tasks should not be empty")
+    self.assertEqual(len(tasks), len(task_dicts), "The list of updated tasks should be the same as the number of tasks since we just cahnged all of them.")
+    
+    # sort order
+    latest_updated_at = None
+    for task in task_dicts:
+      updated_at = parse_datetime(task['updated_at'])
+      if latest_updated_at:
+        self.assertTrue(updated_at > latest_updated_at)
+      latest_updated_at = updated_at
+
+
   def test_get_task(self):
-    all_tasks_response = self.app.get(TASK_PATH)
+    all_tasks_response = self.app.get(TASK_PATH, expect_errors=True)
+    self.assertTrue("400 Bad Request" in all_tasks_response.status,
+                    "Status should be 400 because we didn't supply any arguments.")
+    
+    task_list = TaskList.gql('where ancestor is :user', user=self.dnzo_user).get()
+    all_tasks_response = self.app.get(TASK_PATH, params={ 'task_list': task_list.short_name })
     
     all_tasks_raw = json.loads(all_tasks_response.body)
     all_tasks = {}

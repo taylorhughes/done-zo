@@ -5,9 +5,13 @@
   id: id,
   body: string,
   project: string,
+  project_key: string,
   due_date: date,
-  contexts: [context string, context string],
-  task_list => task_list_id,
+  created_at: date,
+  sort_date: date, # this is the date to sort on by default
+  updated_at: date,
+  contexts: [context_string, context_string],
+  task_list => task_list_key,
   complete: true,
   archived: true,
   deleted: false,
@@ -27,7 +31,7 @@
 ### TASK LISTS ###
 
 {
-  id:      string,
+  key:     string,
   name:    name,
   deleted: false,
 }

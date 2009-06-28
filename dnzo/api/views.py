@@ -56,18 +56,21 @@ class APITasksHandler(BaseAPIRequestHandler):
         self.bad_request("Could not parse supplied date.")
         return
     
-    if updated_since:
-      tasks = Task.gql(
-        'where ancestor is :user and updated_at >= :updated_since',
-        user=dnzo_user, updated_since=updated_since
-      )
+    task_list = self.request.get('task_list', None) 
+    if task_list:
+      from tasks_data.task_lists import get_task_list
+      task_list = get_task_list(dnzo_user, task_list)
+      if not task_list:
+        self.bad_request("Could not find task_list.")
+        return
+        
+    if not (task_list or updated_since):
+      self.bad_request("Must supply task_list or updated_since.")
+      return
 
-    else:
-      tasks = Task.gql(
-        'where ancestor is :user and deleted=:deleted and archived=:archived',
-        user=dnzo_user, deleted=False, archived=False
-      )
-
+    from tasks_data.tasks import get_tasks
+    tasks = get_tasks(updated_since=updated_since, task_list=task_list)
+    
     data = { 'tasks': map(lambda t: t.to_dict(), tasks) }
     
     self.json_response(**data)
@@ -135,23 +138,62 @@ class APITaskHandler(BaseAPIRequestHandler):
     save_task(dnzo_user, task)
     self.json_response(task=task.to_dict())
 
-class APITaskListHandler(BaseAPIRequestHandler):
-  @dnzo_login_required
-  def get(self, task_list_name):
-    """Returns the name of a task list and how many tasks are in it."""
-    pass
-  
-  def delete(self, task_list_name):
-    """Deletes a task list."""
-    pass
+### TASK LISTS ###
   
 class APITaskListsHandler(BaseAPIRequestHandler):
-  def get(self):
+  @dnzo_login_required
+  def get(self, dnzo_user):
     """Returns a list of all the task lists in the system."""
-    pass
+    from tasks_data.task_lists import get_task_lists
+    lists = get_task_lists(dnzo_user, force_reload=True)
+    
+    self.json_response(task_lists=[l.to_dict() for l in lists])
   
-  def post(self):
+  @dnzo_login_required
+  def post(self, dnzo_user):
     """Creates a new task list."""
-    pass
+    from tasks_data.task_lists import add_task_list, get_task_list
+    
+    task_list_name = self.request.get('task_list_name', None)
+    if not task_list_name:
+      self.bad_request("Must provide task_list_name to create a new list")
+      return
+      
+    new_list = add_task_list(dnzo_user, task_list_name)
+    if not new_list:
+      self.bad_request("Could not add the new task list!")
+      return
+      
+    self.json_response(task_list=new_list.to_dict())
+    
+
+class APITaskListHandler(BaseAPIRequestHandler):
+  def operates_on_task_list(fn):
+    """Decorator for a TaskHandler task to """
+    @dnzo_login_required
+    def task_wrapper(self, dnzo_user, task_list_name, *args):
+      from tasks_data.task_lists import get_task_list
+      task_list = get_task_list(dnzo_user, task_list_name)
+      if not task_list or task_list.deleted:
+        self.not_found()
+      else:
+        fn(self, dnzo_user, task_list, *args)
+    return task_wrapper
+    
+  @operates_on_task_list
+  def get(self, dnzo_user, task_list):
+    """Returns the name of a task list and how many tasks are in it."""
+    self.json_response(task_list=task_list.to_dict())
+  
+  @operates_on_task_list
+  def delete(self, dnzo_user, task_list):
+    """Deletes a task list."""
+    from tasks_data.task_lists import delete_task_list
+    if dnzo_user.lists_count <= 1:
+      self.bad_request("User only has one list; cannot delete the last list.")
+      return
+      
+    delete_task_list(dnzo_user, task_list)
+    self.json_response(task_list=task_list.to_dict())
   
   

@@ -1,12 +1,14 @@
 
 from tasks_data.models import TaskList, Task
 
-from api.views import APITasksHandler, APITaskHandler
+from api.views import APITasksHandler, APITaskHandler, APITaskListHandler, APITaskListsHandler
 
 API_PREFIX = '/api/0.1/'
 API_URLS = [
   (API_PREFIX + r't/(?P<task_id>[0-9]+)/?', APITaskHandler),
   (API_PREFIX + r't/?', APITasksHandler),
+  (API_PREFIX + r'l/(?P<task_list_name>[a-z0-9][a-z0-9_-]*)/?', APITaskListHandler),
+  (API_PREFIX + r'l/?', APITaskListsHandler),
 ]
 
 from public.views import WelcomeHandler, SignupHandler, ClosedHandler

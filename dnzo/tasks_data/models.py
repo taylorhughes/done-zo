@@ -45,6 +45,14 @@ class TaskList(db.Model):
   def name_to_key_name(self,name):
     return "list(%s)" % name
 
+  def to_dict(self):
+    return {
+      'key': self.short_name,
+      'name': self.name,
+      'tasks_count': self.active_tasks_count,
+      'deleted': self.deleted,
+    }
+
 class Task(db.Model):
   task_list     = db.ReferenceProperty(TaskList, collection_name='tasks')
   created_at    = db.DateTimeProperty(auto_now_add=True)
@@ -86,6 +94,7 @@ class Task(db.Model):
     return {
       'id': self.key().id(),
       'created_at': str(self.real_created_at),
+      'updated_at': str(self.updated_at),
       'sort_date': str(self.created_at),
 
       'body':     self.body,

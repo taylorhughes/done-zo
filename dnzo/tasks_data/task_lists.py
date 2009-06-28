@@ -63,13 +63,14 @@ def delete_task_list(user, orig_task_list):
   def txn():
     # Make sure we do not double count
     task_list = db.get(orig_task_list.key())
-    if task_list.deleted:
+    user = task_list.parent()
+    
+    if task_list.deleted or user.lists_count == 1:
       return 
-      
+    
+    orig_task_list.deleted = True
     task_list.deleted = True
     task_list.put()
-    
-    user = task_list.parent()
     
     user.lists_count -= 1
 
@@ -108,7 +109,7 @@ def undelete_task_list(user, orig_task_list):
     
   clear_lists_memcache(user)
   
-def get_task_lists(user):
+def get_task_lists(user, force_reload=False):
   lists_key = user_lists_key(user)
   try:
     task_lists = memcache.get(key=lists_key)
@@ -117,12 +118,12 @@ def get_task_lists(user):
     logging.exception("Could not retrieve memcached task_lists.")
     task_lists = None
     
-  if not task_lists:
+  if (not task_lists) or force_reload:
     query = TaskList.gql(
       'WHERE ANCESTOR IS :user AND deleted=:deleted ORDER BY name ASC', 
       user=user, deleted=False
     )
-    task_lists = map(lambda row: row, query)
+    task_lists = list(query)
     memcache.set(key=lists_key, value=task_lists)
     
   return task_lists

@@ -3,7 +3,7 @@
 from google.appengine.api import memcache
 from google.appengine.ext import db
 
-from tasks_data.models import Task
+from tasks_data.models import Task, TaskList
 
 from tasks_data.users import save_user
 from tasks_data.misc import save_project, save_contexts
@@ -44,14 +44,24 @@ DEFAULT_TASKS = (
 
 ### TASKS ###
 
-def get_tasks_from_datastore(task_list):
-  wheres = ['task_list=:task_list AND archived=:archived'] 
-  params = { 'task_list': task_list, 'archived': False }
-
-  gql = 'WHERE %s ORDER BY created_at ASC' % ' AND '.join(wheres)
-
-  return Task.gql(gql, **params).fetch(RESULT_LIMIT)
+def get_tasks_from_datastore(task_list=None, updated_since=None):
+  wheres = ['archived=:archived'] 
+  params = { 'archived': False }
+  
+  order = 'created_at ASC'
+  
+  if task_list:
+    wheres.append("task_list = :task_list")
+    params.update(task_list=task_list)
     
+  if updated_since:
+    order = 'updated_at ASC'
+    wheres.append("updated_at > :updated_since")
+    params.update(updated_since=updated_since)
+
+  gql = 'WHERE %s ORDER BY %s' % (' AND '.join(wheres), order)
+  return Task.gql(gql, **params).fetch(RESULT_LIMIT)
+  
 def tasks_memcache_key(task_list):
   return '%s-tasks' % str(task_list.key())
   
@@ -63,12 +73,25 @@ def set_tasks_memcache(task_list,tasks):
     return
   return memcache.set(tasks_memcache_key(task_list), tasks)
 
-def get_tasks(task_list, project_index=None, context=None, due_date=None):
-  tasks = get_tasks_from_memcache(task_list)
-  if not tasks:
-    tasks = get_tasks_from_datastore(task_list)
-    set_tasks_memcache(task_list, tasks)
-
+def get_tasks(task_list=None, updated_since=None, project_index=None, context=None, due_date=None):
+  assert task_list or updated_since, "Must provide a task_list -or- updated_since"
+  if task_list:
+    assert isinstance(task_list, TaskList)
+  if updated_since:
+    from datetime import datetime
+    assert(isinstance(updated_since, datetime))
+  
+  tasks = None
+  if updated_since:
+    tasks = get_tasks_from_datastore(task_list=task_list, updated_since=updated_since)
+    
+  elif task_list:
+    tasks = get_tasks_from_memcache(task_list)
+    if not tasks:
+      tasks = get_tasks_from_datastore(task_list=task_list)
+      set_tasks_memcache(task_list, tasks)
+  
+        
   if context:
     tasks = filter(lambda t: context in t.contexts, tasks)
   if project_index:
