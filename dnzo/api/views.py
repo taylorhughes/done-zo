@@ -69,7 +69,7 @@ class APITasksHandler(BaseAPIRequestHandler):
       return
 
     from tasks_data.tasks import get_tasks
-    tasks = get_tasks(updated_since=updated_since, task_list=task_list)
+    tasks = get_tasks(dnzo_user, updated_since=updated_since, task_list=task_list)
     
     data = { 'tasks': map(lambda t: t.to_dict(), tasks) }
     

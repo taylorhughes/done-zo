@@ -50,7 +50,7 @@ class TaskAPITest(unittest.TestCase):
 
     self.assertEqual(1, len(task_lists), "There should only be one task list!")
     
-    tasks = get_tasks(task_list=task_list)
+    tasks = get_tasks(self.dnzo_user, task_list=task_list)
     self.assertEqual(len(tasks), task_lists[0]['tasks_count'], "Tasks count is not accurate!")
     
   def test_post_task_lists(self):

@@ -68,7 +68,8 @@ class TaskListHandler(DNZOLoggedInRequestHandler):
       if view_date:
         filter_title = view_date.strftime('%m-%d-%Y')
 
-    tasks = get_tasks(task_list, 
+    tasks = get_tasks(self.dnzo_user, 
+                      task_list=task_list, 
                       context=view_context, 
                       project_index=view_project, 
                       due_date=view_date)

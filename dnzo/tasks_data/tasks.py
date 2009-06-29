@@ -44,20 +44,20 @@ DEFAULT_TASKS = (
 
 ### TASKS ###
 
-def get_tasks_from_datastore(task_list=None, updated_since=None):
-  wheres = ['archived=:archived'] 
-  params = { 'archived': False }
+def get_tasks_from_datastore(dnzo_user, task_list=None, updated_since=None):
+  wheres = [] 
+  params = {}
   
   order = 'created_at ASC'
   
   if task_list:
-    wheres.append("task_list = :task_list")
-    params.update(task_list=task_list)
+    wheres.append("task_list=:task_list AND archived=:archived AND deleted=:deleted")
+    params.update(task_list=task_list, archived=False, deleted=False)
     
   if updated_since:
     order = 'updated_at ASC'
-    wheres.append("updated_at > :updated_since")
-    params.update(updated_since=updated_since)
+    wheres.append("updated_at > :updated_since AND ANCESTOR IS :user")
+    params.update(updated_since=updated_since, user=dnzo_user)
 
   gql = 'WHERE %s ORDER BY %s' % (' AND '.join(wheres), order)
   return Task.gql(gql, **params).fetch(RESULT_LIMIT)
@@ -73,7 +73,7 @@ def set_tasks_memcache(task_list,tasks):
     return
   return memcache.set(tasks_memcache_key(task_list), tasks)
 
-def get_tasks(task_list=None, updated_since=None, project_index=None, context=None, due_date=None):
+def get_tasks(dnzo_user, task_list=None, updated_since=None, project_index=None, context=None, due_date=None):
   assert task_list or updated_since, "Must provide a task_list -or- updated_since"
   if task_list:
     assert isinstance(task_list, TaskList)
@@ -83,12 +83,12 @@ def get_tasks(task_list=None, updated_since=None, project_index=None, context=No
   
   tasks = None
   if updated_since:
-    tasks = get_tasks_from_datastore(task_list=task_list, updated_since=updated_since)
+    tasks = get_tasks_from_datastore(dnzo_user, task_list=task_list, updated_since=updated_since)
     
   elif task_list:
     tasks = get_tasks_from_memcache(task_list)
     if not tasks:
-      tasks = get_tasks_from_datastore(task_list=task_list)
+      tasks = get_tasks_from_datastore(dnzo_user, task_list=task_list)
       set_tasks_memcache(task_list, tasks)
   
         
@@ -142,8 +142,8 @@ def delete_task(user, orig_task):
     task_list.active_tasks_count -= 1
     task_list.put()
     
+    orig_task.deleted = True
     task.deleted = True
-    task.task_list = None
     task.put()
   
   set_tasks_memcache(orig_task.task_list, None)
@@ -153,13 +153,12 @@ def delete_task(user, orig_task):
 def undelete_task(orig_task, task_list):
   def txn():
     task = db.get(orig_task.key())
-    was_deleted = task.deleted
-    task.deleted = False
-    task.task_list = task_list
-    task.put()
     
-    if not was_deleted:
+    if not task.deleted:
       return
+      
+    task.deleted = False
+    task.put()
     
     task_list.active_tasks_count += 1
     task_list.put()
