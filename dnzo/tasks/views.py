@@ -216,6 +216,8 @@ class TransparentSettingsHandler(DNZOLoggedInRequestHandler):
 class ArchivedListHandler(DNZOLoggedInRequestHandler):
   @dnzo_login_required
   def get(self):
+    record_user_history(self.dnzo_user, self.request)
+    
     from util.human_time import parse_date, HUMAN_RANGES
   
     offset=0
@@ -390,7 +392,8 @@ class UndoHandler(DNZOLoggedInRequestHandler):
       
       if undo:
         if not users_equal(undo.parent(), self.dnzo_user):
-          return access_error_redirect()
+          self.access_error_redirect()
+          return
         do_undo(self.dnzo_user, undo)
           
     except:

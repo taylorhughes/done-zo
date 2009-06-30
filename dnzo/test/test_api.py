@@ -195,8 +195,11 @@ class TaskAPITest(unittest.TestCase):
 
   def test_updated_since(self):
     tasks = list(Task.gql('where ancestor is :user',user=self.dnzo_user).fetch(1000))
-    tasks.reverse()
     self.assertTrue(len(tasks) > 0, "There should be some tasks from the user.")
+    
+    import random
+    random.shuffle(tasks)
+    logging.info("Shuffled order was: %s" % (", ".join([str(task.key().id()) for task in tasks])))
     
     now = datetime.utcnow()
     
