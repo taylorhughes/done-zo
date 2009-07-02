@@ -1,6 +1,6 @@
 {% extends "../layouts/logged_in.html" %}
 
-{% block page_title %}DNZO / {{ task_list.name|escape }}{% if filter_title %} / {{ filter_title|escape }}{% endif %}{% endblock %}
+{% block page_title %}Done-zo / {{ task_list.name|escape }}{% if filter_title %} / {{ filter_title|escape }}{% endif %}{% endblock %}
 
 {% block header %}
   {% if filter_title %}<a href="{% url TaskListHandler task_list.short_name %}">{% endif %}

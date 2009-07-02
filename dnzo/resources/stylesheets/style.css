@@ -43,10 +43,10 @@ body,
     #branding-lists span {
       float: left;
       margin-top: 3px;
-      height: 16px;
-      width: 90px;
+      height: 17px;
+      width: 120px;
       text-indent: -40502px;
-      background: url(/images/dnzo_small.png) center no-repeat;      
+      background: url(/images/dnzo_small.png) center -3px no-repeat;      
     }
   #header #user,
   #footer #new-delete {

@@ -29,9 +29,9 @@ RESULT_LIMIT = 100
 # This collection is parsed the same way user input is parsed
 DEFAULT_TASKS = (
   {
-    'body':     u'Welcome to DNZO!'
+    'body':     u'Welcome to Done-zo!'
   },{
-    'project':  u'DNZO',
+    'project':  u'Done-zo',
     'body':     u'← You can organize your tasks by project',
   },{
     'body':     u'... or by "context", which could mean where you need to be to complete the task. →',
