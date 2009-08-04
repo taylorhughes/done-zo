@@ -74,7 +74,7 @@ class Task(db.Model):
   contexts_index = db.StringProperty()
 
   due_date      = db.DateTimeProperty()
-  body          = db.StringProperty()
+  body          = db.StringProperty(default="")
   
   # For a complete task, whether it is shown in the list
   archived      = db.BooleanProperty(default=False)
