@@ -12,11 +12,19 @@ Done-zo - Helps you get things done.
 {% block body %}
 <div id="body">
   <div id="left-content">
+    {% if maintenance %}
+    <p id="maintenance">
+      Done-zo is down-zo.
+      We will return by <strong>10 a.m. PST</strong>.
+      Thanks!
+    </p>
+    {% else %}
     <p id="signin">
       <strong><a href="{{ login_url }}">Sign in</a></strong>
       with your <strong>Google Account</strong>
       and get started right away!
     </p>
+    {% endif %}
     <p>
       With a <strong>Done-zo to-do list</strong>, you can:
     </p>

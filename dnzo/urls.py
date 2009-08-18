@@ -11,6 +11,13 @@ API_URLS = [
   (API_PREFIX + r'l/?', APITaskListsHandler),
 ]
 
+from public.views import MaintenanceWelcomeHandler, MaintenanceHandler
+
+MAINTENANCE_URLS = [
+  (r'^/$', MaintenanceWelcomeHandler),
+  (r'^/.+$', MaintenanceHandler),
+]
+
 from public.views import WelcomeHandler, SignupHandler, ClosedHandler
 
 PUBLIC_URLS = [
@@ -63,6 +70,6 @@ TASKS_URLS = [
 
 from application_handler import NotFoundHandler
 
-ALL_URLS = API_URLS + PUBLIC_URLS + TASKS_URLS + [(r'^/.*', NotFoundHandler)]
-
+#ALL_URLS = API_URLS + PUBLIC_URLS + TASKS_URLS + [(r'^/.*', NotFoundHandler)]
+ALL_URLS = MAINTENANCE_URLS
   

@@ -75,5 +75,15 @@ class ClosedHandler(DNZORequestHandler):
       logout_url=create_logout_url('/'),
       is_development=environment.IS_DEVELOPMENT
     )
-  
+    
+
+class MaintenanceWelcomeHandler(DNZORequestHandler):
+  def get(self):
+    return self.render("public/index.html",
+      maintenance=True
+    )
+
+class MaintenanceHandler(DNZORequestHandler):
+  def get(self):
+    return self.render("maintenance.html")
   

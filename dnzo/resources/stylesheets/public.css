@@ -59,12 +59,15 @@ h1, p {
       list-style-type: square;
     }
  
-  #body #signin {
+  #body #signin, #body #maintenance {
     font-size: 16px;
     margin-left: -20px;
     padding: 10px;
     padding-left: 20px;
     background: #ff9;
+  }
+  #body #maintenance {
+    background: #ffaaab;
   }
 
   #left-content {
