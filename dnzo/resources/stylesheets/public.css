@@ -59,12 +59,27 @@ h1, p {
       list-style-type: square;
     }
  
-  #body #signin, #body #maintenance {
+  #body #signin,
+  #body #maintenance {
     font-size: 16px;
     margin-left: -20px;
+    background: #ff9;
+  }
+  #body #signin a,
+  #body #maintenance span {
+    display: block;
     padding: 10px;
     padding-left: 20px;
-    background: #ff9;
+  }
+  #body #signin a {
+    color: black;
+    text-decoration: none;
+  }
+  #body #signin a em {
+    color: #CC2E2E;
+    font-style: normal;
+    font-weight: bold;
+    text-decoration: underline;
   }
   #body #maintenance {
     background: #ffaaab;
