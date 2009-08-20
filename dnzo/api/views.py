@@ -6,11 +6,18 @@ import logging
 def dnzo_login_required(fn):
   """Decorator for a BaseAPIRequestHelper to make it require a DNZO login."""
   def logged_in_wrapper(self, *args):
+    from google.appengine.api.users import get_current_user
     dnzo_user = get_dnzo_user()
-    if not dnzo_user:
-      self.login_required()
-    else:
+    
+    if not dnzo_user and get_current_user():
+      from tasks_data.users import create_user
+      dnzo_user = create_user(get_current_user())
+    
+    if dnzo_user:
       fn(self, dnzo_user, *args)
+    else:
+      self.login_required()
+    
   return logged_in_wrapper
   
 class BaseAPIRequestHandler(webapp.RequestHandler):
@@ -32,7 +39,7 @@ class BaseAPIRequestHandler(webapp.RequestHandler):
 
   def login_required(self):
     self.error(403)
-    self.json_response(error="Login required.")
+    self.json_response(error="Google login required.")
     
   def not_found(self):
     self.error(404)
@@ -195,5 +202,15 @@ class APITaskListHandler(BaseAPIRequestHandler):
       
     delete_task_list(dnzo_user, task_list)
     self.json_response(task_list=task_list.to_dict())
+  
+class APIResetAccountHandler(BaseAPIRequestHandler):
+  @dnzo_login_required
+  def get(self, dnzo_user):
+    if environment.IS_PRODUCTION:
+      return
+    from tasks_data.users import delete_user_and_data
+    delete_user_and_data(dnzo_user)
+    
+  
   
   

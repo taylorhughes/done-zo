@@ -55,7 +55,38 @@ def save_user(user):
   user.put()
   set_user_memcache(user)
   
-def create_user(current_user, list_name, default_tasks=None):
+def delete_user_and_data(dnzo_user):
+  from google.appengine.ext import db
+  import tasks_data.counting as counting
+  from tasks_data.models import Task, TaskList, Project, Context, Undo
+      
+  to_delete = [dnzo_user]
+  
+  for t in Task.gql('WHERE ANCESTOR IS :user',user=dnzo_user):
+    if not t.deleted:
+      counting.task_deleted(t.archived)
+    to_delete.append(t)
+    
+  for t in TaskList.gql('WHERE ANCESTOR IS :user',user=dnzo_user):
+    if not t.deleted:
+      counting.list_deleted(t,[])
+    to_delete.append(t)
+  
+  for p in Project.gql('WHERE ANCESTOR IS :user',user=dnzo_user):
+    to_delete.append(p)
+  for c in Context.gql('WHERE ANCESTOR IS :user',user=dnzo_user):
+    to_delete.append(c)
+  for u in Undo.gql('WHERE ANCESTOR IS :user',user=dnzo_user):
+    to_delete.append(u)
+    
+  clear_user_memcache(dnzo_user)
+    
+  def delete_all():
+    db.delete(to_delete)
+  db.run_in_transaction(delete_all)
+  
+          
+def create_user(current_user, list_name=None, default_tasks=None):
   from tasks_data.task_lists import add_task_list
 
   # Create a default new list for this user
@@ -64,15 +95,19 @@ def create_user(current_user, list_name, default_tasks=None):
   
   counting.user_added()
 
-  # add new list for this user
-  tasks_list = add_task_list(new_user, list_name)
+  if list_name:
+    # add new list for this user
+    tasks_list = add_task_list(new_user, list_name)
 
-  # add new default tasks for this user
-  from tasks_data.models import Task
-  from tasks_data.tasks  import update_task_with_params, save_task
-  for task_dict in (default_tasks or []):
-    task = Task(parent=new_user, body='', task_list=tasks_list)
-    update_task_with_params(new_user, task, task_dict)
-    save_task(new_user, task)
+    # add new default tasks for this user
+    from tasks_data.models import Task
+    from tasks_data.tasks  import update_task_with_params, save_task
+    for task_dict in (default_tasks or []):
+      task = Task(parent=new_user, body='', task_list=tasks_list)
+      update_task_with_params(new_user, task, task_dict)
+      save_task(new_user, task)
   
   return new_user
+  
+  
+  

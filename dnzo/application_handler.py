@@ -97,10 +97,10 @@ class DNZORequestHandler(webapp.RequestHandler):
     if lists and len(lists) > 0:
       self.list_redirect(lists[0])
     else:
+      from google.appengine.api.users import create_logout_url
       import logging
-      # TODO: Log user out.
-      logging.error("Somehow this user does not have any task lists!")
-      return self.redirect('/')
+      logging.error("Somehow this user does not have any task lists! Logging the user out.")
+      self.redirect(create_logout_url('/'))
 
   def list_redirect(self, task_list):
     self.redirect_to('TaskListHandler', task_list.short_name)

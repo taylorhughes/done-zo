@@ -88,33 +88,10 @@ class DeleteUserHandler(DNZORequestHandler):
     if dnzo_user is None:
       error = "Could not find existing user."
     else:
-      import tasks_data.counting as counting
-      from tasks_data.models import Task, TaskList, Project, Context, Undo
-      from tasks_data.tasks import delete_task
-      from tasks_data.task_lists import delete_task_list
-      from tasks_data.users import set_user_memcache
+      from tasks_data.users import delete_user_and_data
       
       try:
-        for t in Task.gql('WHERE ANCESTOR IS :user',user=dnzo_user):
-          if not t.deleted:
-            counting.task_deleted(t.archived)
-          t.delete()
-          
-        for t in TaskList.gql('WHERE ANCESTOR IS :user',user=dnzo_user):
-          if not t.deleted:
-            counting.list_deleted(t,[])
-          t.delete()
-        
-        for p in Project.gql('WHERE ANCESTOR IS :user',user=dnzo_user):
-          p.delete()
-        for c in Context.gql('WHERE ANCESTOR IS :user',user=dnzo_user):
-          c.delete()
-        for u in Undo.gql('WHERE ANCESTOR IS :user',user=dnzo_user):
-          u.delete()
-                  
-        dnzo_user.delete()
-        
-        set_user_memcache(None, email=from_email)
+        delete_user_and_data(dnzo_user)
         success = "User %s deleted!" % from_email
         
       except:

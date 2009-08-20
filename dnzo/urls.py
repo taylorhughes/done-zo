@@ -1,7 +1,6 @@
-
 from tasks_data.models import TaskList, Task
 
-from api.views import APITasksHandler, APITaskHandler, APITaskListHandler, APITaskListsHandler
+from api.views import APITasksHandler, APITaskHandler, APITaskListHandler, APITaskListsHandler, APIResetAccountHandler
 
 API_PREFIX = '/api/0.1/'
 API_URLS = [
@@ -9,6 +8,7 @@ API_URLS = [
   (API_PREFIX + r't/?', APITasksHandler),
   (API_PREFIX + r'l/(?P<task_list_name>[a-z0-9][a-z0-9_-]*)/?', APITaskListHandler),
   (API_PREFIX + r'l/?', APITaskListsHandler),
+  (API_PREFIX + r'reset_account/?', APIResetAccountHandler),
 ]
 
 from public.views import MaintenanceWelcomeHandler, MaintenanceHandler
@@ -40,7 +40,7 @@ TASKS_URLS = [
   (r'^/l/_archived/?$', ArchivedListHandler),
   
   # /l/list_name
-  # /l/list_name/in/project
+  # /l/list_name/for/project
   # /l/list_name/at/context
   # /l/list_name/on/12-02-2005
   (list_pattern + r'/?$',TaskListHandler),
