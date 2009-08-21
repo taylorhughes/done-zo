@@ -63,12 +63,12 @@ class APITasksHandler(BaseAPIRequestHandler):
         self.bad_request("Could not parse supplied date.")
         return
     
-    task_list = self.request.get('task_list', None) 
-    if task_list:
+    task_list_key = self.request.get('task_list', None) 
+    if task_list_key:
       from tasks_data.task_lists import get_task_list
-      task_list = get_task_list(dnzo_user, task_list)
+      task_list = get_task_list(dnzo_user, task_list_key)
       if not task_list:
-        self.bad_request("Could not find task_list.")
+        self.bad_request("Could not find task_list with key '%s'." % task_list_key)
         return
         
     if not (task_list or updated_since):
@@ -206,11 +206,10 @@ class APITaskListHandler(BaseAPIRequestHandler):
 class APIResetAccountHandler(BaseAPIRequestHandler):
   @dnzo_login_required
   def get(self, dnzo_user):
+    import environment
     if environment.IS_PRODUCTION:
       return
     from tasks_data.users import delete_user_and_data
-    delete_user_and_data(dnzo_user)
-    
-  
+    delete_user_and_data(dnzo_user)  
   
   
