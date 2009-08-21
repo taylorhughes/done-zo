@@ -64,6 +64,7 @@ class APITasksHandler(BaseAPIRequestHandler):
         return
     
     task_list_key = self.request.get('task_list', None) 
+    task_list = None
     if task_list_key:
       from tasks_data.task_lists import get_task_list
       task_list = get_task_list(dnzo_user, task_list_key)
