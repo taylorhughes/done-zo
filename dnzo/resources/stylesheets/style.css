@@ -46,7 +46,7 @@ body,
       height: 17px;
       width: 120px;
       text-indent: -40502px;
-      background: url(/images/dnzo_small.png) center -4px no-repeat;      
+      background: url(/images/dnzo_small.png) -3px -4px no-repeat;      
     }
   #header #user,
   #footer #new-delete {
@@ -79,7 +79,7 @@ body,
   }
   
 #body {
-  padding: 20px 10px;
+  padding: 18px 0 20px 0;
   background: white;
 }
   #body p {
@@ -87,8 +87,8 @@ body,
     font-size: 13px;
   }
 h1 {
-  margin-left: 10px;
-  margin-bottom: 10px;
+  margin-left: 20px;
+  margin-bottom: 18px;
   font-size: 22px;
 }
 a {
@@ -142,8 +142,8 @@ td {
 	}
 	td.done,
 	th.done {
-	  width: 18px;
-	  text-align: center;
+	  width: 24px;
+	  text-align: right;
 	}
 	td.project {
     width: 100px;
@@ -155,28 +155,29 @@ td {
 	  width: 60px;
 	}
 	td.edit {
-	  width: 40px;
+	  width: 50px;
 	  text-align: center;
 	}
+	  td.edit a {
+      background: url(/images/pencil_16x16.gif) no-repeat left;
+      padding: 2px 0 2px 20px;
+    }
   	td.edit a,
   	td.cancel a {
   	  visibility: hidden;
   	}
   td.cancel {
     padding: 0;
-    width: 31px;
+    width: 20px;
     text-indent: -10000px;
   }
     td.cancel a {
       display: block;
-      width: 31px;
-      height: 31px;
+      width: 15px;
+      height: 20px;
       background-repeat: no-repeat;
-      background-position: center;
+      background-position: left;
     }
-      td.cancel a:hover {
-        background-color: #ffe;
-      }
       td.cancel a.delete {
         background-image: url(/images/trash.gif);
       }
@@ -202,6 +203,16 @@ table.row-dragging tr.task-row:hover td {
   tr.task-row:hover td.cancel a,
   tr.editable td.cancel a {
     visibility: visible;
+  }
+  tr.task-row:hover td.done,
+  table.row-dragging tr.task-row.dragging:hover td.done,
+  tr.dragging td.done {
+    background-image: url(/images/drag_handle.gif);
+    background-repeat: no-repeat;
+    background-position: 6px center;
+  }
+  tr.editable:hover td.done {
+    background-image: none;
   }
   tr.task-row.completed {
     color: #666;
@@ -265,6 +276,9 @@ tr.editable.task-row td.due input {
     width: 100%;
   }
 
+#add_row {
+  height: 31px;
+}
 #add_row:hover td {
   background: #f7f6f6;
   cursor: pointer;
@@ -276,7 +290,7 @@ tr.editable.task-row td.due input {
 
 table.row-dragging tr.task-row.dragging:hover td,
 tr.dragging td {
-  background: #ff9;
+  background-color: #ff9;
 }
 
 tr.error td {

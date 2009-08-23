@@ -27,13 +27,15 @@
     {% sorting_header "Task" "task" %}
     {% sorting_header "Context" "context" %}
     {% sorting_header "Due" "due" %}
+    <th class="edit">&nbsp;</th>
+    <th class="cancel">&nbsp;</th>
   </tr>
   {% for task in tasks %}
     {% include "tasks/task.html" %}
   {% endfor %}
   <tr id="add_row">
     <td></td>
-    <td colspan="6"><a href="{% url TaskHandler %}">Add task</a></td>
+    <td colspan="10"><a href="{% url TaskHandler %}">Add task</a></td>
   </tr>
 </table>
 
