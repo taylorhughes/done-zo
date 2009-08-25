@@ -113,8 +113,12 @@ class TaskAPITest(unittest.TestCase):
         
   def test_post_task(self):
     task_list = TaskList.gql('where ancestor is :user', user=self.dnzo_user).get()
+    i = 0
     for task_data in DEFAULT_TASKS:
       task_data = deepcopy(task_data)
+      if i % 2 == 0:
+        task_data['complete'] = 'true'
+      i += 1
       
       response = self.app.post(TASK_PATH, params=task_data, expect_errors=True)
       self.assertTrue('task_list' not in task_data, "Should not be submitting a task list, wtf?")
@@ -131,15 +135,20 @@ class TaskAPITest(unittest.TestCase):
       dictresponse = json.loads(response.body)['task']
       self.assertTrue('id' in dictresponse, "Response should contain a JS dict with an ID of the new task")
       self.assertTrue('updated_at' in dictresponse, "Response should include the updated_at timestamp")
+      self.assertTrue('complete' in dictresponse, "Response should include whether the task is complete")
+      if 'complete' in task_data and task_data['complete'] == 'true':
+        self.assertEqual(dictresponse['complete'], True)
+      else:
+        self.assertEqual(dictresponse['complete'], False)
       self.assertTrue(dictresponse['updated_at'] is not None, "Updated_at timestamp should not be none")
-      date = dictresponse['updated_at']
+      initial_updated_at = dictresponse['updated_at']
       
       response = self.app.get(path.join(TASK_PATH, str(dictresponse['id'])))
       dictresponse = json.loads(response.body)['task']
       self.assertEqual('200 OK', response.status, "Should be able to GET /t/id")
       
       self.assertEqual(task_data['body'], dictresponse['body'], "Body should be equal to what we posted!")
-      self.assertEqual(date, dictresponse['updated_at'], "Updated at should not change between saving and reloading, but was %s and %s" % (str(date), str(dictresponse['updated_at'])))
+      self.assertEqual(initial_updated_at, dictresponse['updated_at'], "Updated at should not change between saving and reloading, but was %s and %s" % (str(initial_updated_at), str(dictresponse['updated_at'])))
       
   def test_put_task(self):
     tasks = Task.gql('where ancestor is :user',user=self.dnzo_user).fetch(1000)
