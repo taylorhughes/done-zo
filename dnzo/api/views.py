@@ -87,6 +87,7 @@ class APITasksHandler(BaseAPIRequestHandler):
   def post(self, dnzo_user):
     """Create a new task with the JSONized input and return the 
     newly created task as a JSON object."""
+    from google.appengine.ext import db
     from tasks_data.models import Task
     from tasks_data.tasks import update_task_with_params, save_task
     from tasks_data.task_lists import get_task_list
@@ -103,6 +104,7 @@ class APITasksHandler(BaseAPIRequestHandler):
       
     update_task_with_params(dnzo_user, task, self.request)
     save_task(dnzo_user, task)
+    task = db.get(task.key())
   
     self.json_response(task=task.to_dict())
     

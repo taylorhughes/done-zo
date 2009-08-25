@@ -130,12 +130,16 @@ class TaskAPITest(unittest.TestCase):
       
       dictresponse = json.loads(response.body)['task']
       self.assertTrue('id' in dictresponse, "Response should contain a JS dict with an ID of the new task")
+      self.assertTrue('updated_at' in dictresponse, "Response should include the updated_at timestamp")
+      self.assertTrue(dictresponse['updated_at'] is not None, "Updated_at timestamp should not be none")
+      date = dictresponse['updated_at']
       
       response = self.app.get(path.join(TASK_PATH, str(dictresponse['id'])))
       dictresponse = json.loads(response.body)['task']
       self.assertEqual('200 OK', response.status, "Should be able to GET /t/id")
       
       self.assertEqual(task_data['body'], dictresponse['body'], "Body should be equal to what we posted!")
+      self.assertEqual(date, dictresponse['updated_at'], "Updated at should not change between saving and reloading, but was %s and %s" % (str(date), str(dictresponse['updated_at'])))
       
   def test_put_task(self):
     tasks = Task.gql('where ancestor is :user',user=self.dnzo_user).fetch(1000)
