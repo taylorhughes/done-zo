@@ -19,9 +19,10 @@ from util.human_time import parse_datetime
 from tasks_data.models import Task, TasksUser, TaskList
 from tasks_data.tasks import DEFAULT_TASKS, get_tasks
 
+import random
 from copy import deepcopy
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 BOGUS_IDS = ('abc', '-1', '0.1234', '1.', '.1', ' 123 ', '99999')
 TASK_PATH = path.join(API_PREFIX,'t')
@@ -118,6 +119,9 @@ class TaskAPITest(unittest.TestCase):
       task_data = deepcopy(task_data)
       if i % 2 == 0:
         task_data['complete'] = 'true'
+        now = datetime.utcnow()
+        task_data['sort_date'] = str(now + timedelta(microseconds=int(random.random()*100000)))
+        self.assertTrue(now != task_data['sort_date'], "Sort date should not be the same as utcnow.")
       i += 1
       
       response = self.app.post(TASK_PATH, params=task_data, expect_errors=True)
@@ -135,11 +139,13 @@ class TaskAPITest(unittest.TestCase):
       dictresponse = json.loads(response.body)['task']
       self.assertTrue('id' in dictresponse, "Response should contain a JS dict with an ID of the new task")
       self.assertTrue('updated_at' in dictresponse, "Response should include the updated_at timestamp")
+      self.assertTrue('sort_date' in dictresponse, "Response should include the sort_date timestamp")
       self.assertTrue('complete' in dictresponse, "Response should include whether the task is complete")
       if 'complete' in task_data and task_data['complete'] == 'true':
         self.assertEqual(dictresponse['complete'], True)
       else:
         self.assertEqual(dictresponse['complete'], False)
+        
       self.assertTrue(dictresponse['updated_at'] is not None, "Updated_at timestamp should not be none")
       initial_updated_at = dictresponse['updated_at']
       
@@ -149,6 +155,10 @@ class TaskAPITest(unittest.TestCase):
       
       self.assertEqual(task_data['body'], dictresponse['body'], "Body should be equal to what we posted!")
       self.assertEqual(initial_updated_at, dictresponse['updated_at'], "Updated at should not change between saving and reloading, but was %s and %s" % (str(initial_updated_at), str(dictresponse['updated_at'])))
+      if 'sort_date' in task_data:
+        logging.info(">>> Sort dates are (%s) and (%s)", task_data['sort_date'], dictresponse['sort_date'])
+        self.assertEqual(task_data['sort_date'], dictresponse['sort_date'], "Sort date was not properly saved on insert, was %s and %s" % (task_data['sort_date'], dictresponse['sort_date']))
+        
       
   def test_put_task(self):
     tasks = Task.gql('where ancestor is :user',user=self.dnzo_user).fetch(1000)
@@ -158,7 +168,11 @@ class TaskAPITest(unittest.TestCase):
       
       new_project = "New Project"
       appendage = "here's something added to the task body!"
-      changes = { 'body': task.body + appendage, 'project': new_project }
+      changes = { 
+        'body': task.body + appendage, 
+        'project': new_project,
+        'sort_date': str(task.created_at + timedelta(days=1, hours=2, seconds=15))
+      }
       response = self.app.put(path.join(TASK_PATH, task_id), params=changes)
       self.assertEqual('200 OK', response.status)
       
@@ -167,13 +181,16 @@ class TaskAPITest(unittest.TestCase):
       task_dict = json.loads(response.body)['task']
       self.assertEqual(changes['body'], task_dict['body'], "New body should reflect changes, but was %s!" % repr(task_dict['body']))
       self.assertEqual(changes['project'], task_dict['project'], "New project should reflect changes!")
+      self.assertEqual(changes['sort_date'], task_dict['sort_date'], "New sort date was not absorbed")
       
     another_user = TasksUser.gql('WHERE user=:1', users.User(ANOTHER_USER_ADDRESS)).get()
     tasks = Task.gql('where ancestor is :user',user=another_user).fetch(1000)
     self.assertTrue(len(tasks) > 0, "There should be some tasks from another user.")
     for task in tasks:
       appendage = "here's something added to the task body!"
-      changes = { 'body': task.body + appendage }
+      changes = { 
+        'body': task.body + appendage,
+      }
       task_id = str(task.key().id())
       response = self.app.put(path.join(API_PREFIX,'t',task_id), expect_errors=True, params=changes)
       self.assertEqual('404 Not Found', response.status, "Should not allow PUT against another person's tasks")
@@ -210,9 +227,8 @@ class TaskAPITest(unittest.TestCase):
     tasks = list(Task.gql('where ancestor is :user',user=self.dnzo_user).fetch(1000))
     self.assertTrue(len(tasks) > 0, "There should be some tasks from the user.")
     
-    import random
     random.shuffle(tasks)
-    logging.info("Shuffled order was: %s" % (", ".join([str(task.key().id()) for task in tasks])))
+    #logging.info("Shuffled order was: %s" % (", ".join([str(task.key().id()) for task in tasks])))
     
     now = datetime.utcnow()
     

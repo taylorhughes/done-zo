@@ -211,4 +211,15 @@ def update_task_with_params(user, task, params):
     task.due_date = None
     task.due_date = parse_date(raw_due_date, user.timezone_offset_mins)
     
+  raw_sort_date = param('sort_date', params, None)
+  if raw_sort_date is not None:
+    import re
+    import datetime
+    try:
+      date_pieces = [int(i) for i in re.split(r'\D+', raw_sort_date)]
+      task.created_at = datetime.datetime(*date_pieces)
+    except:
+      import logging
+      logging.exception("Invalid date string given as sort_date: %s", repr(raw_sort_date))
+    
   
