@@ -70,6 +70,6 @@ TASKS_URLS = [
 
 from application_handler import NotFoundHandler
 
-#ALL_URLS = API_URLS + PUBLIC_URLS + TASKS_URLS + [(r'^/.*', NotFoundHandler)]
-ALL_URLS = MAINTENANCE_URLS
+ALL_URLS = API_URLS + PUBLIC_URLS + TASKS_URLS + [(r'^/.*', NotFoundHandler)]
+#ALL_URLS = MAINTENANCE_URLS
   
