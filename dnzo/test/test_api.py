@@ -166,15 +166,21 @@ class TaskAPITest(unittest.TestCase):
     for task in tasks:
       task_id = str(task.key().id())
       
+      old_updated_at = str(task.updated_at)
       new_project = "New Project"
       appendage = "here's something added to the task body!"
       changes = { 
         'body': task.body + appendage, 
         'project': new_project,
-        'sort_date': str(task.created_at + timedelta(days=1, hours=2, seconds=15))
+        'sort_date': str(task.created_at + timedelta(days=1, hours=2, seconds=15)),
       }
       response = self.app.put(path.join(TASK_PATH, task_id), params=changes)
       self.assertEqual('200 OK', response.status)
+      task_dict = json.loads(response.body)['task']
+      self.assertEqual(changes['body'], task_dict['body'], "New body should reflect changes, but was %s!" % repr(task_dict['body']))
+      self.assertEqual(changes['project'], task_dict['project'], "New project should reflect changes!")
+      self.assertEqual(changes['sort_date'], task_dict['sort_date'], "New sort date was not absorbed")
+      self.assertTrue(old_updated_at != task_dict['updated_at'], "New updated_at should be different but were %s and %s" % (old_updated_at, task_dict['updated_at']))
       
       response = self.app.get(path.join(TASK_PATH,task_id))
       self.assertEqual('200 OK', response.status)
@@ -182,6 +188,7 @@ class TaskAPITest(unittest.TestCase):
       self.assertEqual(changes['body'], task_dict['body'], "New body should reflect changes, but was %s!" % repr(task_dict['body']))
       self.assertEqual(changes['project'], task_dict['project'], "New project should reflect changes!")
       self.assertEqual(changes['sort_date'], task_dict['sort_date'], "New sort date was not absorbed")
+      self.assertTrue(old_updated_at != task_dict['updated_at'], "New updated_at should be different but were %s and %s" % (old_updated_at, task_dict['updated_at']))
       
     another_user = TasksUser.gql('WHERE user=:1', users.User(ANOTHER_USER_ADDRESS)).get()
     tasks = Task.gql('where ancestor is :user',user=another_user).fetch(1000)

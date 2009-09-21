@@ -104,6 +104,7 @@ class APITasksHandler(BaseAPIRequestHandler):
       
     update_task_with_params(dnzo_user, task, self.request)
     save_task(dnzo_user, task)
+    # reload task
     task = db.get(task.key())
   
     self.json_response(task=task.to_dict())
@@ -136,6 +137,7 @@ class APITaskHandler(BaseAPIRequestHandler):
   @operates_on_task
   def put(self, dnzo_user, task):
     """Modify the attributes of an existing task."""
+    from google.appengine.ext import db
     from tasks_data.tasks import update_task_with_params, save_task
 
     try:
@@ -146,6 +148,9 @@ class APITaskHandler(BaseAPIRequestHandler):
       self.request.method = "PUT"
       
     save_task(dnzo_user, task)
+    # reload task
+    task = db.get(task.key())
+    
     self.json_response(task=task.to_dict())
 
 ### TASK LISTS ###
