@@ -170,13 +170,15 @@ def undelete_task(orig_task, task_list):
 def update_task_with_params(user, task, params):
   from util.misc import param, slugify
   
-  if param('complete', params) == "true":
-    task.complete = True
-    from datetime import datetime
-    task.completed_at = datetime.utcnow()
-  else:
-    task.complete = False
-    task.completed_at = None
+  complete = param('complete', params, None)
+  if complete is not None:
+    if complete == "true":
+      task.complete = True
+      from datetime import datetime
+      task.completed_at = datetime.utcnow()
+    else:
+      task.complete = False
+      task.completed_at = None
   
   raw_body = param('body', params, None)
   if raw_body is not None:
@@ -221,5 +223,12 @@ def update_task_with_params(user, task, params):
     except:
       import logging
       logging.exception("Invalid date string given as sort_date: %s", repr(raw_sort_date))
+  
+  archived = param('archived', params, None)
+  if archived is not None:
+    if archived == "true":
+      task.archived = True
+    else:
+      task.archived = False
     
   

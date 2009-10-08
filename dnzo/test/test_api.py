@@ -201,7 +201,25 @@ class TaskAPITest(unittest.TestCase):
       task_id = str(task.key().id())
       response = self.app.put(path.join(API_PREFIX,'t',task_id), expect_errors=True, params=changes)
       self.assertEqual('404 Not Found', response.status, "Should not allow PUT against another person's tasks")
+  
+  def test_put_task_archived(self):
+    task_list = TaskList.gql('where ancestor is :user', user=self.dnzo_user).get()
+    def tasks_for_list():
+      all_tasks_response = self.app.get(TASK_PATH, params={ 'task_list': task_list.short_name })
+      return json.loads(all_tasks_response.body)['tasks']
       
+    all_tasks = tasks_for_list()
+    size = len(all_tasks)
+    self.assertTrue(size > 0, "Should be some tasks")
+    
+    for task in all_tasks:
+      task_id = task['id']
+      response = self.app.put(path.join(TASK_PATH, str(task_id)), params={ 'archived': 'true' })
+      self.assertEqual('200 OK', response.status)
+      size -= 1
+      new_tasks = tasks_for_list()
+      self.assertEqual(size, len(new_tasks), "New task list length should be one less because we archived a task; was %d" % size)
+      self.assertTrue(task_id not in [t['id'] for t in new_tasks], "New tasks list should not contain the task we just archived.")
       
   def test_delete_task(self):
     tasks = Task.gql('where ancestor is :user',user=self.dnzo_user).fetch(1000)
@@ -272,7 +290,7 @@ class TaskAPITest(unittest.TestCase):
       latest_updated_at = updated_at
 
 
-  def test_get_task(self):
+  def test_get_tasks_for_list(self):
     all_tasks_response = self.app.get(TASK_PATH, expect_errors=True)
     self.assertTrue("400 Bad Request" in all_tasks_response.status,
                     "Status should be 400 because we didn't supply any arguments.")
