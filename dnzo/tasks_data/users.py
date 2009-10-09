@@ -45,7 +45,7 @@ def get_dnzo_user_by_email(email):
   return TasksUser.gql('WHERE email=:email', email=email).get()
   
 def record_user_history(user, request, save=True):
-  full_path = request.url
+  full_path = request.path_qs
   changed = user.most_recent_uri != full_path
   user.most_recent_uri = full_path
   if save and changed:
