@@ -71,9 +71,8 @@ var InstantAutocompleter = Class.create({
     this.updateElementContainer = new Element('div');
     this.updateElementContainer.hide();
     
-    this.updateElement = new Element('ul', { 
-      className: 'autocompleter' 
-    });
+    this.updateElement = new Element('ul');
+    this.updateElement.addClassName('autocompleter');
     
     this.updateElementContainer.appendChild(this.updateElement);
     this.element.parentNode.appendChild(this.updateElementContainer);
