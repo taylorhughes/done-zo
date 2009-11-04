@@ -151,6 +151,8 @@ var TaskRow = Class.create({
     
     this.editRow.select('input').each(function(e) {
       e.disable();
+      // Add a class name so we can style these; Safari does some weird things with disabled fields
+      e.addClassName('disabled');
     });
   },
   

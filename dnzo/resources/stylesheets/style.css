@@ -257,6 +257,10 @@ tr.editable.task-row td.edit {
   padding: 2px;
   border: 1px solid #ccc;
 }
+  .text-input.disabled {
+    color: #333;
+    background: #eee;
+  }
 
 tr.editable.task-row td.project input,
 tr.editable.task-row td.task input,
