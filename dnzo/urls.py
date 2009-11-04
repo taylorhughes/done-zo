@@ -1,14 +1,17 @@
 from tasks_data.models import TaskList, Task
 
-from api.views import APITasksHandler, APITaskHandler, APITaskListHandler, APITaskListsHandler, APIResetAccountHandler
+from api.views import APITasksHandler, APITaskHandler, APITaskListHandler, \
+                      APITaskListsHandler, APIResetAccountHandler, \
+                      APIArchivedTasksHandler
 
-API_PREFIX = '/api/0.1/'
+API_PREFIX = r'/api/0.1/'
 API_URLS = [
-  (API_PREFIX + r't/(?P<task_id>[0-9]+)/?', APITaskHandler),
-  (API_PREFIX + r't/?', APITasksHandler),
-  (API_PREFIX + r'l/(?P<task_list_name>[a-z0-9][a-z0-9_-]*)/?', APITaskListHandler),
-  (API_PREFIX + r'l/?', APITaskListsHandler),
-  (API_PREFIX + r'reset_account/?', APIResetAccountHandler),
+  (API_PREFIX + r't/(?P<task_id>[0-9]+)/?$', APITaskHandler),
+  (API_PREFIX + r't/?$', APITasksHandler),
+  (API_PREFIX + r'l/(?P<task_list_name>[a-z0-9][a-z0-9_-]*)/?$', APITaskListHandler),
+  (API_PREFIX + r'l/?$', APITaskListsHandler),
+  (API_PREFIX + r'a/?$', APIArchivedTasksHandler),
+  (API_PREFIX + r'reset_account/?$', APIResetAccountHandler),
 ]
 
 from public.views import MaintenanceWelcomeHandler, MaintenanceHandler
@@ -26,8 +29,9 @@ PUBLIC_URLS = [
   (r'^/signup/closed.html$', ClosedHandler),
 ]
 
-from tasks.views import TaskListHandler, ProjectTaskListHandler, ContextTaskListHandler, DueTaskListHandler, \
-  AddTaskListHandler, PurgeTaskListHandler, DeleteTaskListHandler, ArchivedListHandler, \
+from tasks.views import TaskListHandler, ProjectTaskListHandler, \
+  ContextTaskListHandler, DueTaskListHandler, AddTaskListHandler, \
+  PurgeTaskListHandler, DeleteTaskListHandler, ArchivedListHandler, \
   TransparentSettingsHandler, SettingsHandler, RedirectHandler, \
   TaskHandler, UndoHandler
 

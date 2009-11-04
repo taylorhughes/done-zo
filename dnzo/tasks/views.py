@@ -248,16 +248,8 @@ class ArchivedListHandler(DNZOLoggedInRequestHandler):
       start, stop  = HUMAN_RANGES[index]['range'](offset)
       filter_title = HUMAN_RANGES[index]['name']
   
-    gql = 'WHERE ANCESTOR IS :user AND archived=:archived AND deleted=:deleted ' + \
-          'AND completed_at >= :start AND completed_at < :stop ORDER BY completed_at DESC'
-
-    tasks = Task.gql(gql, 
-      user=self.dnzo_user,
-      archived=True,
-      deleted=False,
-      start=start,
-      stop=stop
-    ).fetch(RESULT_LIMIT)
+    from tasks_data.tasks import get_archived_tasks
+    tasks = get_archived_tasks(self.dnzo_user, start, stop)
     
     self.render('tasks/archived.html',
       tasks=tasks,
@@ -367,7 +359,7 @@ class TaskHandler(DNZOLoggedInRequestHandler):
       # simulate this call taking longer as is normal in production
       from time import sleep
       from random import random
-      sleep(random())
+      sleep(2)
   
     if not self.is_ajax():
       self.referer_redirect()

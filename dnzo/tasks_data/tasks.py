@@ -101,6 +101,20 @@ def get_tasks(dnzo_user, task_list=None, updated_since=None, project_index=None,
     
   return tasks
   
+def get_archived_tasks(dnzo_user, start, stop):
+  gql = 'WHERE ANCESTOR IS :user AND archived=:archived AND deleted=:deleted ' + \
+        'AND completed_at >= :start AND completed_at < :stop ORDER BY completed_at DESC'
+
+  tasks = Task.gql(gql, 
+    user=dnzo_user,
+    archived=True,
+    deleted=False,
+    start=start,
+    stop=stop
+  ).fetch(RESULT_LIMIT)
+  
+  return tasks
+    
 def save_task(user,task):
   if not task.is_saved():
     add_task(task)
@@ -227,6 +241,8 @@ def update_task_with_params(user, task, params):
   archived = param('archived', params, None)
   if archived is not None:
     if archived == "true":
+      if not task.complete:
+        raise AssertionError, "Cannot archive uncompleted task."
       task.archived = True
     else:
       task.archived = False

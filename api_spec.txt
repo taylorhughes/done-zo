@@ -19,7 +19,7 @@
 
 /t      # POST => new task
 /t/123  # GET => task details
-/t/123  # POST => edit task details, returns new task details
+/t/123  # PUT => edit task details, returns new task details
 /t/123  # DELETE => delete task
 
 # GET => list all tasks for a task list
@@ -27,6 +27,12 @@
 
 # GET => list all tasks updated since
 /t/?updated_since=<date> 
+
+
+### ARCHIVED TASKS ###
+
+/a/?start_at=time&end_at=time # GET => archived tasks for that range
+
 
 ### TASK LISTS ###
 
@@ -40,4 +46,3 @@
 /l       # GET => lists all task lists
 /l/tasks # POST => noop
 /l/tasks # DELETE => delete list
-

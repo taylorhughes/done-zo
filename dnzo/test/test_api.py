@@ -27,6 +27,7 @@ from datetime import datetime, timedelta
 BOGUS_IDS = ('abc', '-1', '0.1234', '1.', '.1', ' 123 ', '99999')
 TASK_PATH = path.join(API_PREFIX,'t')
 LIST_PATH = path.join(API_PREFIX,'l')
+ARCHIVED_PATH = path.join(API_PREFIX,'a')
 
 class TaskAPITest(unittest.TestCase):
   def setUp(self):
@@ -204,23 +205,78 @@ class TaskAPITest(unittest.TestCase):
   
   def test_put_task_archived(self):
     task_list = TaskList.gql('where ancestor is :user', user=self.dnzo_user).get()
+    start = datetime.utcnow()
+    
     def tasks_for_list():
       all_tasks_response = self.app.get(TASK_PATH, params={ 'task_list': task_list.short_name })
       return json.loads(all_tasks_response.body)['tasks']
+    def archived_tasks_from_now():
+      end = datetime.utcnow() + timedelta(seconds=1)
+      all_tasks_response = self.app.get(ARCHIVED_PATH, params={ 'start_at': start, 'end_at': end })
+      return json.loads(all_tasks_response.body)['tasks']
       
     all_tasks = tasks_for_list()
+    
     size = len(all_tasks)
+    archived_size = 0
+    
     self.assertTrue(size > 0, "Should be some tasks")
     
     for task in all_tasks:
       task_id = task['id']
-      response = self.app.put(path.join(TASK_PATH, str(task_id)), params={ 'archived': 'true' })
+      
+      self.assertTrue(not task['complete'], "Task should not be complete")
+      response = self.app.put(path.join(TASK_PATH, str(task_id)), params={ 'archived': 'true' }, expect_errors=True)
+      self.assertTrue('400' in response.status, "Status should be 400 -- can't archive an incomplete task. Was: %s" % response.status)
+      
+      response = self.app.put(path.join(TASK_PATH, str(task_id)), params={ 'complete': 'true', 'archived': 'true' })
       self.assertEqual('200 OK', response.status)
-      size -= 1
+      
       new_tasks = tasks_for_list()
+      archived_tasks = archived_tasks_from_now()
+      
+      size -= 1
+      archived_size += 1
+      
       self.assertEqual(size, len(new_tasks), "New task list length should be one less because we archived a task; was %d" % size)
+      self.assertEqual(archived_size, len(archived_tasks), "Archived length should be %d; was %d" % (archived_size, len(archived_tasks)))
       self.assertTrue(task_id not in [t['id'] for t in new_tasks], "New tasks list should not contain the task we just archived.")
       
+  def test_archived_tasks(self):
+    def archived_tasks_for(start,end):
+      all_tasks_response = self.app.get(ARCHIVED_PATH, params={ 'start_at': start, 'end_at': end })
+      return json.loads(all_tasks_response.body)['tasks']
+    
+    bad_ranges = (
+      {},
+      {'start_at': datetime.utcnow() },
+      {'end_at': datetime.utcnow() },
+      {'start_at': datetime.utcnow(), 'end_at': 'poop'},
+      {'start_at': '12-1234-51', 'end_at': datetime.utcnow() },
+      {'start_at': None, 'end_at': None },
+      {'end_at': datetime.utcnow() - timedelta(seconds=1), 'start_at': datetime.utcnow() },
+    )
+      
+    for params in bad_ranges:      
+      response = self.app.get(ARCHIVED_PATH, params=params, expect_errors=True)
+      self.assertTrue('400' in response.status, "Status should be 400 -- must specify start/stop; was: %s" % response.status)
+    
+    response = self.app.get(ARCHIVED_PATH, params={ 'start_at': datetime.utcnow(), 'end_at': datetime.utcnow() })
+    self.assertEqual('200 OK', response.status)
+    
+    start = datetime.utcnow() - timedelta(seconds=1)
+    stop = datetime.utcnow() + timedelta(minutes=1)
+    
+    self.assertEqual(0, len(archived_tasks_for(start,stop)), "Archived tasks should be empty!")
+    
+    task_list = TaskList.gql('where ancestor is :user', user=self.dnzo_user).get()
+    all_tasks_response = self.app.get(TASK_PATH, params={ 'task_list': task_list.short_name })
+    all_tasks = json.loads(all_tasks_response.body)['tasks']
+    self.app.put(path.join(TASK_PATH, str(all_tasks[0]['id'])), params={ 'complete': 'true', 'archived': 'true' })
+    
+    self.assertEqual(1, len(archived_tasks_for(start,stop)), "Archived tasks should have one entry.")
+    
+    
   def test_delete_task(self):
     tasks = Task.gql('where ancestor is :user',user=self.dnzo_user).fetch(1000)
     self.assertTrue(len(tasks) > 0, "There should be some tasks from the user.")

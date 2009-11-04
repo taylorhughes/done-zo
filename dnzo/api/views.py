@@ -33,6 +33,14 @@ class BaseAPIRequestHandler(webapp.RequestHandler):
   def generate(self, response):
     self.response.out.write(response)
 
+  def handle_exception(self, exception, debug_mode):
+    if debug_mode:
+      super(BaseAPIRequestHandler,self).handle_exception(exception,debug_mode)
+    else:
+      logging.exception("An exception occurred. Rendered a 500 error message. Yikes!")
+      self.error(500)
+      self.json_response(error="An unknown error has occurred.")
+      
   def error(self, *args):
     self.__errored = True
     super(BaseAPIRequestHandler, self).error(*args)
@@ -110,6 +118,41 @@ class APITasksHandler(BaseAPIRequestHandler):
     self.json_response(task=task.to_dict())
     
     
+class APIArchivedTasksHandler(BaseAPIRequestHandler):
+  @dnzo_login_required
+  def get(self, dnzo_user):
+    """Return all tasks, optionally filtered on various querystring parameters."""
+    from tasks_data.models import Task
+    from util.human_time import parse_datetime
+        
+    start_at = self.request.get('start_at', None)
+    end_at = self.request.get('end_at', None)
+    if not (start_at and end_at):
+      self.bad_request("Must include start_at and end_at for archived tasks.")
+      return
+    
+    start_at = parse_datetime(start_at)
+    if not start_at:
+      self.bad_request("Could not parse supplied date 'start_at'.")
+      return
+      
+    end_at = parse_datetime(end_at)
+    if not end_at:
+      self.bad_request("Could not parse supplied date 'end_at'.")
+      return
+    
+    if (start_at > end_at):
+      self.bad_request("Invalid range; start_at must come before end_at.")
+      return
+
+    from tasks_data.tasks import get_archived_tasks
+    tasks = get_archived_tasks(dnzo_user, start_at, end_at)
+    
+    data = { 'tasks': map(lambda t: t.to_dict(), tasks) }
+    
+    self.json_response(**data)
+    
+    
 class APITaskHandler(BaseAPIRequestHandler):
   def operates_on_task(fn):
     """Decorator for a TaskHandler task to """
@@ -144,6 +187,11 @@ class APITaskHandler(BaseAPIRequestHandler):
       # hack to allow form-encoded PUT bodies to be accessed by self.request.get()
       self.request.method = "POST"
       update_task_with_params(dnzo_user, task, self.request)
+      
+    except AssertionError as strerror:
+      self.bad_request(strerror.message)
+      return
+      
     finally:
       self.request.method = "PUT"
       
