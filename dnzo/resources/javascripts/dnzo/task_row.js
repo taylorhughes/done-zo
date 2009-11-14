@@ -52,8 +52,8 @@ var TaskRow = Class.create({
   
   wireEditingEvents: function()
   {    
-    var save = this.editRow.select('.edit>input[type=submit]')[0];
-    save.observe('click', this.onClickSave.bind(this));
+    this.saveButton = this.editRow.select('.edit>input[type=submit]')[0];
+    this.saveButton.observe('click', this.onClickSave.bind(this));
     
     this.editRow.observe('keydown', this.onKeyDown.bind(this));
 
@@ -341,6 +341,13 @@ var TaskRow = Class.create({
       case Event.KEY_RETURN:
         this.save();
         event.stop();
+        break;
+        
+      case 32: // space
+        if (this.saveButton == event.element())
+        {
+          this.save();
+        }
         break;
         
       case Event.KEY_ESC:
@@ -746,15 +753,7 @@ var TaskRow = Class.create({
     
       if (body && project)
       {
-        var projectIsVisible = project.getDimensions().width > 0;
-        if (body.getValue().blank() && project.getValue().blank() && projectIsVisible)
-        { 
-          project.activate();
-        }
-        else
-        {
-          body.activate();
-        }
+        body.activate();
       }
     }
     else

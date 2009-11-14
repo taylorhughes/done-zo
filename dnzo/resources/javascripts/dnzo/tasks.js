@@ -25,7 +25,7 @@ var Tasks = {
       }
     });
     
-    Tasks.addRow = Tasks.table.select('#add_row')[0];
+    Tasks.addRow = $('add_row');
     
     Tasks.tasksForm = $('tasks_form');
     Tasks.newTaskTableHTML = Tasks.tasksForm.innerHTML;
@@ -154,9 +154,14 @@ var Tasks = {
   {
     event.stop();
     
-    Tasks.cancelAll();
+    var element = event.element();
+    var td = element.match('td') ? element : element.up('td');
+    var className = td && td.className;
     
-    Tasks.doAddNewTask(Tasks.getNewTaskRow(), event.memo);
+    Tasks.cancelAll();
+    // event.memo is set to be the task that was just added by the TaskRow's
+    // save method, which fires a TASK_SAVED_EVENT using its editRow as memo
+    Tasks.doAddNewTask(Tasks.getNewTaskRow(), event.memo, className);
   },
   
   addCanceled: function(event)
@@ -171,7 +176,7 @@ var Tasks = {
     Tasks.onClickAddTask(event); 
   },
   
-  doAddNewTask: function(row, existingTask)
+  doAddNewTask: function(row, existingTask, activateClassName)
   {
     var tbody = Tasks.table.select('tbody')[0];
 
@@ -198,7 +203,7 @@ var Tasks = {
     row.observe(Tasks.TASK_CANCEL_EDITING_EVENT, Tasks.addCanceled);
     
     Tasks.addRow.hide();
-    task.activate();
+    task.activate(activateClassName);
   },
   
   cancelAll: function()

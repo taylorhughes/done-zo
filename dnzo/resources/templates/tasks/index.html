@@ -35,7 +35,13 @@
   {% endfor %}
   <tr id="add_row">
     <td></td>
-    <td colspan="10"><a href="{% url TaskHandler %}">Add task</a></td>
+    <td class="project">
+      <a href="{% url TaskHandler %}">Add task</a>
+    </td>
+    <td class="task"></td>
+    <td class="context"></td>
+    <td class="due"></td>
+    <td colspan="2"></td>
   </tr>
 </table>
 
