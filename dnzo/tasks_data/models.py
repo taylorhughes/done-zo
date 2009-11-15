@@ -91,7 +91,7 @@ class Task(db.Model):
     return num
 
   def to_dict(self):
-    return {
+    task_dict = {
       'id': self.key().id(),
       'created_at': str(self.real_created_at),
       'updated_at': str(self.updated_at),
@@ -104,9 +104,14 @@ class Task(db.Model):
       'due_date': self.due_date and str(self.due_date),
 
       'complete': self.complete,
-      'archived': self.archived,
       'deleted':  self.deleted,
     }
+    
+    if self.complete:
+      task_dict['completed_at'] = self.completed_at and str(self.completed_at)
+      task_dict['archived'] = self.archived
+      
+    return task_dict
 
   def editing():
     def fset(self, value):

@@ -361,7 +361,7 @@ class TaskAPITest(unittest.TestCase):
     for task in all_tasks_raw['tasks']:
       all_tasks[str(task['id'])] = task
     
-    self.assertEqual(0, len(filter(lambda t: t['archived'], all_tasks_raw['tasks'])), "All tasks shown should be not archived.")
+    self.assertEqual(0, len(filter(lambda t: 'archived' in t, all_tasks_raw['tasks'])), "All tasks shown should be not archived.")
     
     self.assertEqual('200 OK', all_tasks_response.status)
 
