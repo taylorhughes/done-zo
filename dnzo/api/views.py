@@ -188,7 +188,7 @@ class APITaskHandler(BaseAPIRequestHandler):
       self.request.method = "POST"
       update_task_with_params(dnzo_user, task, self.request)
       
-    except AssertionError as strerror:
+    except AssertionError, strerror:
       self.bad_request(strerror.message)
       return
       
