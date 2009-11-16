@@ -70,6 +70,8 @@ var TaskRow = Class.create({
   wireDragging: function()
   {
     this.dragger = new Draggable(this.viewRow, {
+      handle: this.viewRow.select('td.done').first(),
+      
       starteffect: null,
       endeffect:   null,
       
