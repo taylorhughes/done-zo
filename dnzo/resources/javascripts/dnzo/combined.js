@@ -114,9 +114,8 @@ var InstantAutocompleter = Class.create({
     this.updateElementContainer = new Element('div');
     this.updateElementContainer.hide();
     
-    this.updateElement = new Element('ul', { 
-      className: 'autocompleter' 
-    });
+    this.updateElement = new Element('ul');
+    this.updateElement.addClassName('autocompleter');
     
     this.updateElementContainer.appendChild(this.updateElement);
     this.element.parentNode.appendChild(this.updateElementContainer);
@@ -727,8 +726,8 @@ var TaskRow = Class.create({
   
   wireEditingEvents: function()
   {    
-    var save = this.editRow.select('.edit>input[type=submit]')[0];
-    save.observe('click', this.onClickSave.bind(this));
+    this.saveButton = this.editRow.select('.edit>input[type=submit]')[0];
+    this.saveButton.observe('click', this.onClickSave.bind(this));
     
     this.editRow.observe('keydown', this.onKeyDown.bind(this));
 
@@ -826,6 +825,8 @@ var TaskRow = Class.create({
     
     this.editRow.select('input').each(function(e) {
       e.disable();
+      // Add a class name so we can style these; Safari does some weird things with disabled fields
+      e.addClassName('disabled');
     });
   },
   
@@ -1014,6 +1015,13 @@ var TaskRow = Class.create({
       case Event.KEY_RETURN:
         this.save();
         event.stop();
+        break;
+        
+      case 32: // space
+        if (this.saveButton == event.element())
+        {
+          this.save();
+        }
         break;
         
       case Event.KEY_ESC:
@@ -1419,15 +1427,7 @@ var TaskRow = Class.create({
     
       if (body && project)
       {
-        var projectIsVisible = project.getDimensions().width > 0;
-        if (body.getValue().blank() && project.getValue().blank() && projectIsVisible)
-        { 
-          project.activate();
-        }
-        else
-        {
-          body.activate();
-        }
+        body.activate();
       }
     }
     else
@@ -1463,7 +1463,7 @@ var TaskRow = Class.create({
       }
     });
     
-    Tasks.addRow = Tasks.table.select('#add_row')[0];
+    Tasks.addRow = $('add_row');
     
     Tasks.tasksForm = $('tasks_form');
     Tasks.newTaskTableHTML = Tasks.tasksForm.innerHTML;
@@ -1592,9 +1592,14 @@ var TaskRow = Class.create({
   {
     event.stop();
     
-    Tasks.cancelAll();
+    var element = event.element();
+    var td = element.match('td') ? element : element.up('td');
+    var className = td && td.className;
     
-    Tasks.doAddNewTask(Tasks.getNewTaskRow(), event.memo);
+    Tasks.cancelAll();
+    // event.memo is set to be the task that was just added by the TaskRow's
+    // save method, which fires a TASK_SAVED_EVENT using its editRow as memo
+    Tasks.doAddNewTask(Tasks.getNewTaskRow(), event.memo, className);
   },
   
   addCanceled: function(event)
@@ -1609,7 +1614,7 @@ var TaskRow = Class.create({
     Tasks.onClickAddTask(event); 
   },
   
-  doAddNewTask: function(row, existingTask)
+  doAddNewTask: function(row, existingTask, activateClassName)
   {
     var tbody = Tasks.table.select('tbody')[0];
 
@@ -1636,7 +1641,7 @@ var TaskRow = Class.create({
     row.observe(Tasks.TASK_CANCEL_EDITING_EVENT, Tasks.addCanceled);
     
     Tasks.addRow.hide();
-    task.activate();
+    task.activate(activateClassName);
   },
   
   cancelAll: function()
