@@ -2,13 +2,13 @@
   <td class="list">
     {{ task.task_list.name|escape }}
   </td>
+  <td class="task">
+    {{ task.body|escape }}
+  </td>
   <td class="project">
     {% if task.project %}
       {{ task.project|escape }}
     {% endif %}
-  </td>
-  <td class="task">
-    {{ task.body|escape }}
   </td>
   <td class="context">
     {% for context in task.contexts %}@{{ context|escape }} {% endfor %}

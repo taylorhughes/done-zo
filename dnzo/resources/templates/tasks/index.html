@@ -23,8 +23,8 @@
 <table cellspacing="0" cellpadding="0" id="tasks_list" class="draggable">
   <tr>
     {% sorting_header "<img src=\"/images/checkmark.gif\" alt=\"checkmark\">" "done" %}
-    {% sorting_header "Project" "project" %}
     {% sorting_header "Task" "task" %}
+    {% sorting_header "Project" "project" %}
     {% sorting_header "Context" "context" %}
     {% sorting_header "Due" "due" %}
     <th class="edit">&nbsp;</th>
@@ -35,13 +35,9 @@
   {% endfor %}
   <tr id="add_row">
     <td></td>
-    <td class="project">
+    <td colspan="10">
       <a href="{% url TaskHandler %}">Add task</a>
     </td>
-    <td class="task"></td>
-    <td class="context"></td>
-    <td class="due"></td>
-    <td colspan="2"></td>
   </tr>
 </table>
 

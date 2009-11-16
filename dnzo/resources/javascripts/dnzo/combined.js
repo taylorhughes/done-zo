@@ -744,6 +744,8 @@ var TaskRow = Class.create({
   wireDragging: function()
   {
     this.dragger = new Draggable(this.viewRow, {
+      handle: this.viewRow.select('td.done').first(),
+      
       starteffect: null,
       endeffect:   null,
       
@@ -1592,14 +1594,10 @@ var TaskRow = Class.create({
   {
     event.stop();
     
-    var element = event.element();
-    var td = element.match('td') ? element : element.up('td');
-    var className = td && td.className;
-    
     Tasks.cancelAll();
     // event.memo is set to be the task that was just added by the TaskRow's
     // save method, which fires a TASK_SAVED_EVENT using its editRow as memo
-    Tasks.doAddNewTask(Tasks.getNewTaskRow(), event.memo, className);
+    Tasks.doAddNewTask(Tasks.getNewTaskRow(), event.memo);
   },
   
   addCanceled: function(event)

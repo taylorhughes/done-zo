@@ -212,6 +212,10 @@ table.row-dragging tr.task-row:hover td {
     background-position: 6px center;
     cursor: move;
   }
+  table.draggable tr.task-row.unsaved:hover td.done {
+    background-image: none;
+    cursor: default;
+  }
   tr.editable:hover td.done {
     background-image: none;
   }

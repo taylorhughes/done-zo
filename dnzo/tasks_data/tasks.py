@@ -32,7 +32,7 @@ DEFAULT_TASKS = (
     'body':     u'Welcome to Done-zo!'
   },{
     'project':  u'Done-zo',
-    'body':     u'← You can organize your tasks by project',
+    'body':     u'You can organize your tasks by project →',
   },{
     'body':     u'... or by "context", which could mean where you need to be to complete the task. →',
     'contexts': u'home',
