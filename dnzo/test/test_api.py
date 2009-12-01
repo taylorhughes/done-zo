@@ -24,7 +24,7 @@ from copy import deepcopy
 
 from datetime import datetime, timedelta
 
-BOGUS_IDS = ('abc', '-1', '0.1234', '1.', '.1', ' 123 ', '99999')
+BOGUS_IDS = ('abc', '-1', '0.1234', '1.', '.1', ' 123 ', '99999', ' a b c 1 2 ')
 TASK_PATH = path.join(API_PREFIX,'t')
 LIST_PATH = path.join(API_PREFIX,'l')
 ARCHIVED_PATH = path.join(API_PREFIX,'a')
@@ -142,6 +142,9 @@ class TaskAPITest(unittest.TestCase):
       self.assertTrue('updated_at' in dictresponse, "Response should include the updated_at timestamp")
       self.assertTrue('sort_date' in dictresponse, "Response should include the sort_date timestamp")
       self.assertTrue('complete' in dictresponse, "Response should include whether the task is complete")
+      self.assertTrue('task_list_name' not in dictresponse, "Non-archived tasks should not include the task list name")
+      self.assertEqual(dictresponse['complete'], 'archived' in dictresponse, "Archived should only appear in task body if the task is complete")
+      
       if 'complete' in task_data and task_data['complete'] == 'true':
         self.assertEqual(dictresponse['complete'], True)
       else:
@@ -274,7 +277,10 @@ class TaskAPITest(unittest.TestCase):
     all_tasks = json.loads(all_tasks_response.body)['tasks']
     self.app.put(path.join(TASK_PATH, str(all_tasks[0]['id'])), params={ 'complete': 'true', 'archived': 'true' })
     
-    self.assertEqual(1, len(archived_tasks_for(start,stop)), "Archived tasks should have one entry.")
+    archived = archived_tasks_for(start,stop)
+    self.assertEqual(1, len(archived), "Archived tasks should have one entry.")
+    
+    self.assertTrue('task_list_name' in archived[0], "Archived task should indicate the task list name it came from")
     
     
   def test_delete_task(self):

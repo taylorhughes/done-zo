@@ -111,6 +111,9 @@ class Task(db.Model):
       task_dict['completed_at'] = self.completed_at and str(self.completed_at)
       task_dict['archived'] = self.archived
       
+    if self.archived:
+      task_dict['task_list_name'] = self.task_list.name
+      
     return task_dict
 
   def editing():
