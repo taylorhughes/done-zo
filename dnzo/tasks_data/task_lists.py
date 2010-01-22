@@ -153,11 +153,12 @@ def archive_tasks(task_list):
   def txn():
     for task in archived_tasks:
       task.archived = True
-      task.put()
       
     task_list.active_tasks_count -= len(archived_tasks)
     task_list.archived_tasks_count += len(archived_tasks)
-    task_list.put()
+    
+    # Save all entities at once
+    db.put(archived_tasks + [task_list])
   
   db.run_in_transaction(txn)
   counting.list_archived(task_list, archived_tasks)
