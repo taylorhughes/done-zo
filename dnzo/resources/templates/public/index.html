@@ -1,46 +1,172 @@
-{% extends "../layouts/public.html" %}
+<!DOCTYPE html>
+<html>
+<head>
+  <!--
+  TODO:
+  - add iTunes store links
+  - cover down for maintenance case
+  - cover other special cases?
+  -->
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+  <title>Done-zo — fast free to-do list web app</title>
+  <style type="text/css" media="screen">
+ /**
+  * Clear browser default styles
+  * Adapted from Tantek Celik's undohtml.css
+  *   http://tantek.com/log/2004/09.html#d06t2354
+  */  
+  ul,ol { list-style:none }
+  h1,h2,h3,h4,h5,h6,pre,code { font-size:1em; }
+  ul,ol,li,dl,dt,dd,h1,h2,h3,h4,h5,h6,
+  pre,form,body,html,p,blockquote,fieldset,input { margin:0; padding:0 }
+  a img,:link img,:visited img { border:none }
+  address { font-style:normal }
+ 
+ /**
+  * Done-zo home page styles
+  */
+  body {
+    font-size: 16px;
+    background: url(/images/background.jpg) no-repeat left top;
+    font-family: Helvetica, sans-serif;
+    line-height: 17px;
+  }  
+  p {
+    font: 20px Georgia, serif;
+  }
+  a {
+    color: #CC2E2E;
+    text-decoration: underline;    
+  }
+  #page {
+    margin-top: 99px;
+    margin-left: 98px;
+  }  
+  h1 {
+    text-indent: -10000px;
+  }
+  #tagline {
+    width: 318px;
+    line-height: 24px;
+  }
+  ol, ul {
+    list-style: none;
+  }
+  #features {
+    width: 300px;
+    margin-top: 24px;
+    font-size: 13px;
+  }
+  #signin a {
+    font-size: 16px;
+    line-height: 19px;
+    color: black;
+    text-decoration: none;
+  }
+    #signin strong {
+      color: #CC2E2E;
+      font-weight: bold;
+      text-decoration: underline;
+    }
+    #signin em {
+      font-style: normal;
+      font-weight: bold;
+    }
+  #signin {
+    margin-bottom: 24px;
+  }
+  li {
+    margin-bottom: 1em;
+  }
+  
+  #testimonials {
+    position: absolute;
+    top: 658px;
+    left: 0;
+    border-bottom: 1px solid #aaa;
+  }
+    #testimonials div {
+      margin-left: 433px;
+      padding: 16px 16px 16px 16px;
+      background: #eee;
+      border-top: 1px solid #aaa;
+      font-size: 13px;
+      min-width: 440px;
+      max-width: 700px;
+    }
+    #testimonials h2 {
+      margin-bottom: 1em;
+    }
+    
+  #footer {
+    position: absolute;
+    top: 828px;
+    padding-bottom: 40px;
+  }
+  </style>
+</head>
+<body>
+  <div id="page">
+    <h1>Done-zo</h1>
+    <p id="tagline">Your time and attention are priceless. Done-zo helps you focus on the right things, right now.</p>
 
-{% block title %}
-Done-zo - Helps you get things done.
-{% endblock %}
+    <h2 style="display:none">Features</h2>
+    <ol id="features">
+      <li id="signin">
+        <a href="{{ login_url }}"><strong>Sign in</strong> with your <em>Google Account</em><br> and get started right away. It&rsquo;s free!</a>
+      </li>
+      <li>
+        <strong>Powerful Yet Simple</strong><br>
+        Sort and filter tasks by project, context or due date
+      </li>
+      <li>
+        <strong>Complete, Archive, Review</strong><br>
+        Archive completed tasks and track what you&rsquo;ve done — by day, week or however you want
+      </li>
+      <li>
+        <strong style="background: url(/images/new_icon.gif) no-repeat right; padding-right: 32px">Syncs with iPhone</strong><br>
+        <a href="">Download our app from iTunes</a> ($3.99) and take Done-zo with you — keeps your tasks in sync
+      </li>
+      <li>
+        <strong>Access From Anywhere</strong><br>
+        At work, at home, on the road — Done-zo works with IE, Firefox, Safari and Chrome
+      </li>
+      <li>
+        <strong>More Than To-Dos</strong><br>
+        Use Done-zo for groceries, gifts, or anything else
+      </li>
+      <li>
+        <strong>Inline Editing</strong><br>
+        Just double-click to edit your tasks
+      </li>
+      <li>
+        <strong>Drag-and-Drop</strong><br>
+        Reorder tasks the natural way — just drag and drop
+      </li>
+      <li>
+        <strong>Lightning Fast</strong><br>
+        Done-zo loads in less than one second, and you don&rsquo;t have to sign up — <a href="{{ login_url }}">try it now</a>
+      </li>
+      <li>
+        <strong>Work Now, Undo Later</strong><br>
+        Delete tasks and lists at ease — Done-zo offers an undo feature that won&rsquo;t get in the way
+      </li>
+    </ol>
 
-{% block h1 %}
-<h1 id="logo">Done-zo</h1>
-<p id="tagline">Helps you get things done.</p>
-{% endblock %}
+    <div id="testimonials">
+      <div>
+        <h2>What Our Users Say</h2>
+        <ul>
+          <li>&ldquo;Done-zo is exactly what I needed. No more no less. Perfect.&rdquo; —<a href="http://bradmaier.com/about/">Brad Maier</a></li>
+          <li>&ldquo;I keep waiting to see you so I could mention how much I like Done-zo.  It has me the most organized I've ever been in my life.&rdquo; —<a href="http://twitter.com/juntereker">Jed Untereker</a></li>
+        </ul>              
+      </div>
+    </div>
 
-{% block body %}
-<div id="body">
-  <div id="left-content">
-    {% if maintenance %}
-    <p id="maintenance"><span>
-      Done-zo is down-zo.
-      We will return by <strong>6 p.m. PST</strong>.
-      Thanks!
-    </span></p>
-    {% else %}
-    <p id="signin"><a href="{{ login_url }}">
-      <em>Sign in</em>
-      with your <strong>Google Account</strong>
-      and get started right away!
-    </a></p>
-    {% endif %}
-    <p>
-      With a <strong>Done-zo to-do list</strong>, you can:
-    </p>
-    <ul>
-      <li><strong>Quickly add new tasks</strong> to clear your head.</li>
-      <li><strong>Sort and filter</strong> your tasks by project, context and due date.</li>
-      <li>Add <strong>multiple lists</strong> to better organize disparate tasks.</li>
-      <li>Archive completed tasks and track what you&rsquo;ve done.</li>
-    </ul>
-    <p>
-      Try using Done-zo with <strong><a href="http://fluidapp.com/">Fluid</a></strong> on your Mac!
-      Here&rsquo;s <a href="/images/donezo_fluid.png" title="Fluid Done-zo icon">an icon</a> to use.
-    </p>
+    <div id="footer">
+      <p>Questions, comments, or just want to talk? Email us at <a href="mailto:support@done-zo.com">support@done-zo.com</a>.</p>
+      <p style="font: 13px Helvetica, sans-serif; margin-top: 15px">&copy;2010 Two-Stitch Software LLC &bull; <a href="http://twitter.com/dnzo">Done-zo on Twitter</a> &bull; <a href="">Done-zo for iPhone and iPod Touch</a></p>      
+    </div>
   </div>
-  <p id="screencast">
-    <img alt="Done-zo screenshot" src="/images/screenshot.gif">
-  </p>
-</div>
-{% endblock %}
+</body>
+</html>
