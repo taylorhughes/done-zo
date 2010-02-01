@@ -4,8 +4,6 @@
   <!--
   TODO:
   - add iTunes store links
-  - cover down for maintenance case
-  - cover other special cases?
   -->
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
   <title>Done-zo — fast free to-do list web app</title>
@@ -57,9 +55,11 @@
     margin-top: 24px;
     font-size: 13px;
   }
-  #signin a {
+  #signin {
     font-size: 16px;
-    line-height: 19px;
+    line-height: 19px;    
+  }
+  #signin a {
     color: black;
     text-decoration: none;
   }
@@ -113,7 +113,11 @@
     <h2 style="display:none">Features</h2>
     <ol id="features">
       <li id="signin">
+        {% if maintenance %}
+        <em>Unfortunately, Done-zo is currently unavailable.</em> Check back soon!
+        {% else %}
         <a href="{{ login_url }}"><strong>Sign in</strong> with your <em>Google Account</em><br> and get started right away. It&rsquo;s free!</a>
+        {% endif %}
       </li>
       <li>
         <strong>Powerful Yet Simple</strong><br>
