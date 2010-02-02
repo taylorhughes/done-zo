@@ -324,7 +324,16 @@ tr.error td {
       background: #ff9;
       color: black;
     }
-
+    
+#footer #credit-footer {
+  display: block;
+  clear: both;
+  width: auto;
+  color: #666;
+}
+#footer #credit-footer a {
+  color: #666;
+}
 
 /* Modal dialogs */
 
