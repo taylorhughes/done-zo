@@ -395,3 +395,7 @@ tr.error td {
   #filter input.date {
     width: 70px;
   }
+  /* overrule default :hover rule when viewing archive */
+  table.archived tr.task-row:hover td {
+    background: white;
+  }
