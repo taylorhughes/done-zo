@@ -31,10 +31,7 @@ handlers:
   login: admin
   script: gaeunit.py
   
-- url: /
-  script: main.py
-
-- url: /about/*
+- url: /(about/?)?
   script: main.py
   
 - url: /api/.+
