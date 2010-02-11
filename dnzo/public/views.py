@@ -24,6 +24,24 @@ class WelcomeHandler(DNZORequestHandler):
       is_development=environment.IS_DEVELOPMENT
     )
 
+class AboutHandler(DNZORequestHandler):
+  def get(self):
+    if self.dnzo_user:
+      self.most_recent_redirect()
+      return
+
+    nickname = None
+    current_user = get_current_user()
+    if current_user:
+      nickname = current_user.nickname()
+
+    return self.render("public/about.html",
+      nickname=nickname,
+      logout_url=create_logout_url('/'),
+      login_url=create_login_url(self.url_for('RedirectHandler')),
+      is_development=environment.IS_DEVELOPMENT
+    )
+
 class SignupHandler(DNZORequestHandler):
   def get(self):  
     if self.dnzo_user:

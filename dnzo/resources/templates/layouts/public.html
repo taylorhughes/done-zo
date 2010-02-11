@@ -1,27 +1,23 @@
-<!DOCTYPE HTML>
-
+<!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <title>{% block title %}{% endblock %}</title>
-  {% css_tag public %}
-  
-  <meta name="description" content="A to-do list to help you get things done-zo.">
-  <meta name="keywords" content="to-do list, to-do, to do, to do list, getting things done, gtd, tasks, task management">
+  <!--
+  TODO:
+  - add iTunes store links
+  -->
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+  <title>Done-zo — fast free to-do list web app</title>
+  <link rel="stylesheet" href="/stylesheets/public.css" type="text/css">
 </head>
-<body>
+<body id="{% block bodyid %}{% endblock %}">
+  <h1><a href="/">Done-zo</a></h1>
   
-  {% block h1 %}{% endblock %}
-
   {% block body %}{% endblock %}
-
-  <p>
-    Send questions or comments to <a href="mailto:support@done-zo.com">support@done-zo.com</a>.
-  </p>
-  <p>
-    Built by <a href="http://taylor-hughes.com">Taylor Hughes</a>
-    and <a href="http://johnzeratsky.com/">John Zeratsky</a>.
-  </p>
+    
+  <div id="footer">
+    <p>Questions, comments, or just want to talk? Email us at <a href="mailto:support@done-zo.com">support@done-zo.com</a>.</p>
+    <p style="font: 13px Helvetica, sans-serif; margin-top: 15px">&copy;2010 Two-Stitch Software LLC &bull; <a href="http://twitter.com/dnzo">Done-zo on Twitter</a> &bull; <a href="">Done-zo for iPhone and iPod Touch</a></p>      
+  </div>
   
   {% if not is_development %}
   <script type="text/javascript">

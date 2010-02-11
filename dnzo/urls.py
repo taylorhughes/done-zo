@@ -21,10 +21,11 @@ MAINTENANCE_URLS = [
   (r'^/.+$', MaintenanceHandler),
 ]
 
-from public.views import WelcomeHandler, SignupHandler, ClosedHandler
+from public.views import WelcomeHandler, AboutHandler, SignupHandler, ClosedHandler
 
 PUBLIC_URLS = [
   (r'^/$', WelcomeHandler),
+  (r'^/about/$', AboutHandler),
   (r'^/signup/$', SignupHandler),
   (r'^/signup/closed.html$', ClosedHandler),
 ]

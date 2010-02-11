@@ -1,0 +1,52 @@
+{% extends "../layouts/public.html" %}
+
+{% block bodyid %}about-page{% endblock %}
+
+{% block body %}
+<h2 style="display:none">Features</h2>
+<ol id="features">
+  <li id="signin" style="margin-top: 33px">
+    {% if maintenance %}
+    <em>Unfortunately, Done-zo is currently unavailable.</em> Check back soon!
+    {% else %}
+    <a href="{{ login_url }}"><strong>Sign in</strong> with your <em>Google Account</em> and get started right away.</a>
+    {% endif %}
+  </li>
+  <li>
+    <strong>Powerful Yet Simple</strong><br>
+    Sort and filter tasks by project, context or due date
+  </li>
+  <li>
+    <strong>Complete, Archive, Review</strong><br>
+    Archive completed tasks and track what you&rsquo;ve done — by the day, the week, or however you want
+  </li>
+  <li>
+    <strong style="background: url(/images/new_icon.gif) no-repeat right; padding-right: 32px">Syncs with iPhone</strong><br>
+    <a href="">Download our app from iTunes</a> ($3.99) and take Done-zo with you — keep your tasks in sync
+  </li>
+  <li>
+    <strong>Access From Anywhere</strong><br>
+    Done-zo works with IE, Firefox, Safari and Chrome
+  </li>
+  <li>
+    <strong>More Than To-Dos</strong><br>
+    Use Done-zo for groceries, gifts, or anything else
+  </li>
+  <li>
+    <strong>Inline Editing</strong><br>
+    Just double-click to edit your tasks
+  </li>
+  <li>
+    <strong>Drag-and-Drop</strong><br>
+    Reorder tasks the natural way — just drag and drop
+  </li>
+  <li>
+    <strong>Lightning Fast</strong><br>
+    Loads in less than one second, and you don&rsquo;t have to sign up — <a href="https://www.google.com/accounts/ServiceLogin?service=ah&continue=http://370.latest.dnzo-staging.appspot.com/_ah/login%3Fcontinue%3Dhttp://370.latest.dnzo-staging.appspot.com/signin/&ltmpl=gm&ahname=Done-zo+Staging+Area&sig=152963985d7c3a76908da7fcee0ac0bb">try it now</a>
+  </li>
+  <li>
+    <strong>Work Now, Undo Later</strong><br>
+    Delete tasks and lists at ease — Done-zo offers an undo feature that won&rsquo;t get in the way
+  </li>
+</ol>
+{% endblock %}

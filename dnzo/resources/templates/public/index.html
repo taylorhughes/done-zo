@@ -1,197 +1,27 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <!--
-  TODO:
-  - add iTunes store links
-  -->
-  <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
-  <title>Done-zo — fast free to-do list web app</title>
-  <style type="text/css" media="screen">
- /**
-  * Clear browser default styles
-  * Adapted from Tantek Celik's undohtml.css
-  *   http://tantek.com/log/2004/09.html#d06t2354
-  */  
-  ul,ol { list-style:none }
-  h1,h2,h3,h4,h5,h6,pre,code { font-size:1em; }
-  ul,ol,li,dl,dt,dd,h1,h2,h3,h4,h5,h6,
-  pre,form,body,html,p,blockquote,fieldset,input { margin:0; padding:0 }
-  a img,:link img,:visited img { border:none }
-  address { font-style:normal }
- 
- /**
-  * Done-zo home page styles
-  */
-  body {
-    font-size: 16px;
-    background: url(/images/background.jpg) no-repeat 0px 0px;
-    font-family: Helvetica, sans-serif;
-    line-height: 17px;
-  }  
-  p {
-    font: 20px Georgia, serif;
-  }
-  li {
-    padding-left: 16px;
-    margin-bottom: 10px;
-  }
-  a {
-    color: #CC2E2E;
-    text-decoration: underline;    
-  }
-  h1 {
-    text-indent: -10000px;
-    height: 55px;
-    width: 331px;
-    background: red;
-    margin-left: 33px;
-    margin-top: 14px;
-    background: url(/images/dnzo_home.gif) no-repeat 0px 0px;
-  }
-  #tagline {
-    margin-top: 35px;
-    margin-left: 98px;
-    width: 318px;
-    line-height: 24px;
-  }
-  ol, ul {
-    list-style: none;
-  }
-  #features {
-    width: 330px;
-    margin-top: 30px;
-    font-size: 13px;
-    margin-left: 82px;
-  }
-  .quote {
-    background: url(/images/quote.gif) no-repeat left 2px;
-    padding-left: 16px;
-  }
-  #signin {
-    font-size: 16px;
-    line-height: 19px;
-    margin-bottom: 28px;
-  }
-  #signin a {
-    color: black;
-    text-decoration: none;
-  }
-    #signin strong {
-      color: #CC2E2E;
-      font-weight: bold;
-      text-decoration: underline;
-    }
-    #signin em {
-      font-style: normal;
-      font-weight: bold;
-    }
+{% extends "../layouts/public.html" %}
 
-      
-  #footer {
-    /*border-top: 1px solid #ccc;*/
-    background: #eee;
-    padding-bottom: 19px;
-    padding-top: 17px;
-    margin-top: 18px;
-  }
-    #footer p {
-      margin-left: 98px;
-    }
-    
-  /* page "switcher" */
-  .about {
-    display: none;
-  }
-  #about-page {
-    background-image: url(/images/background-about.jpg);
-  }
-  #about-page #tagline {
-    display: none;
-  }
-  #about-page .about {
-    display: block;
-  }
-  #about-page .home {
-    display: none;
-  }
-  #about-page #features {
-    width: 470px;
-  }
-  </style>
-</head>
-<body>
-  <h1>Done-zo</h1>
-  <p id="tagline">Your time and attention are priceless. Done-zo helps you focus on the right things, right now.</p>
-  <h2 style="display:none">Features</h2>
-  <ol id="features">
-    <li id="signin" class="home">
-      {% if maintenance %}
-      <em>Unfortunately, Done-zo is currently unavailable.</em> Check back soon!
-      {% else %}
-      <a href="{{ login_url }}"><strong>Sign in</strong> with your <em>Google Account</em><br> and get started right away. It&rsquo;s free!</a>
-      {% endif %}
-    </li>
-    <li id="signin" class="about" style="margin-top: 33px">
-      {% if maintenance %}
-      <em>Unfortunately, Done-zo is currently unavailable.</em> Check back soon!
-      {% else %}
-      <a href="{{ login_url }}"><strong>Sign in</strong> with your <em>Google Account</em> and get started right away.</a>
-      {% endif %}
-    </li>
+{% block bodyid %}home-page{% endblock %}
 
-    <li class="quote home">Done-zo is exactly what I needed. No more no less. Perfect.&rdquo; —<a href="http://bradmaier.com/about/">Brad Maier</a></li>
-    <li class="quote home">I keep waiting to see you so I could mention how much I like Done-zo.  It has me the most organized I've ever been in my life.&rdquo; —<a href="http://twitter.com/juntereker">Jed Untereker</a></li>
+{% block body %}
+<p id="tagline">Your time and attention are priceless. Done-zo helps you focus on the right things, right now.</p>
+<h2 style="display:none">Features</h2>
+<ol id="features">
+  <li id="signin">
+    {% if maintenance %}
+    <em>Unfortunately, Done-zo is currently unavailable.</em> Check back soon!
+    {% else %}
+    <a href="{{ login_url }}"><strong>Sign in</strong> with your <em>Google Account</em><br> and get started right away. It&rsquo;s free!</a>
+    {% endif %}
+  </li>
+  <li class="quote">Done-zo is exactly what I needed. No more no less. Perfect.&rdquo; —<a href="http://bradmaier.com/about/">Brad Maier</a></li>
+  <li class="quote">I keep waiting to see you so I could mention how much I like Done-zo.  It has me the most organized I've ever been in my life.&rdquo; —<a href="http://twitter.com/juntereker">Jed Untereker</a></li>
 
-    <li style="margin-top:34px" class="home">Sort and filter tasks by project, context or due date</li>
-    <li class="home">Archive and review completed tasks</li>
-    <li class="home"><a href="">Download Done-zo for iPhone or iPod Touch</a></li>
-    <li class="home">Track groceries, gifts or anything else</li>
-    <li class="home">Edit inline and undo deleted tasks and lists</li>
-    <li class="home"><a href="">Get started quickly</a> — no sign-up and loads fast!</li>
-    <li class="home"><a href="#" onclick="document.body.setAttribute('id','about-page'); return false">Learn more about Done-zo&hellip;</a></li>
-    
-    <li class="about">
-      <strong>Powerful Yet Simple</strong><br>
-      Sort and filter tasks by project, context or due date
-    </li>
-    <li class="about">
-      <strong>Complete, Archive, Review</strong><br>
-      Archive completed tasks and track what you&rsquo;ve done — by the day, the week, or however you want
-    </li>
-    <li class="about">
-      <strong style="background: url(/images/new_icon.gif) no-repeat right; padding-right: 32px">Syncs with iPhone</strong><br>
-      <a href="">Download our app from iTunes</a> ($3.99) and take Done-zo with you — keep your tasks in sync
-    </li>
-    <li class="about">
-      <strong>Access From Anywhere</strong><br>
-      Done-zo works with IE, Firefox, Safari and Chrome
-    </li>
-    <li class="about">
-      <strong>More Than To-Dos</strong><br>
-      Use Done-zo for groceries, gifts, or anything else
-    </li>
-    <li class="about">
-      <strong>Inline Editing</strong><br>
-      Just double-click to edit your tasks
-    </li>
-    <li class="about">
-      <strong>Drag-and-Drop</strong><br>
-      Reorder tasks the natural way — just drag and drop
-    </li>
-    <li class="about">
-      <strong>Lightning Fast</strong><br>
-      Loads in less than one second, and you don&rsquo;t have to sign up — <a href="https://www.google.com/accounts/ServiceLogin?service=ah&continue=http://370.latest.dnzo-staging.appspot.com/_ah/login%3Fcontinue%3Dhttp://370.latest.dnzo-staging.appspot.com/signin/&ltmpl=gm&ahname=Done-zo+Staging+Area&sig=152963985d7c3a76908da7fcee0ac0bb">try it now</a>
-    </li>
-    <li class="about">
-      <strong>Work Now, Undo Later</strong><br>
-      Delete tasks and lists at ease — Done-zo offers an undo feature that won&rsquo;t get in the way
-    </li>
-  </ol>
-    
-  <div id="footer">
-    <p>Questions, comments, or just want to talk? Email us at <a href="mailto:support@done-zo.com">support@done-zo.com</a>.</p>
-    <p style="font: 13px Helvetica, sans-serif; margin-top: 15px">&copy;2010 Two-Stitch Software LLC &bull; <a href="http://twitter.com/dnzo">Done-zo on Twitter</a> &bull; <a href="">Done-zo for iPhone and iPod Touch</a></p>      
-  </div>
-</body>
-</html>
+  <li style="margin-top:34px">Sort and filter tasks by project, context or due date</li>
+  <li>Archive and review completed tasks</li>
+  <li><a href="">Download Done-zo for iPhone or iPod Touch</a></li>
+  <li>Track groceries, gifts or anything else</li>
+  <li>Edit inline and undo deleted tasks and lists</li>
+  <li><a href="">Get started quickly</a> — no sign-up and loads fast!</li>
+  <li><a href="/about/">Learn more about Done-zo&hellip;</a></li>
+</ol>
+{% endblock %}
