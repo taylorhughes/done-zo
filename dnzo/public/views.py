@@ -6,8 +6,8 @@ from application_handler import DNZORequestHandler
 import environment
 import logging
 
-class WelcomeHandler(DNZORequestHandler):
-  def get(self):
+class PublicHandler(DNZORequestHandler):
+  def render_public(self, template):
     if self.dnzo_user:
       self.most_recent_redirect()
       return
@@ -17,30 +17,21 @@ class WelcomeHandler(DNZORequestHandler):
     if current_user:
       nickname = current_user.nickname()
   
-    return self.render("public/index.html",
+    return self.render(template,
       nickname=nickname,
       logout_url=create_logout_url('/'),
       login_url=create_login_url(self.url_for('RedirectHandler')),
       is_development=environment.IS_DEVELOPMENT
     )
 
-class AboutHandler(DNZORequestHandler):
+class WelcomeHandler(PublicHandler):
   def get(self):
-    if self.dnzo_user:
-      self.most_recent_redirect()
-      return
+    return self.render_public("public/index.html")
+    
+class AboutHandler(PublicHandler):
+  def get(self):
+    return self.render_public("public/about.html")
 
-    nickname = None
-    current_user = get_current_user()
-    if current_user:
-      nickname = current_user.nickname()
-
-    return self.render("public/about.html",
-      nickname=nickname,
-      logout_url=create_logout_url('/'),
-      login_url=create_login_url(self.url_for('RedirectHandler')),
-      is_development=environment.IS_DEVELOPMENT
-    )
 
 class SignupHandler(DNZORequestHandler):
   def get(self):  
