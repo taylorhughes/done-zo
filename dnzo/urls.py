@@ -25,7 +25,7 @@ from public.views import WelcomeHandler, AboutHandler, SignupHandler, ClosedHand
 
 PUBLIC_URLS = [
   (r'^/$', WelcomeHandler),
-  (r'^/about/$', AboutHandler),
+  (r'^/about/*$', AboutHandler),
   (r'^/signup/$', SignupHandler),
   (r'^/signup/closed.html$', ClosedHandler),
 ]
