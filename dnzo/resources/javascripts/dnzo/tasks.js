@@ -42,6 +42,9 @@ var Tasks = {
       new TaskRow(rows[i + 1], rows[i]);
     }
     
+    Event.observe(document, 'dblclick', Tasks.onDoubleClickBody);
+    Event.observe(document, 'keypress', Tasks.onKeyPress);
+    
     Tasks.setHideStatus();
     
     Tasks.wireHistory();
@@ -69,6 +72,30 @@ var Tasks = {
   draggable: function()
   {
     return Tasks.table.hasClassName('draggable');
+  },
+  
+  onDoubleClickBody: function(event)
+  {
+    Tasks.cancelAll();
+  },
+  
+  onKeyPress: function(event)
+  {
+    if (event.altKey || !event.isChar)
+    {
+      return;
+    }
+    
+    switch(event.charCode)
+    {
+      case 65:
+      case 97:
+        var element = event.findElement();
+        if (!element.match('input') && !element.match('select'))
+        {
+          Tasks.onClickAddTask(event);
+        }
+    }
   },
   
   onHistoryChange: function(name)
