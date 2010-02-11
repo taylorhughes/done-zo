@@ -1,24 +1,11 @@
 {% extends "layouts/public.html" %}
 
-{% block title %}
-Done-zo - Ruh roh!
-{% endblock %}
-
-{% block h1 %}
-<h1>Ruh roh!</h1>
-{% endblock %}
+{% block bodyid %}error-page{% endblock %}
 
 {% block body %}
-<div id="body">
-  <p>
-    Something seems to have gone wrong.
-  </p>
-  <p>
-    We&rsquo;ve received notification that something happened
-    and will look into fixing it. Thanks!
-  </p>
-  <p>
-    <a href="/">Click here</a> to return to the main page.
-  </p>
+<div id="error-block">
+  <h2>Something seems to have gone wrong.</h2>
+  <p>We&rsquo;ve received notification that something happened and will look into fixing it. Thanks!</p>
+  <p>In any case, please <a href="/">return to the Done-zo home page</a>.</p>
 </div>
 {% endblock %}

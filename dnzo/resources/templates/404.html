@@ -1,21 +1,11 @@
 {% extends "layouts/public.html" %}
 
-{% block title %}
-Done-zo - Whoops!
-{% endblock %}
-
-{% block h1 %}
-<h1>Whoops!</h1>
-{% endblock %}
+{% block bodyid %}error-page{% endblock %}
 
 {% block body %}
-<div id="body">
-  <p>
-    We couldn't find what you're looking for;
-    you might have an outdated URL.
-  </p>
-  <p>
-    <a href="/">Click here</a> to return to the main page.
-  </p>
+<div id="error-block">
+  <h2>Unfortunately, there is no web page at this address.</h2>
+  <p>Sorry for the inconvience. You may have an outdated URL, or followed an incorrect link from somewhere.</p>
+  <p>In any case, please <a href="/">return to the Done-zo home page</a>.</p>
 </div>
 {% endblock %}

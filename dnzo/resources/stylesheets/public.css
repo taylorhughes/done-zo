@@ -100,4 +100,24 @@
  }
  #about-page #features {
    width: 470px;
+   margin-top: 0;
+ }
+ 
+ #error-page {
+   background: none;
+ }
+ #error-page #footer {
+   display: none;
+ }
+ #error-block {
+   margin-top: 17px;
+   margin-left: 98px;
+ }
+ #error-block h2 {
+   font: 22px Georgia, serif;
+   margin-bottom: 13px;
+ }
+ #error-block p {
+   font: 13px Helvetica, sans-serif;
+   margin-bottom: 1em;
  }
