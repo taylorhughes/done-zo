@@ -81,11 +81,6 @@ var Tasks = {
   
   onKeyPress: function(event)
   {
-    if (event.altKey || !event.isChar)
-    {
-      return;
-    }
-    
     switch(event.charCode)
     {
       case 65:
