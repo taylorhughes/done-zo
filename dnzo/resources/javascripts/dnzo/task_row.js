@@ -56,6 +56,7 @@ var TaskRow = Class.create({
     this.saveButton.observe('click', this.onClickSave.bind(this));
     
     this.editRow.observe('keydown', this.onKeyDown.bind(this));
+    this.editRow.observe('dblclick', this.onDoubleClickEditRow.bind(this));
 
     this.cancelLink = this.editRow.select('.cancel>a.cancel')[0];
     this.boundOnClickCancel = this.onClickCancel.bind(this);
@@ -312,6 +313,11 @@ var TaskRow = Class.create({
     var check = event.element();
     var checked = check.checked;
     this.completeOrUncomplete(checked);
+  },
+  
+  onDoubleClickEditRow: function(event)
+  {
+    event.stop();
   },
   
   onDoubleClickViewRow: function(event)
