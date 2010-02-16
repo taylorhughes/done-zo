@@ -49,7 +49,11 @@ def record_user_history(user, request, save=True):
   changed = user.most_recent_uri != full_path
   user.most_recent_uri = full_path
   if save and changed:
-    save_user(user)
+    try:
+      save_user(user)
+    except:
+      import logging
+      logging.exception("Could not save user's history; not a big deal.")
   
 def save_user(user):
   user.put()
