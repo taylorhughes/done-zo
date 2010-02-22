@@ -1,7 +1,7 @@
 
 from tasks_data.models     import Task
 from tasks_data.tasks      import get_tasks, RESULT_LIMIT
-from tasks_data.users      import get_dnzo_user, record_user_history
+from tasks_data.users      import get_dnzo_user, record_user_history, user_history_changed
 from tasks_data.task_lists import get_task_list, get_task_lists, can_add_list
   
 import environment
@@ -18,7 +18,10 @@ def operates_on_task_list(fn):
   def wrapper(self, task_list_name, *args, **kwargs):
     task_list = get_task_list(self.dnzo_user, task_list_name)
     if not task_list or task_list.deleted:
-      self.not_found()
+      if not user_history_changed(self.dnzo_user, self.request):
+        self.default_list_redirect()
+      else:
+        self.not_found()
     else:
       fn(self, task_list, *args, **kwargs)
 

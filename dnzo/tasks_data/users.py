@@ -44,10 +44,16 @@ def get_dnzo_user(invalidate_cache=False, google_user=None):
 def get_dnzo_user_by_email(email):
   return TasksUser.gql('WHERE email=:email', email=email).get()
   
+def request_path_to_save(request):
+  return request.path_qs
+  
+def user_history_changed(user, request):
+  return user.most_recent_uri != request_path_to_save(request)
+  
 def record_user_history(user, request, save=True):
-  full_path = request.path_qs
-  changed = user.most_recent_uri != full_path
-  user.most_recent_uri = full_path
+  # If this changes, also change the method above!
+  changed = user_history_changed(user, request)
+  user.most_recent_uri = request_path_to_save(request)
   if save and changed:
     try:
       save_user(user)
