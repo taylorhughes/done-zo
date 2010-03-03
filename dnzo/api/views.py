@@ -112,7 +112,12 @@ class APITasksHandler(BaseAPIRequestHandler):
       
     update_task_with_params(dnzo_user, task, self.request)
     save_task(dnzo_user, task)
-    # reload task
+
+    if not task.is_saved():
+      self.bad_request("Could not add the new task!")
+      return
+
+    # reload task      
     task = db.get(task.key())
   
     self.json_response(task=task.to_dict())
