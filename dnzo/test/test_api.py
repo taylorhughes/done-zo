@@ -111,8 +111,93 @@ class TaskAPITest(unittest.TestCase):
     response = self.app.get(LIST_PATH)
     self.assertTrue(not json.dumps(task_list.short_name) in response.body, "Deleted task list should NOT be in this list!")
 
+  def test_max_num_tasks(self):
+    from tasks_data.tasks import MAX_ACTIVE_TASKS
     
-        
+    response = self.app.post(LIST_PATH, params={ 'task_list_name': 'Some new list' })
+    self.assertEqual('200 OK', response.status)
+    task_list = json.loads(response.body)['task_list']
+    
+    tasks = []
+    
+    for task_data in [DEFAULT_TASKS[i % (len(DEFAULT_TASKS) - 1)] for i in range(0,MAX_ACTIVE_TASKS)]:
+      task_data = deepcopy(task_data)
+      task_data['task_list'] = task_list['key']
+            
+      response = self.app.post(TASK_PATH, params=task_data)
+      self.assertEqual('200 OK', response.status)
+      
+      tasks.append(json.loads(response.body)['task'])
+      
+    response = self.app.get(path.join(LIST_PATH, str(task_list['key'])))
+    self.assertEqual('200 OK', response.status)
+    task_list = json.loads(response.body)['task_list']
+    
+    self.assertEqual(MAX_ACTIVE_TASKS, task_list['tasks_count'])
+    
+    task_data = deepcopy(DEFAULT_TASKS[0])
+    task_data['task_list'] = task_list['key']
+    response = self.app.post(TASK_PATH, params=task_data, expect_errors=True)
+    self.assertEqual('400 Bad Request', response.status, "Response should be 400 because we added one more than the max number of tasks; was %s." % response.status)
+    # Twice for good measure
+    response = self.app.post(TASK_PATH, params=task_data, expect_errors=True)
+    self.assertEqual('400 Bad Request', response.status, "Response should be 400 because we added one more than the max number of tasks.")
+
+    # Delete a task, then add one successfully
+    last_task = tasks.pop()
+    response = self.app.delete(path.join(TASK_PATH, str(last_task['id'])))
+    self.assertEqual('200 OK', response.status, "Should be able to delete a task.")
+    
+    response = self.app.post(TASK_PATH, params=task_data)
+    self.assertEqual('200 OK', response.status, "Should be able to post a new task because the last one was deleted.")
+    
+    response = self.app.post(TASK_PATH, params=task_data, expect_errors=True)
+    self.assertEqual('400 Bad Request', response.status, "Response should be 400 because we added one more than the max number of tasks.")
+    
+    # Archive a task
+    last_task = tasks.pop()
+    response = self.app.put(path.join(TASK_PATH, str(last_task['id'])), params={ 'complete': 'true', 'archived': 'true' })
+    self.assertEqual('200 OK', response.status, "Should be able to archive a task.")
+    archived_task = json.loads(response.body)['task']
+    
+    response = self.app.get(TASK_PATH, params={ 'task_list': str(task_list['key']) })
+    current_tasks = json.loads(response.body)['tasks']
+    self.assertEqual(MAX_ACTIVE_TASKS - 1, len(current_tasks), "Task was not archived, task list contents is incorrect")
+    
+    response = self.app.get(path.join(LIST_PATH, str(task_list['key'])))
+    current_list = json.loads(response.body)['task_list']
+    self.assertEqual(MAX_ACTIVE_TASKS - 1, current_list['tasks_count'], "Task count was wrong (got %d)" % (current_list['tasks_count']))
+    
+    response = self.app.post(TASK_PATH, params=task_data)
+    self.assertEqual('200 OK', response.status, "Should be able to post a new task because the last one was archived.")
+
+    # Delete an ARCHIVED TASK. This should not lower the active tasks count, so this should be an error.
+    self.assertEqual(archived_task['archived'], True)
+    response = self.app.delete(path.join(TASK_PATH, str(archived_task['id'])))
+    self.assertEqual('200 OK', response.status)
+    
+    # This should STILL BE 400 even though we just deleted a task, because that task should be archived.
+    response = self.app.post(TASK_PATH, params=task_data, expect_errors=True)
+    self.assertEqual('400 Bad Request', response.status, "Response should be 400 because we added one more than the max number of tasks.")
+
+    task_data['complete'] = 'true'
+    task_data['archived'] = 'true'
+    response = self.app.post(TASK_PATH, params=task_data)
+    self.assertEqual('200 OK', response.status, "Should be able to post a new ARCHIVED task.")
+    
+    new_archived_task = json.loads(response.body)['task']
+    response = self.app.put(path.join(TASK_PATH, str(new_archived_task['id'])), params={ 'archived': 'false' }, expect_errors=True)
+    self.assertEqual('400 Bad Request', response.status, "Response should be 400 because we are attempting to unarchive a task when we have no room, was %s." % response.status)
+    
+    # Archive a task
+    last_task = tasks.pop()
+    response = self.app.put(path.join(TASK_PATH, str(last_task['id'])), params={ 'complete': 'true', 'archived': 'true' })
+    self.assertEqual('200 OK', response.status, "Should be able to archive a task.")
+    
+    response = self.app.put(path.join(TASK_PATH, str(new_archived_task['id'])), params={ 'archived': 'false' })
+    self.assertEqual('200 OK', response.status, "Response should be OK now, was %s." % response.status)
+    
+
   def test_post_task(self):
     task_list = TaskList.gql('where ancestor is :user', user=self.dnzo_user).get()
     i = 0

@@ -28,9 +28,12 @@ NUM_TASKS_CREATED  = 'num-tasks-created'
 NUM_ACTIVE_LISTS   = 'num-active-lists'
 NUM_LISTS_CREATED  = 'num-lists-created'
 
-def task_added():
+def task_added(archived=False):
   increment(NUM_TASKS_CREATED + time.strftime('-%Y-%m'))
-  increment(NUM_ACTIVE_TASKS)
+  if archived:
+    increment(NUM_ARCHIVED_TASKS)
+  else:
+    increment(NUM_ACTIVE_TASKS)
 
 def task_deleted(archived=False):
   if archived:

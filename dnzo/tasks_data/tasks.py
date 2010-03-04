@@ -115,11 +115,31 @@ def get_archived_tasks(dnzo_user, start, stop):
   
   return tasks
     
-def save_task(user,task):
+def save_task(user, task, task_archived_status_changed=False):
   if not task.is_saved():
     add_task(task)
+    
   else:
-    task.put()
+    if task_archived_status_changed:
+      def txn():
+        increment = task.archived and 1 or -1
+        task_list = task.task_list
+        
+        task_list.active_tasks_count -= increment
+        task_list.archived_tasks_count += increment
+              
+        db.put([task, task_list])
+        
+      db.run_in_transaction(txn)
+      
+      if task.archived:
+        counting.list_archived(task.task_list, [task])
+      else:
+        counting.list_unarchived(task.task_list, [task])
+      
+    else:
+      task.put()
+
   
   if task.project_index:
     save_project(user, task.project)
@@ -129,9 +149,12 @@ def save_task(user,task):
   set_tasks_memcache(task.task_list, None)
   save_user(user)
   
+def task_list_can_add_task(task_list, task):
+  return task.archived or task_list.active_tasks_count < MAX_ACTIVE_TASKS
+  
 def add_task(task):
   task_list = task.task_list
-  if task_list.active_tasks_count >= MAX_ACTIVE_TASKS:
+  if not task_list_can_add_task(task_list, task):
     return
     
   def txn():
@@ -140,11 +163,16 @@ def add_task(task):
     
     task.put()
     
-    task_list.active_tasks_count += 1
+    # You can create new already-archived tasks
+    if task.archived:
+      task_list.archived_tasks_count += 1
+    else:
+      task_list.active_tasks_count += 1
+      
     task_list.put()
     
   db.run_in_transaction(txn)
-  counting.task_added()
+  counting.task_added(task.archived)
 
 def delete_task(user, orig_task):
   def txn():
@@ -153,16 +181,19 @@ def delete_task(user, orig_task):
       return
 
     task_list = task.task_list
-    task_list.active_tasks_count -= 1
-    task_list.put()
-    
+    if task.archived:
+      task_list.archived_tasks_count -= 1
+    else:
+      task_list.active_tasks_count -= 1
+        
     orig_task.deleted = True
     task.deleted = True
-    task.put()
+    
+    db.put([task, task_list])
   
   set_tasks_memcache(orig_task.task_list, None)
   db.run_in_transaction(txn)
-  counting.task_deleted()
+  counting.task_deleted(orig_task.archived)
 
 def undelete_task(orig_task, task_list):
   def txn():

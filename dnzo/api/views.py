@@ -97,7 +97,7 @@ class APITasksHandler(BaseAPIRequestHandler):
     newly created task as a JSON object."""
     from google.appengine.ext import db
     from tasks_data.models import Task
-    from tasks_data.tasks import update_task_with_params, save_task
+    from tasks_data.tasks import update_task_with_params, save_task, task_list_can_add_task
     from tasks_data.task_lists import get_task_list
   
     task = Task(parent=dnzo_user)
@@ -111,6 +111,11 @@ class APITasksHandler(BaseAPIRequestHandler):
       return
       
     update_task_with_params(dnzo_user, task, self.request)
+    
+    if not task_list_can_add_task(task_list, task):
+      self.bad_request("Can not add task, too many active tasks in the list.")
+      return
+    
     save_task(dnzo_user, task)
 
     if not task.is_saved():
@@ -187,6 +192,8 @@ class APITaskHandler(BaseAPIRequestHandler):
     """Modify the attributes of an existing task."""
     from google.appengine.ext import db
     from tasks_data.tasks import update_task_with_params, save_task
+    
+    task_was_archived = task.archived
 
     try:
       # hack to allow form-encoded PUT bodies to be accessed by self.request.get()
@@ -200,7 +207,14 @@ class APITaskHandler(BaseAPIRequestHandler):
     finally:
       self.request.method = "PUT"
       
-    save_task(dnzo_user, task)
+    archived_status_changed = task_was_archived != task.archived
+    if archived_status_changed and not task.archived:
+      from tasks_data.tasks import task_list_can_add_task
+      if not task_list_can_add_task(task.task_list, task):
+        self.bad_request("Can not unarchive task, too many active tasks in the list.")
+        return
+    
+    save_task(dnzo_user, task, archived_status_changed)
     # reload task
     task = db.get(task.key())
     
