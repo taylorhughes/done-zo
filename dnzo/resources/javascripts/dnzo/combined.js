@@ -730,6 +730,7 @@ var TaskRow = Class.create({
     this.saveButton.observe('click', this.onClickSave.bind(this));
     
     this.editRow.observe('keydown', this.onKeyDown.bind(this));
+    this.editRow.observe('dblclick', this.onDoubleClickEditRow.bind(this));
 
     this.cancelLink = this.editRow.select('.cancel>a.cancel')[0];
     this.boundOnClickCancel = this.onClickCancel.bind(this);
@@ -986,6 +987,11 @@ var TaskRow = Class.create({
     var check = event.element();
     var checked = check.checked;
     this.completeOrUncomplete(checked);
+  },
+  
+  onDoubleClickEditRow: function(event)
+  {
+    event.stop();
   },
   
   onDoubleClickViewRow: function(event)
@@ -1482,6 +1488,9 @@ var TaskRow = Class.create({
       new TaskRow(rows[i + 1], rows[i]);
     }
     
+    Event.observe(document, 'dblclick', Tasks.onDoubleClickBody);
+    Event.observe(document, 'keypress', Tasks.onKeyPress);
+    
     Tasks.setHideStatus();
     
     Tasks.wireHistory();
@@ -1509,6 +1518,25 @@ var TaskRow = Class.create({
   draggable: function()
   {
     return Tasks.table.hasClassName('draggable');
+  },
+  
+  onDoubleClickBody: function(event)
+  {
+    Tasks.cancelAll();
+  },
+  
+  onKeyPress: function(event)
+  {
+    switch(event.charCode)
+    {
+      case 65:
+      case 97:
+        var element = event.findElement();
+        if (!element.match('input') && !element.match('select'))
+        {
+          Tasks.onClickAddTask(event);
+        }
+    }
   },
   
   onHistoryChange: function(name)
