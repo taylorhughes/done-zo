@@ -3,11 +3,6 @@
 {% block bodyid %}about-page{% endblock %}
 
 {% block body %}
-<!--
-TODO:
-- add iTunes store links
--->
-
 <h2 style="display:none">Features</h2>
 <ol id="features">
   <li id="signin" style="margin-top: 33px">
@@ -27,7 +22,7 @@ TODO:
   </li>
   <li>
     <strong style="background: url(/images/new_icon.gif) no-repeat right; padding-right: 32px">Syncs with iPhone</strong><br>
-    <a href="">Download our app from iTunes</a> ($3.99) and take Done-zo with you — keep your tasks in sync
+    <a href="http://itunes.apple.com/us/app/done-zo/id362042241?mt=8">Download our app from iTunes</a> ($3.99) and take Done-zo with you — keep your tasks in sync
   </li>
   <li>
     <strong>Access From Anywhere</strong><br>
@@ -47,7 +42,7 @@ TODO:
   </li>
   <li>
     <strong>Lightning Fast</strong><br>
-    Loads in less than one second, and you don&rsquo;t have to sign up — <a href="https://www.google.com/accounts/ServiceLogin?service=ah&continue=http://370.latest.dnzo-staging.appspot.com/_ah/login%3Fcontinue%3Dhttp://370.latest.dnzo-staging.appspot.com/signin/&ltmpl=gm&ahname=Done-zo+Staging+Area&sig=152963985d7c3a76908da7fcee0ac0bb">try it now</a>
+    Loads in less than one second, and you don&rsquo;t have to sign up — <a href="{{ login_url }}">try it now</a>
   </li>
   <li>
     <strong>Work Now, Undo Later</strong><br>

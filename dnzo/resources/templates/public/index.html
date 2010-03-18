@@ -3,11 +3,6 @@
 {% block bodyid %}home-page{% endblock %}
 
 {% block body %}
-<!--
-TODO:
-- add iTunes store links
--->
-
 <p id="tagline">Your time and attention are priceless. Done-zo helps you focus on the right things, right now.</p>
 <h2 style="display:none">Features</h2>
 <ol id="features">
@@ -23,10 +18,10 @@ TODO:
 
   <li style="margin-top:34px">Sort and filter tasks by project, context or due date</li>
   <li>Archive and review completed tasks</li>
-  <li><a href="">Download Done-zo for iPhone or iPod Touch</a></li>
+  <li><a href="http://itunes.apple.com/us/app/done-zo/id362042241?mt=8">Download Done-zo for iPhone or iPod Touch</a></li>
   <li>Track groceries, gifts or anything else</li>
   <li>Edit inline and undo deleted tasks and lists</li>
-  <li><a href="">Get started quickly</a> — no sign-up and loads fast!</li>
+  <li><a href="{{ login_url }}">Get started quickly</a> — no sign-up and loads fast!</li>
   <li><a href="/about/">Learn more about Done-zo&hellip;</a></li>
 </ol>
 {% endblock %}
