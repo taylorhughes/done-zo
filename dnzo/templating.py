@@ -3,8 +3,6 @@ from django.template import Library, Node, Context, loader, resolve_variable
 from django.template.defaultfilters import date
 from datetime import datetime
 
-import re
-
 import environment
 
 register = Library()
@@ -45,44 +43,6 @@ def short_date(my_date):
   # utilize the default django date filter
   return date(my_date, format)
 
-@register.filter
-def adjust_date(my_date, user):
-  from datetime import timedelta
-
-  return my_date - timedelta(minutes=user.timezone_offset_mins)
-        
-@register.filter
-def spans_around(string, to_highlight):
-  if not string or not to_highlight:
-    return ""
-
-  to_highlight = re.sub(r'\s+', ' ', to_highlight)
-  string = re.sub(r'\s+', ' ', string)
-    
-  regex = '\s*'.join(list(to_highlight))
-  regex = re.compile(regex, re.IGNORECASE)
-  
-  return re.sub(regex, '<span>\g<0></span>', string)
-  
-@register.tag
-def sorting_header(parser, token):
-  try:
-    tag_name, my_name, my_sorting = token.split_contents()
-  except ValueError:
-    raise template.TemplateSyntaxError, "%r tag requires exactly four arguments" % token.contents.split()[0]
-  
-  return SortingHeader(my_name[1:-1], my_sorting[1:-1])
-  
-class SortingHeader(Node):
-  def __init__(self, my_name, my_sorting):
-    self.my_name = my_name
-    self.my_sorting = my_sorting
-    
-  def render(self, context):
-    url = "#order=%s" % self.my_sorting
-          
-    return '<th class="%s"><a href="%s">%s</a></th>' % (self.my_sorting, url, self.my_name)
-    
 @register.tag
 def javascript_tag(parser, token):
   try:
@@ -98,15 +58,16 @@ def combined_javascript_tag(parser, token):
       will output a script tag for collection in production,
       but will output a script tag for a, b, and c in development.  '''
    
-  tokens = list(token.split_contents()[1:])
+  tokens = list(token.split_contents())
+  tag_name, js_files = tokens[:1], tokens[1:]
 
-  if len(tokens) < 2:
-    raise template.TemplateSyntaxError, "%r requires at least 2 arguments." % token.contents.split()[0]
+  if len(js_files) < 2:
+    raise template.TemplateSyntaxError, "%r requires at least 2 arguments." % tag_name
     
   if environment.IS_DEVELOPMENT:
-    return TagCollection(map(lambda f: JavaScriptTag(f), tokens[1:]))
+    return TagCollection(JavaScriptTag(js) for js in js_files[1:])
   else:
-    return JavaScriptTag(tokens[0])
+    return JavaScriptTag(js_files[0])
   
 @register.tag
 def css_tag(parser, token):
@@ -120,7 +81,7 @@ class TagCollection(Node):
   def __init__(self, nodes):
     self.nodes = nodes
   def render(self, context):
-    return ' '.join(map(lambda n: n.render(context), self.nodes))
+    return ' '.join(node.render(context) for node in self.nodes)
   
 class VersionedTag(Node):
   def __init__(self, filename):

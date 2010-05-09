@@ -11,7 +11,7 @@ import logging
 
 #### VIEWS ####
 
-from application_handler import DNZORequestHandler, dnzo_login_required
+from dnzo_request_handler import DNZORequestHandler, dnzo_login_required
 
 def operates_on_task_list(fn):
   @dnzo_login_required
@@ -133,7 +133,11 @@ class PurgeTaskListHandler(DNZOLoggedInRequestHandler):
       self.set_status_undo(status,undo)
       
     self.referer_redirect()
-      
+    
+  @operates_on_task_list
+  def get(self, *args, **kwargs):
+    self.referer_redirect()
+    
 class DeleteTaskListHandler(DNZOLoggedInRequestHandler):
   @operates_on_task_list
   def get(self, task_list):
@@ -156,7 +160,11 @@ class DeleteTaskListHandler(DNZOLoggedInRequestHandler):
       self.set_status_undo(Statuses.LIST_DELETED, undo)
   
     self.default_list_redirect()
-      
+
+  @operates_on_task_list
+  def post(self, task_list):
+    self.get(task_list)
+    
 class AddTaskListHandler(DNZOLoggedInRequestHandler):
   @dnzo_login_required
   def get(self):

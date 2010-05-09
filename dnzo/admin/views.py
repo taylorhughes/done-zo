@@ -4,7 +4,7 @@ from tasks_data.models import Invitation
 from tasks_data.misc import get_invitation_by_address
 from tasks_data.users import clear_user_memcache, save_user, get_dnzo_user, get_dnzo_user_by_email
 
-from application_handler import DNZORequestHandler
+from dnzo_request_handler import DNZORequestHandler
 
 class AddInvitationHandler(DNZORequestHandler):
   def get(self):

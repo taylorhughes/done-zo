@@ -1,7 +1,7 @@
 
 from google.appengine.api.users import create_logout_url, create_login_url, get_current_user, is_current_user_admin
 
-from application_handler import DNZORequestHandler
+from dnzo_request_handler import DNZORequestHandler
 
 import environment
 import logging
