@@ -13,6 +13,7 @@ class BaseRequestHandler(webapp.RequestHandler):
   def __init__(self, templates_dir):
     self.templates_dir = templates_dir
     self.__cookie_set = None
+    self.__is_handling_error = False
     
   def login_required(self):
     self.access_error_redirect()
@@ -20,6 +21,9 @@ class BaseRequestHandler(webapp.RequestHandler):
   def not_found(self):
     self.error(404)
     self.render('404.html')
+    
+  def is_handling_error(self):
+    return self.__is_handling_error
 
   def handle_exception(self, exception, debug_mode):
     if debug_mode:
@@ -27,6 +31,7 @@ class BaseRequestHandler(webapp.RequestHandler):
     else:
       import logging
       logging.exception("An exception occurred. Rendered a 500 error message. Yikes!")
+      self.__is_handling_error = True
       self.error(500)
       self.render('500.html')
 
@@ -40,7 +45,7 @@ class BaseRequestHandler(webapp.RequestHandler):
   #
   def render(self, template_name, **kwargs):
     template_path = path.join(path.dirname(__file__), self.templates_dir, template_name)
-    template_values = self.always_includes()
+    template_values = self.always_includes(self.is_handling_error())
     template_values.update(kwargs)
 
     import django.conf
@@ -53,7 +58,7 @@ class BaseRequestHandler(webapp.RequestHandler):
   def render_text(self, text):
     self.response.out.write(text)
 
-  def always_includes(self):
+  def always_includes(self, is_handling_error):
     return {}
 
   #

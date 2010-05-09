@@ -26,7 +26,7 @@ class DNZORequestHandler(BaseRequestHandler):
     from tasks_data.users import get_dnzo_user
     self.dnzo_user = get_dnzo_user()
     
-  def always_includes(self):
+  def always_includes(self, is_handling_error):
     return {
       'user': self.dnzo_user,
     }

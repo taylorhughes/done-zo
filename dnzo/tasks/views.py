@@ -28,12 +28,19 @@ def operates_on_task_list(fn):
   return wrapper
 
 class DNZOLoggedInRequestHandler(DNZORequestHandler):
-  def always_includes(self):
-    previous = super(DNZOLoggedInRequestHandler,self).always_includes()
+  def always_includes(self, is_handling_error):
+    previous = super(DNZOLoggedInRequestHandler,self).always_includes(is_handling_error)
+
+    task_lists = []
+    can_add = False
+    if not is_handling_error:
+      task_lists = get_task_lists(self.dnzo_user)
+      can_add = can_add_list(self.dnzo_user)
+      
     previous.update({
       'request_uri': self.request.url,
-      'task_lists': get_task_lists(self.dnzo_user),
-      'can_add_list': can_add_list(self.dnzo_user),
+      'task_lists': task_lists,
+      'can_add_list': can_add,
       'is_production': environment.IS_PRODUCTION,
       'max_records': RESULT_LIMIT,
       'logout_url': create_logout_url('/'),
