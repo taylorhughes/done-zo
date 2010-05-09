@@ -79,6 +79,7 @@ var TaskRow = Class.create({
       revert:      true,
       ghosting:    false,
       constraint:  'vertical',
+      scroll: window,
       
       onStart:     this.onStartDrag.bind(this),
       onEnd:       this.onStopDrag.bind(this),
