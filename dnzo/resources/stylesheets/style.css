@@ -65,7 +65,7 @@ body,
   top: 0;
   left: 50%;
   margin-left: -200px;
-  background: red;
+  background: gray;
   color: white;
 }
   #status a {
