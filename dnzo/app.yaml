@@ -3,6 +3,9 @@ version: 411
 runtime: python
 api_version: 1
 
+derived_file_type:
+- python_precompiled
+
 handlers:  
 - url: /stylesheets/(r[0-9]+/)?([^/]+\.css)
   static_files: resources/stylesheets/\2
