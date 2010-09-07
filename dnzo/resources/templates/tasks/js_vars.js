@@ -4,6 +4,7 @@
       offset:    parseInt("{{ user.timezone_offset_mins }}") || 0,
       updateUrl: "{% url TransparentSettingsHandler %}"
     },
+    noopUrl: "{% url NoopHandler %}",
     projects: [{% for project in user.mru_projects %}"{{ project|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
     contexts: [{% for context in user.mru_contexts %}"@{{ context|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}]
   };
@@ -20,6 +21,8 @@
       "If this problem persists, please contact us.",
     LOGGED_OUT_ERROR:
       "There was a problem saving your task.\n" +
-      "You may have been logged out. Please reload the page to try again."
+      "You may have been logged out. Please reload the page to try again.",
+    LOGGED_OUT_STATUS:
+      '<p>It seems like you have been logged out. <a href="{{ request_uri }}">Refresh</a></p>'
   };
 </script>

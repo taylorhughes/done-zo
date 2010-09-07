@@ -11,7 +11,6 @@ var Tasks = {
   TASKS_DRAGGABLE_EVENT: 'tasks:draggable',
   TASKS_NOT_DRAGGABLE_EVENT: 'tasks:not_draggable',
   
-  HIDE_STATUS_DELAY: 15, // seconds
   
   load: function(event)
   {
@@ -44,8 +43,6 @@ var Tasks = {
     
     Event.observe(document, 'dblclick', Tasks.onDoubleClickBody);
     Event.observe(document, 'keypress', Tasks.onKeyPress);
-    
-    Tasks.setHideStatus();
     
     Tasks.wireHistory();
   },
@@ -229,87 +226,6 @@ var Tasks = {
     Event.fire(Tasks.table, Tasks.TASK_EDITING_EVENT);
   },
   
-  loadStatus: function(container)
-  {
-    //
-    // container.select("#status") is broken because disconnected
-    // nodes with the same ID as a connected nodes are not OK in this
-    // version of prototype. Stupid.
-    //
-    var status = container.select("div").find(function(div){
-      return div.id == "status";
-    });
-    
-    if (!status)
-    {
-      return;
-    }
-    
-    var existingStatus = $("status");
-    if (existingStatus)
-    {
-      existingStatus.innerHTML = status.innerHTML;
-      status = existingStatus;
-    }
-    else
-    {
-      status.hide();
-      Tasks.table.up('div').appendChild(status);
-    }
-    
-    Tasks.showStatus();
-    Tasks.setHideStatus();
-  },
-  
-  setHideStatus: function()
-  {
-    if (Tasks.hideStatusTimeout)
-    {
-      clearTimeout(Tasks.hideStatusTimeout);
-    }
-    Tasks.hideStatusTimeout = setTimeout(Tasks.hideStatus, Tasks.HIDE_STATUS_DELAY * 1000);
-  },
-  
-  hideStatus: function()
-  {
-    var status = $('status');
-    if (!status) { return; }
-    
-    var subeffects = status.immediateDescendants().collect(function(child){
-      return new Effect.Fade(child, { sync: true });
-    });
-    
-    new Effect.Parallel(subeffects, {
-      duration: 0.1,
-      afterFinish: function() {
-        new Effect.BlindUp(status, { duration: 0.1 });
-      }
-    });
-  },
-  
-  showStatus: function()
-  {
-    var status = $('status');
-    if (!status || status.visible()) { return; }
-    
-    var subeffects = status.immediateDescendants().collect(function(child){
-      child.hide();
-      return new Effect.Appear(child, { sync: true });
-    });
-    
-    new Effect.BlindDown(status, { 
-      duration: 0.1,
-      afterFinish: function() {
-        new Effect.Parallel(subeffects, { duration: 0.1 });
-      }
-    });
-  },
-  
-  updateStatusFromResponse: function(xhr)
-  {
-    Tasks.loadStatus(Tasks.containerFromResponse(xhr));
-  },
-  
   updateProjects: function(row)
   {
     var project = row.select('td.project>input').first();
@@ -369,13 +285,6 @@ var Tasks = {
     var temp = new Element('div');
     temp.innerHTML = Tasks.newTaskTableHTML;
     return temp.select("tr")[0];
-  },
-  
-  containerFromResponse: function(xhr)
-  {
-    var temp = new Element('div');
-    temp.innerHTML = xhr.responseText;
-    return temp;
   },
   
   showError: function(message)

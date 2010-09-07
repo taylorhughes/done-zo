@@ -1,5 +1,5 @@
 &nbsp;
-<select id="switcher">
+<select id="switcher" disabled="disabled">
 {% for list in task_lists %}
   <option value="{% url TaskListHandler list.short_name %}"
           {% ifequal list.key task_list.key %} selected{% endifequal %}>{{ list.name|escape }}</option>

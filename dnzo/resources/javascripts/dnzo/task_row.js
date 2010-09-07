@@ -571,7 +571,7 @@ var TaskRow = Class.create({
   },
   doTrash: function(xhr)
   {
-    Tasks.updateStatusFromResponse(xhr);
+    DNZO.updateStatusFromResponse(xhr);
     this.destroy();
   },
   
@@ -685,47 +685,37 @@ var TaskRow = Class.create({
   {
     options = options || {};
     
-    return function(xhr) {
-      // This happens when a request is interrupted.
-      if (!xhr.status || xhr.status == 0) { return; }
+    var handler = function(xhr) {
+      status = DNZO.getResponseStatus(xhr);
       
-      var success = true;
-      if (xhr.status == 200)
-      {
-        if (!xhr.responseText || xhr.responseText.indexOf('task-ajax-response') < 0)
-        {
+      switch (status) {
+        case DNZO.RESPONSE_STATUS.INTERRUPTED:
+          // Don't fire an onComplete if it's interrupted.
+          return;
+        
+        case DNZO.RESPONSE_STATUS.LOGGED_OUT:
           Tasks.showError('LOGGED_OUT_ERROR');
-          success = false;
-        }
-      }
-      else if (xhr.status == 302)
-      {
-        Tasks.showError('LOGGED_OUT_ERROR');
-        success = false;
-      }
-      else
-      {
-        Tasks.doFail(xhr);
-        success = false;
+          break;
+
+        case DNZO.RESPONSE_STATUS.SUCCESS:
+          if (options.onSuccess) { options.onSuccess.call(this, xhr); }
+          break;
+        
+        case DNZO.RESPONSE_STATUS.ERROR:
+          if (options.onFailure) { options.onFailure.call(this, xhr); } 
+          break;
       }
       
-      if (success)
-      {
-        if (options.onSuccess) { options.onSuccess.bind(this)(xhr); }
-      }
-      else // fail
-      {
-        if (options.onFailure) { options.onFailure.bind(this)(xhr); } 
-      }
-      
-      (options.onComplete || Prototype.emptyFunction).bind(this)(xhr);
-    }.bind(this);
+      if (options.onComplete) { options.onComplete.call(this, xhr); }
+    };
+    
+    return handler.bind(this);
   },
   
   replaceRows: function(xhr)
   {
     var tbody = this.editRow.parentNode; 
-    var temp = Tasks.containerFromResponse(xhr);
+    var temp = DNZO.containerFromResponse(xhr);
     var rows = temp.select('tr');
 
     if (rows.length < 2) {

@@ -391,6 +391,11 @@ class TaskHandler(DNZOLoggedInRequestHandler):
         task_list=(task and task.task_list)
       )
 
+class NoopHandler(DNZOLoggedInRequestHandler):
+  def get(self):
+    # Just renders an empty ajaxy response
+    self.render('tasks/tasks/ajax_task.html')
+
 class UndoHandler(DNZOLoggedInRequestHandler):
   def get(self, undo_id):
     from tasks_data.models import Undo
