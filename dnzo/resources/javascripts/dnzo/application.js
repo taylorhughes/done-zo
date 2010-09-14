@@ -89,7 +89,7 @@ DNZO = Object.extend(DNZO, {
   setupLoggedOutDetect: function()
   {
     // Check every minute -- is this a good idea?
-    var interval = 60 * 60 * 1000;
+    var interval = 60 * 1000;
     window.setInterval(DNZO.detectLogout, interval);
   },
   
