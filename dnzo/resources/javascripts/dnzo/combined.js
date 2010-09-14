@@ -1,15 +1,32 @@
-DNZO = Object.extend(DNZO,{
+DNZO = Object.extend(DNZO, {
+  // Designate the status of a XHR response
+  RESPONSE_STATUS: {
+    INTERRUPTED: 'TASK_RESPONSE_INTERRUPTED',
+    LOGGED_OUT: 'TASK_RESPONSE_LOGGED_OUT',
+    ERROR: 'TASK_RESPONSE_ERROR',
+    SUCCESS: 'TASK_RESPONSE_SUCCESS'
+  },
+  
+  HIDE_STATUS_DELAY: 15, // seconds
+  
   load: function(event)
   {
     // Setup dropdown switcher
     var switcher = $('switcher');
-    if (switcher) switcher.observe('change', DNZO.onSwitchList); 
+    
+    if (switcher)
+    {
+      switcher.enable();
+      switcher.observe('change', DNZO.onSwitchList); 
+    }
     
     $$('a.dialog').each(function(dialogLink) {
       new ModalDialog.Ajax(dialogLink);
     });
     
+    DNZO.setHideStatus();
     DNZO.verifyTimezone();
+    DNZO.setupLoggedOutDetect();
   },
   
   strcmp: function(a,b)
@@ -23,7 +40,9 @@ DNZO = Object.extend(DNZO,{
   
   onSwitchList: function(event)
   {
-    document.location.href = $F(event.element());
+    var switcher = event.element();
+    switcher.disable();
+    document.location.href = $F(switcher);
   },
   
   verifyTimezone: function()
@@ -38,10 +57,141 @@ DNZO = Object.extend(DNZO,{
         method: 'post'
       });
     }
+  },
+  
+  getResponseStatus: function(xhr)
+  {
+    var response = DNZO.RESPONSE_STATUS.SUCCESS;
+    
+    if (!xhr.status)
+    {
+      response = DNZO.RESPONSE_STATUS.INTERRUPTED;
+    } 
+    else if (xhr.status == 200)
+    {
+      if (!xhr.responseText || xhr.responseText.indexOf('task-ajax-response') < 0)
+      {
+        response = DNZO.RESPONSE_STATUS.LOGGED_OUT;
+      }
+    }
+    else if (xhr.status == 302)
+    {
+      response = DNZO.RESPONSE_STATUS.LOGGED_OUT;
+    }
+    else
+    {
+      response = DNZO.RESPONSE_STATUS.ERROR;
+    }
+    
+    return response;
+  },
+  
+  setupLoggedOutDetect: function()
+  {
+    // Check every minute -- is this a good idea?
+    var interval = 60 * 1000;
+    window.setInterval(DNZO.detectLogout, interval);
+  },
+  
+  detectLogout: function()
+  {
+    if (!DNZO.noopUrl) { return; }
+    
+    new Ajax.Request(DNZO.noopUrl, {
+      method: 'get',
+      onComplete: function(xhr) {
+        if (DNZO.getResponseStatus(xhr) == DNZO.RESPONSE_STATUS.LOGGED_OUT) {
+          DNZO.showStatus(DNZO.Messages.LOGGED_OUT_STATUS);
+        }
+      }
+    });
+  },
+  
+  setHideStatus: function()
+  {
+    if (DNZO.hideStatusTimeout)
+    {
+      clearTimeout(DNZO.hideStatusTimeout);
+    }
+    DNZO.hideStatusTimeout = setTimeout(DNZO.hideStatus, DNZO.HIDE_STATUS_DELAY * 1000);
+  },
+  
+  hideStatus: function()
+  {
+    var status = $('status');
+    if (!status) { return; }
+    
+    var subeffects = status.immediateDescendants().collect(function(child){
+      return new Effect.Fade(child, { sync: true });
+    });
+    
+    new Effect.Parallel(subeffects, {
+      duration: 0.1,
+      afterFinish: function() {
+        new Effect.BlindUp(status, { duration: 0.1 });
+      }
+    });
+  },
+  
+  showStatus: function(messageHTML)
+  {
+    var status = $('status');
+
+    if (!status)
+    {
+      status = new Element('div', {'id': 'status'});
+      status.hide();
+      $('body').appendChild(status);
+    }
+    
+    status.innerHTML = messageHTML;
+    
+    if (status.visible())
+    {
+      // Already visible, just highlight that it's a new status
+      new Effect.Highlight(status, { duration: 0.2 });
+      return;
+    }
+    
+    var subeffects = status.immediateDescendants().collect(function(child){
+      child.hide();
+      return new Effect.Appear(child, { sync: true });
+    });
+    
+    new Effect.BlindDown(status, { 
+      duration: 0.1,
+      afterFinish: function() {
+        new Effect.Parallel(subeffects, { duration: 0.1 });
+      }
+    });
+  },
+  
+  containerFromResponse: function(xhr)
+  {
+    var temp = new Element('div');
+    temp.innerHTML = xhr.responseText;
+    return temp;
+  },
+  
+  updateStatusFromResponse: function(xhr)
+  {
+    var container = DNZO.containerFromResponse(xhr);
+    status = container.select("div").find(function(div){
+      return div.id == "status";
+    });
+    
+    if (!status)
+    {
+      return;
+    }
+    
+    DNZO.showStatus(status.innerHTML);
+    DNZO.setHideStatus();
   }
 });
 
-Event.observe(window,'load',DNZO.load);/**
+Event.observe(window,'load',DNZO.load);
+/**
  *  InstantAutocompleter v0.1
  * 
  *  (c) 2009 Taylor Hughes (taylor@taylor-hughes.com)
@@ -1245,7 +1395,7 @@ var TaskRow = Class.create({
   },
   doTrash: function(xhr)
   {
-    Tasks.updateStatusFromResponse(xhr);
+    DNZO.updateStatusFromResponse(xhr);
     this.destroy();
   },
   
@@ -1359,47 +1509,37 @@ var TaskRow = Class.create({
   {
     options = options || {};
     
-    return function(xhr) {
-      // This happens when a request is interrupted.
-      if (!xhr.status || xhr.status == 0) { return; }
+    var handler = function(xhr) {
+      status = DNZO.getResponseStatus(xhr);
       
-      var success = true;
-      if (xhr.status == 200)
-      {
-        if (!xhr.responseText || xhr.responseText.indexOf('task-ajax-response') < 0)
-        {
+      switch (status) {
+        case DNZO.RESPONSE_STATUS.INTERRUPTED:
+          // Don't fire an onComplete if it's interrupted.
+          return;
+        
+        case DNZO.RESPONSE_STATUS.LOGGED_OUT:
           Tasks.showError('LOGGED_OUT_ERROR');
-          success = false;
-        }
-      }
-      else if (xhr.status == 302)
-      {
-        Tasks.showError('LOGGED_OUT_ERROR');
-        success = false;
-      }
-      else
-      {
-        Tasks.doFail(xhr);
-        success = false;
+          break;
+
+        case DNZO.RESPONSE_STATUS.SUCCESS:
+          if (options.onSuccess) { options.onSuccess.call(this, xhr); }
+          break;
+        
+        case DNZO.RESPONSE_STATUS.ERROR:
+          if (options.onFailure) { options.onFailure.call(this, xhr); } 
+          break;
       }
       
-      if (success)
-      {
-        if (options.onSuccess) { options.onSuccess.bind(this)(xhr); }
-      }
-      else // fail
-      {
-        if (options.onFailure) { options.onFailure.bind(this)(xhr); } 
-      }
-      
-      (options.onComplete || Prototype.emptyFunction).bind(this)(xhr);
-    }.bind(this);
+      if (options.onComplete) { options.onComplete.call(this, xhr); }
+    };
+    
+    return handler.bind(this);
   },
   
   replaceRows: function(xhr)
   {
     var tbody = this.editRow.parentNode; 
-    var temp = Tasks.containerFromResponse(xhr);
+    var temp = DNZO.containerFromResponse(xhr);
     var rows = temp.select('tr');
 
     if (rows.length < 2) {
@@ -1458,7 +1598,6 @@ var TaskRow = Class.create({
   TASKS_DRAGGABLE_EVENT: 'tasks:draggable',
   TASKS_NOT_DRAGGABLE_EVENT: 'tasks:not_draggable',
   
-  HIDE_STATUS_DELAY: 15, // seconds
   
   load: function(event)
   {
@@ -1491,8 +1630,6 @@ var TaskRow = Class.create({
     
     Event.observe(document, 'dblclick', Tasks.onDoubleClickBody);
     Event.observe(document, 'keypress', Tasks.onKeyPress);
-    
-    Tasks.setHideStatus();
     
     Tasks.wireHistory();
   },
@@ -1676,87 +1813,6 @@ var TaskRow = Class.create({
     Event.fire(Tasks.table, Tasks.TASK_EDITING_EVENT);
   },
   
-  loadStatus: function(container)
-  {
-    //
-    // container.select("#status") is broken because disconnected
-    // nodes with the same ID as a connected nodes are not OK in this
-    // version of prototype. Stupid.
-    //
-    var status = container.select("div").find(function(div){
-      return div.id == "status";
-    });
-    
-    if (!status)
-    {
-      return;
-    }
-    
-    var existingStatus = $("status");
-    if (existingStatus)
-    {
-      existingStatus.innerHTML = status.innerHTML;
-      status = existingStatus;
-    }
-    else
-    {
-      status.hide();
-      Tasks.table.up('div').appendChild(status);
-    }
-    
-    Tasks.showStatus();
-    Tasks.setHideStatus();
-  },
-  
-  setHideStatus: function()
-  {
-    if (Tasks.hideStatusTimeout)
-    {
-      clearTimeout(Tasks.hideStatusTimeout);
-    }
-    Tasks.hideStatusTimeout = setTimeout(Tasks.hideStatus, Tasks.HIDE_STATUS_DELAY * 1000);
-  },
-  
-  hideStatus: function()
-  {
-    var status = $('status');
-    if (!status) { return; }
-    
-    var subeffects = status.immediateDescendants().collect(function(child){
-      return new Effect.Fade(child, { sync: true });
-    });
-    
-    new Effect.Parallel(subeffects, {
-      duration: 0.1,
-      afterFinish: function() {
-        new Effect.BlindUp(status, { duration: 0.1 });
-      }
-    });
-  },
-  
-  showStatus: function()
-  {
-    var status = $('status');
-    if (!status || status.visible()) { return; }
-    
-    var subeffects = status.immediateDescendants().collect(function(child){
-      child.hide();
-      return new Effect.Appear(child, { sync: true });
-    });
-    
-    new Effect.BlindDown(status, { 
-      duration: 0.1,
-      afterFinish: function() {
-        new Effect.Parallel(subeffects, { duration: 0.1 });
-      }
-    });
-  },
-  
-  updateStatusFromResponse: function(xhr)
-  {
-    Tasks.loadStatus(Tasks.containerFromResponse(xhr));
-  },
-  
   updateProjects: function(row)
   {
     var project = row.select('td.project>input').first();
@@ -1816,13 +1872,6 @@ var TaskRow = Class.create({
     var temp = new Element('div');
     temp.innerHTML = Tasks.newTaskTableHTML;
     return temp.select("tr")[0];
-  },
-  
-  containerFromResponse: function(xhr)
-  {
-    var temp = new Element('div');
-    temp.innerHTML = xhr.responseText;
-    return temp;
   },
   
   showError: function(message)
