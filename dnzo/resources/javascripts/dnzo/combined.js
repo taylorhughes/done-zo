@@ -86,19 +86,45 @@ DNZO = Object.extend(DNZO, {
     return response;
   },
   
+  LOGOUT_DETECT_INTERVAL: 180, // seconds
+
   setupLoggedOutDetect: function()
   {
-    // Check every minute -- is this a good idea?
-    var interval = 60 * 1000;
-    window.setInterval(DNZO.detectLogout, interval);
+    // Don't check right after page load.
+    DNZO.lastLogoutCheck = new Date().getTime();
+    Element.observe(document, 'mousemove', function(event) {
+      // Check on mouse move only after interval seconds
+      DNZO.maybeDetectLogout(false);
+    });
+    Element.observe(window, 'focus', function(event) {
+      // When we refocus on the window, always check
+      DNZO.maybeDetectLogout(event.target == window);
+    });
+  },
+
+  maybeDetectLogout: function(opt_force) {  
+    // Check every minute while the mouse is moving around
+    var time = new Date().getTime();
+    var timeSince = time - DNZO.lastLogoutCheck;
+    var interval = DNZO.LOGOUT_DETECT_INTERVAL * 1000;
+    if (opt_force || timeSince > interval) {
+      DNZO.lastLogoutCheck = time;
+      DNZO.detectLogout(opt_force);
+    }
   },
   
-  detectLogout: function()
+  detectLogout: function(wasForced)
   {
     if (!DNZO.noopUrl) { return; }
-    
+
+    var params = {};
+    if (wasForced) {
+      params['forced'] = true;
+    }
+
     new Ajax.Request(DNZO.noopUrl, {
       method: 'get',
+      parameters: params,
       onComplete: function(xhr) {
         if (DNZO.getResponseStatus(xhr) == DNZO.RESPONSE_STATUS.LOGGED_OUT) {
           DNZO.showStatus(DNZO.Messages.LOGGED_OUT_STATUS);
