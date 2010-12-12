@@ -106,9 +106,3 @@ class BaseRequestHandler(webapp.RequestHandler):
       
     for cookie in self.__cookie_set.output(header='').split('\n'):
       self.response.headers.add_header('Set-Cookie', cookie)
-
-class NotFoundHandler(BaseRequestHandler):
-  def get(self):
-    self.not_found()
-  def post(self):
-    self.not_found()

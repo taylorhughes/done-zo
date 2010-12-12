@@ -19,9 +19,17 @@ def dnzo_login_required(fn):
       fn(self, *args, **kwargs)
   return logged_in_wrapper
   
+class NotFoundHandler(BaseRequestHandler):
+  def __init__(self):
+    super(NotFoundHandler, self).__init__(TEMPLATES_DIR)
+  def get(self):
+    self.not_found()
+  def post(self):
+    self.not_found()
+
 class DNZORequestHandler(BaseRequestHandler):
   def __init__(self):
-    super(DNZORequestHandler,self).__init__(TEMPLATES_DIR)
+    super(DNZORequestHandler, self).__init__(TEMPLATES_DIR)
     
     from tasks_data.users import get_dnzo_user
     self.dnzo_user = get_dnzo_user()

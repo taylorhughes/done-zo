@@ -74,7 +74,7 @@ TASKS_URLS = [
   (r'^/signin/?$', RedirectHandler),
 ]
 
-from base_request_handler import NotFoundHandler
+from dnzo_request_handler import NotFoundHandler
 
 ALL_URLS = API_URLS + PUBLIC_URLS + TASKS_URLS + [(r'^/.*', NotFoundHandler)]
 #ALL_URLS = MAINTENANCE_URLS
