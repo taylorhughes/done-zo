@@ -1,7 +1,6 @@
 DNZO = Object.extend(DNZO, {
   // Designate the status of a XHR response
   RESPONSE_STATUS: {
-    INTERRUPTED: 'TASK_RESPONSE_INTERRUPTED',
     LOGGED_OUT: 'TASK_RESPONSE_LOGGED_OUT',
     ERROR: 'TASK_RESPONSE_ERROR',
     SUCCESS: 'TASK_RESPONSE_SUCCESS'
@@ -59,30 +58,32 @@ DNZO = Object.extend(DNZO, {
     }
   },
   
-  getResponseStatus: function(xhr)
+  getResponseStatus: function(xhr, opt_expectedText)
   {
     var response = DNZO.RESPONSE_STATUS.SUCCESS;
     
-    if (!xhr.status)
+    if (xhr.status >= 400)
     {
-      response = DNZO.RESPONSE_STATUS.INTERRUPTED;
-    } 
-    else if (xhr.status == 200)
-    {
-      if (!xhr.responseText || xhr.responseText.indexOf('task-ajax-response') < 0)
-      {
-        response = DNZO.RESPONSE_STATUS.LOGGED_OUT;
-      }
+      response = DNZO.RESPONSE_STATUS.ERROR;
     }
-    else if (xhr.status == 302)
+    else if (xhr.status >= 300)
     {
+      // Not sure this ever happens because it tends to get followed through to
+      // completion, and you can only look at the responseText to see what's up.
       response = DNZO.RESPONSE_STATUS.LOGGED_OUT;
     }
     else
     {
-      response = DNZO.RESPONSE_STATUS.ERROR;
+      var failure = !xhr.responseText;
+      if (opt_expectedText) {
+        failure = failure || xhr.responseText.indexOf(opt_expectedText) < 0;
+      }
+
+      if (failure) {
+        response = DNZO.RESPONSE_STATUS.LOGGED_OUT;
+      }
     }
-    
+
     return response;
   },
   
@@ -126,7 +127,8 @@ DNZO = Object.extend(DNZO, {
       method: 'get',
       parameters: params,
       onComplete: function(xhr) {
-        if (DNZO.getResponseStatus(xhr) == DNZO.RESPONSE_STATUS.LOGGED_OUT) {
+        var status = DNZO.getResponseStatus(xhr, 'DNZO-OK');
+        if (status == DNZO.RESPONSE_STATUS.LOGGED_OUT) {
           DNZO.showStatus(DNZO.Messages.LOGGED_OUT_STATUS);
         }
       }

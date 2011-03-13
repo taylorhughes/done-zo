@@ -393,8 +393,7 @@ class TaskHandler(DNZOLoggedInRequestHandler):
 
 class NoopHandler(DNZOLoggedInRequestHandler):
   def get(self):
-    # Just renders an empty ajaxy response
-    self.render('tasks/tasks/ajax_task.html')
+    self.render_text('DNZO-OK')
 
 class UndoHandler(DNZOLoggedInRequestHandler):
   def get(self, undo_id):

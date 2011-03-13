@@ -421,6 +421,10 @@ var TaskRow = Class.create({
   
   onDrag: function(draggable, mouseEvent)
   {
+    if (!mouseEvent) {
+      // Sometimes mouseEvent can be undefined for some reason.
+      return;
+    }
     var scrollOffset = document.viewport.getScrollOffsets().top;
     var y = mouseEvent.clientY + scrollOffset;
     
@@ -675,7 +679,7 @@ var TaskRow = Class.create({
       
       new Ajax.Request(this.editLink.href, {
         method: 'post',
-        onComplete: this.bindOnComplete({}),
+        onComplete: this.bindOnComplete(),
         parameters: this.position
       });
     }
@@ -684,31 +688,32 @@ var TaskRow = Class.create({
   bindOnComplete: function(options)
   {
     options = options || {};
-    
+
     var handler = function(xhr) {
-      status = DNZO.getResponseStatus(xhr);
+      // All the responses should include task-ajax-response.
+      status = DNZO.getResponseStatus(xhr, 'task-ajax-response');
       
       switch (status) {
-        case DNZO.RESPONSE_STATUS.INTERRUPTED:
-          // Don't fire an onComplete if it's interrupted.
-          return;
-        
         case DNZO.RESPONSE_STATUS.LOGGED_OUT:
           Tasks.showError('LOGGED_OUT_ERROR');
           break;
 
         case DNZO.RESPONSE_STATUS.SUCCESS:
-          if (options.onSuccess) { options.onSuccess.call(this, xhr); }
+          if (options.onSuccess) {
+            options.onSuccess.call(this, xhr);
+          }
           break;
         
         case DNZO.RESPONSE_STATUS.ERROR:
-          if (options.onFailure) { options.onFailure.call(this, xhr); } 
+          if (options.onFailure) {
+            options.onFailure.call(this, xhr);
+          }
           break;
       }
-      
+
       if (options.onComplete) { options.onComplete.call(this, xhr); }
     };
-    
+
     return handler.bind(this);
   },
   
