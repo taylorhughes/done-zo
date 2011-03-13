@@ -691,7 +691,7 @@ var TaskRow = Class.create({
 
     var handler = function(xhr) {
       // All the responses should include task-ajax-response.
-      status = DNZO.getResponseStatus(xhr, 'task-ajax-response');
+      var status = DNZO.getResponseStatus(xhr, 'task-ajax-response');
       
       switch (status) {
         case DNZO.RESPONSE_STATUS.LOGGED_OUT:

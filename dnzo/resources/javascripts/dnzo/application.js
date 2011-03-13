@@ -204,7 +204,7 @@ DNZO = Object.extend(DNZO, {
   updateStatusFromResponse: function(xhr)
   {
     var container = DNZO.containerFromResponse(xhr);
-    status = container.select("div").find(function(div){
+    var status = container.select("div").find(function(div){
       return div.id == "status";
     });
     
