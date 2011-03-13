@@ -1,7 +1,6 @@
 DNZO = Object.extend(DNZO, {
   // Designate the status of a XHR response
   RESPONSE_STATUS: {
-    INTERRUPTED: 'TASK_RESPONSE_INTERRUPTED',
     LOGGED_OUT: 'TASK_RESPONSE_LOGGED_OUT',
     ERROR: 'TASK_RESPONSE_ERROR',
     SUCCESS: 'TASK_RESPONSE_SUCCESS'
@@ -59,30 +58,32 @@ DNZO = Object.extend(DNZO, {
     }
   },
   
-  getResponseStatus: function(xhr)
+  getResponseStatus: function(xhr, opt_expectedText)
   {
     var response = DNZO.RESPONSE_STATUS.SUCCESS;
     
-    if (!xhr.status)
+    if (xhr.status >= 400)
     {
-      response = DNZO.RESPONSE_STATUS.INTERRUPTED;
-    } 
-    else if (xhr.status == 200)
-    {
-      if (!xhr.responseText || xhr.responseText.indexOf('task-ajax-response') < 0)
-      {
-        response = DNZO.RESPONSE_STATUS.LOGGED_OUT;
-      }
+      response = DNZO.RESPONSE_STATUS.ERROR;
     }
-    else if (xhr.status == 302)
+    else if (xhr.status >= 300)
     {
+      // Not sure this ever happens because it tends to get followed through to
+      // completion, and you can only look at the responseText to see what's up.
       response = DNZO.RESPONSE_STATUS.LOGGED_OUT;
     }
     else
     {
-      response = DNZO.RESPONSE_STATUS.ERROR;
+      var failure = !xhr.responseText;
+      if (opt_expectedText) {
+        failure = failure || xhr.responseText.indexOf(opt_expectedText) < 0;
+      }
+
+      if (failure) {
+        response = DNZO.RESPONSE_STATUS.LOGGED_OUT;
+      }
     }
-    
+
     return response;
   },
   
@@ -126,7 +127,8 @@ DNZO = Object.extend(DNZO, {
       method: 'get',
       parameters: params,
       onComplete: function(xhr) {
-        if (DNZO.getResponseStatus(xhr) == DNZO.RESPONSE_STATUS.LOGGED_OUT) {
+        var status = DNZO.getResponseStatus(xhr, 'DNZO-OK');
+        if (status == DNZO.RESPONSE_STATUS.LOGGED_OUT) {
           DNZO.showStatus(DNZO.Messages.LOGGED_OUT_STATUS);
         }
       }
@@ -1271,6 +1273,10 @@ var TaskRow = Class.create({
   
   onDrag: function(draggable, mouseEvent)
   {
+    if (!mouseEvent) {
+      // Sometimes mouseEvent can be undefined for some reason.
+      return;
+    }
     var scrollOffset = document.viewport.getScrollOffsets().top;
     var y = mouseEvent.clientY + scrollOffset;
     
@@ -1525,7 +1531,7 @@ var TaskRow = Class.create({
       
       new Ajax.Request(this.editLink.href, {
         method: 'post',
-        onComplete: this.bindOnComplete({}),
+        onComplete: this.bindOnComplete(),
         parameters: this.position
       });
     }
@@ -1534,31 +1540,32 @@ var TaskRow = Class.create({
   bindOnComplete: function(options)
   {
     options = options || {};
-    
+
     var handler = function(xhr) {
-      status = DNZO.getResponseStatus(xhr);
+      // All the responses should include task-ajax-response.
+      status = DNZO.getResponseStatus(xhr, 'task-ajax-response');
       
       switch (status) {
-        case DNZO.RESPONSE_STATUS.INTERRUPTED:
-          // Don't fire an onComplete if it's interrupted.
-          return;
-        
         case DNZO.RESPONSE_STATUS.LOGGED_OUT:
           Tasks.showError('LOGGED_OUT_ERROR');
           break;
 
         case DNZO.RESPONSE_STATUS.SUCCESS:
-          if (options.onSuccess) { options.onSuccess.call(this, xhr); }
+          if (options.onSuccess) {
+            options.onSuccess.call(this, xhr);
+          }
           break;
         
         case DNZO.RESPONSE_STATUS.ERROR:
-          if (options.onFailure) { options.onFailure.call(this, xhr); } 
+          if (options.onFailure) {
+            options.onFailure.call(this, xhr);
+          }
           break;
       }
-      
+
       if (options.onComplete) { options.onComplete.call(this, xhr); }
     };
-    
+
     return handler.bind(this);
   },
   
