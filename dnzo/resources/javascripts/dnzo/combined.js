@@ -204,7 +204,7 @@ DNZO = Object.extend(DNZO, {
   updateStatusFromResponse: function(xhr)
   {
     var container = DNZO.containerFromResponse(xhr);
-    status = container.select("div").find(function(div){
+    var status = container.select("div").find(function(div){
       return div.id == "status";
     });
     
@@ -1543,7 +1543,7 @@ var TaskRow = Class.create({
 
     var handler = function(xhr) {
       // All the responses should include task-ajax-response.
-      status = DNZO.getResponseStatus(xhr, 'task-ajax-response');
+      var status = DNZO.getResponseStatus(xhr, 'task-ajax-response');
       
       switch (status) {
         case DNZO.RESPONSE_STATUS.LOGGED_OUT:
