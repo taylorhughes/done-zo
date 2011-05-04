@@ -3,7 +3,7 @@
 {% block page_title %}Done-zo / {{ task_list.name|escape }}{% if filter_title %} / {{ filter_title|escape }}{% endif %}{% endblock %}
 
 {% block header %}
-  {% if filter_title %}<a href="{% url TaskListHandler task_list.short_name %}">{% endif %}
+  {% if filter_title %}<a href="/l/{{ task_list.short_name|escape }}">{% endif %}
   {{ task_list.name|escape }}{% if filter_title %}</a> / {{ filter_title|escape }}{% endif %}
 {% endblock %}
 
@@ -36,7 +36,7 @@
   <tr id="add_row">
     <td></td>
     <td colspan="10">
-      <a href="{% url TaskHandler %}">Add task</a>
+      <a href="/t/">Add task</a>
     </td>
   </tr>
 </table>
@@ -45,7 +45,7 @@
 <p>Results limited to {{ max_records|escape }} items.</p>
 {% endif %}
 
-<form method="POST" id="tasks_form" action="{% url TaskHandler %}?task_list={{task_list.short_name}}">
+<form method="POST" id="tasks_form" action="/t/?task_list={{task_list.short_name}}">
   <table id="new_task_table">
   {% for task in new_tasks %}
     {% include "tasks/task.html" %}
@@ -55,7 +55,7 @@
 {% endblock %}
 
 {% block footer %}
-<form action="{% url PurgeTaskListHandler task_list.short_name %}" method="POST">
+<form action="/l/{{ task_list.short_name|escape }}/purge/" method="POST">
 <p id="archive">
     <input type="submit" value="Archive completed tasks">&nbsp;
 </p>
@@ -63,7 +63,7 @@
 
 <div id="new-delete">
 {% if not task_lists|length_is:1 %}
-<p><a href="{% url DeleteTaskListHandler task_list.short_name %}">Delete list</a></p>
+<p><a href="/l/{{ task_list.short_name|escape }}/delete/">Delete list</a></p>
 {% endif %}
 <form action="{% url AddTaskListHandler %}" method="GET">
   <input type="submit" value="Add list" id="add_list"{% if not can_add_list %} disabled="disabled"{% endif %}>&nbsp;

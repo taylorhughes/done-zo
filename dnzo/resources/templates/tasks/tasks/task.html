@@ -38,25 +38,25 @@
   </td>
   <td class="project">
     {% if task.project %}
-    <a href="{% url ProjectTaskListHandler task_list.short_name,task.project_index %}" title="Filter tasks by project &lsquo;{{ task.project|escape }}&rsquo;">{{ task.project|escape }}</a>
+    <a href="/l/{{ task_list.short_name|escape }}/for/{{ task.project_index|escape }}" title="Filter tasks by project &lsquo;{{ task.project|escape }}&rsquo;">{{ task.project|escape }}</a>
     {% endif %}
   </td>
   <td class="context">
     {% for context in task.contexts %}
-      <a href="{% url ContextTaskListHandler task_list.short_name,context %}" title="Filter tasks by context &lsquo;{{ context|escape }}&rsquo;">@{{ context|escape }}</a>
+      <a href="/l/{{ task_list.short_name|escape }}/at/{{ context|escape }}" title="Filter tasks by context &lsquo;{{ context|escape }}&rsquo;">@{{ context|escape }}</a>
     {% endfor %}
   </td>
   <td class="due">
     {% if task.due_date %}
-      <a href="{% url DueTaskListHandler task_list.short_name,task.due_date|date:"m-d-y" %}" title="Filter tasks by due date &lsquo;{{ task.due_date|short_date }}&rsquo;">{{ task.due_date|short_date }}</a>
+      <a href="/l/{{ task_list.short_name|escape }}/on/{{ task.due_date|date:"m-d-y" }}/" title="Filter tasks by due date &lsquo;{{ task.due_date|short_date }}&rsquo;">{{ task.due_date|short_date }}</a>
     {% endif %}
   </td>
   <td class="edit">
     <input type="hidden" class="task-id" value="{{ task.key.id }}">
-    <a href="{% url TaskHandler task.key.id %}" class="edit" title="Edit task">edit</a>
+    <a href="/t/{{ task.key.id|escape }}/" class="edit" title="Edit task">edit</a>
   </td>
   <td class="cancel">
-    <a href="{% url TaskHandler task.key.id %}?delete=true" class="delete" title="Delete task">delete</a>
+    <a href="/t/{{ task.key.id|escape }}?delete=true" class="delete" title="Delete task">delete</a>
   </td>
 </tr>
 {% endif %}

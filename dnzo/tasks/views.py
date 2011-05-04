@@ -150,7 +150,7 @@ class DeleteTaskListHandler(DNZOLoggedInRequestHandler):
   def get(self, task_list):
     from tasks_data.task_lists import delete_task_list
     from tasks_data.misc import create_undo
-  
+
     undo = None
     if len(get_task_lists(self.dnzo_user)) > 1:
       delete_task_list(self.dnzo_user, task_list)
@@ -161,11 +161,11 @@ class DeleteTaskListHandler(DNZOLoggedInRequestHandler):
         list_deleted=True,
         return_uri=self.referer_uri()
       )
-    
+
     if undo and undo.is_saved():
       from statusing import Statuses
       self.set_status_undo(Statuses.LIST_DELETED, undo)
-  
+
     self.default_list_redirect()
 
   @operates_on_task_list

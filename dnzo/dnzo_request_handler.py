@@ -2,6 +2,8 @@
 
 from base_request_handler import BaseRequestHandler
 
+import urllib
+
 from google.appengine.ext.webapp import template
 template.register_template_library('dnzo_templating')
 
@@ -53,7 +55,7 @@ class DNZORequestHandler(BaseRequestHandler):
       self.redirect(create_logout_url('/'))
 
   def list_redirect(self, task_list):
-    self.redirect_to('TaskListHandler', task_list.short_name)
+    self.redirect('/l/%s/' % urllib.quote(task_list.short_name))
   
   def referer_redirect(self):
     super(DNZORequestHandler,self).referer_redirect(self.most_recent_redirect)
