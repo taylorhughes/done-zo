@@ -21,13 +21,15 @@ def dnzo_login_required(fn):
   return logged_in_wrapper
   
 class BaseAPIRequestHandler(webapp.RequestHandler):
-  def __init__(self):
+  def __init__(self, *args):
+    super(BaseAPIRequestHandler, self).__init__(*args)
     self.__errored = False
   
   def json_response(self, *args, **kwargs):
     response_body = json.dumps(kwargs)
     if 'error' in kwargs and not self.__errored:
       self.error(500)
+    self.response.headers['Content-Type'] = 'application/json'
     self.generate(response_body)
 
   def generate(self, response):

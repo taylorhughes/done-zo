@@ -63,7 +63,7 @@
 
 <div id="new-delete">
 {% if not task_lists|length_is:1 %}
-<p><a href="/l/{{ task_list.short_name }}/delete/">Delete list</a></p>
+  <p><a href="{% url DeleteTaskListHandler task_list.short_name %}">Delete list</a></p>
 {% endif %}
 <form action="{% url AddTaskListHandler %}" method="GET">
   <input type="submit" value="Add list" id="add_list"{% if not can_add_list %} disabled="disabled"{% endif %}>&nbsp;

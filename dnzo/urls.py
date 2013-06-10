@@ -6,10 +6,11 @@ from api.views import APITasksHandler, APITaskHandler, APITaskListHandler, \
 
 API_PREFIX = r'/api/0.1/'
 API_URLS = [
-  (API_PREFIX + r't/<task_id:[0-9]+>/', APITaskHandler),
+  (API_PREFIX + r't/<:[0-9]+>/', APITaskHandler),
   (API_PREFIX + r't/', APITasksHandler),
-  (API_PREFIX + r'l/<task_list_name:[a-z0-9][a-z0-9_-]*>/', APITaskListHandler),
+  (API_PREFIX + r'l/<:[a-z0-9][a-z0-9_-]*>/', APITaskListHandler),
   (API_PREFIX + r'l/', APITaskListsHandler),
+  (API_PREFIX + r'l', APITaskListsHandler),
   (API_PREFIX + r'a/', APIArchivedTasksHandler),
   (API_PREFIX + r'reset_account/', APIResetAccountHandler),
 ]

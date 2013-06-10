@@ -25,9 +25,10 @@ from copy import deepcopy
 from datetime import datetime, timedelta
 
 BOGUS_IDS = ('abc', '-1', '0.1234', '1.', '.1', ' 123 ', '99999', ' a b c 1 2 ')
-TASK_PATH = path.join(API_PREFIX,'t')
-LIST_PATH = path.join(API_PREFIX,'l')
-ARCHIVED_PATH = path.join(API_PREFIX,'a')
+TASK_PATH = path.join(API_PREFIX,'t/')
+LIST_PATH = path.join(API_PREFIX,'l/')
+LIST_PATH_FMT = path.join(API_PREFIX,'l/%s/')
+ARCHIVED_PATH = path.join(API_PREFIX,'a/')
 
 class TaskAPITest(unittest.TestCase):
   def setUp(self):
@@ -78,7 +79,7 @@ class TaskAPITest(unittest.TestCase):
 
   def test_get_task_list(self):
     task_list = TaskList.gql('where ancestor is :user', user=self.dnzo_user).get()
-    response = self.app.get(path.join(LIST_PATH, str(task_list.short_name)))
+    response = self.app.get(LIST_PATH_FMT % str(task_list.short_name))
     self.assertTrue(json.dumps(task_list.name) in response.body, "Response should contain new task name")
     
     task_list_dict = json.loads(response.body)['task_list']
@@ -88,23 +89,23 @@ class TaskAPITest(unittest.TestCase):
     
   def test_delete_task_list(self):
     task_list = TaskList.gql('where ancestor is :user', user=self.dnzo_user).get()
-    response = self.app.get(path.join(LIST_PATH, str(task_list.short_name)))
+    response = self.app.get(LIST_PATH_FMT % str(task_list.short_name))
     task_list_dict = json.loads(response.body)['task_list']
 
     self.assertTrue(not task_list_dict['deleted'], "Task list should not be deleted.")
     
-    response = self.app.delete(path.join(LIST_PATH, str(task_list.short_name)), expect_errors=True)
+    response = self.app.delete(LIST_PATH_FMT % str(task_list.short_name), expect_errors=True)
     
     self.assertTrue('400 Bad Request' in response.status, "Status should be 400 because we're deleting the only list")
 
-    response = self.app.get(path.join(LIST_PATH, str(task_list.short_name)))
+    response = self.app.get(LIST_PATH_FMT % str(task_list.short_name))
     task_list_dict = json.loads(response.body)['task_list']
     self.assertTrue(not task_list_dict['deleted'], "Task list should NOT be deleted!")
 
     # ADD A NEW TASK LIST, now we can delete the first one.
     self.app.post(LIST_PATH, params={ 'task_list_name': "Another task list!" })
     
-    response = self.app.delete(path.join(LIST_PATH, str(task_list.short_name)))
+    response = self.app.delete(LIST_PATH_FMT % str(task_list.short_name))
     task_list_dict = json.loads(response.body)['task_list']
     self.assertTrue(task_list_dict['deleted'], "Task list should be deleted now.")
     
@@ -129,7 +130,7 @@ class TaskAPITest(unittest.TestCase):
       
       tasks.append(json.loads(response.body)['task'])
       
-    response = self.app.get(path.join(LIST_PATH, str(task_list['key'])))
+    response = self.app.get(LIST_PATH_FMT % str(task_list['key']))
     self.assertEqual('200 OK', response.status)
     task_list = json.loads(response.body)['task_list']
     
@@ -145,7 +146,7 @@ class TaskAPITest(unittest.TestCase):
 
     # Delete a task, then add one successfully
     last_task = tasks.pop()
-    response = self.app.delete(path.join(TASK_PATH, str(last_task['id'])))
+    response = self.app.delete('%s%s/' % (TASK_PATH, last_task['id']))
     self.assertEqual('200 OK', response.status, "Should be able to delete a task.")
     
     response = self.app.post(TASK_PATH, params=task_data)
@@ -156,7 +157,7 @@ class TaskAPITest(unittest.TestCase):
     
     # Archive a task
     last_task = tasks.pop()
-    response = self.app.put(path.join(TASK_PATH, str(last_task['id'])), params={ 'complete': 'true', 'archived': 'true' })
+    response = self.app.put('%s%s/' % (TASK_PATH, last_task['id']), params={ 'complete': 'true', 'archived': 'true' })
     self.assertEqual('200 OK', response.status, "Should be able to archive a task.")
     archived_task = json.loads(response.body)['task']
     
@@ -164,16 +165,16 @@ class TaskAPITest(unittest.TestCase):
     current_tasks = json.loads(response.body)['tasks']
     self.assertEqual(MAX_ACTIVE_TASKS - 1, len(current_tasks), "Task was not archived, task list contents is incorrect")
     
-    response = self.app.get(path.join(LIST_PATH, str(task_list['key'])))
+    response = self.app.get(LIST_PATH_FMT % str(task_list['key']))
     current_list = json.loads(response.body)['task_list']
-    self.assertEqual(MAX_ACTIVE_TASKS - 1, current_list['tasks_count'], "Task count was wrong (got %d)" % (current_list['tasks_count']))
+    self.assertEqual(MAX_ACTIVE_TASKS - 1, current_list['tasks_count'], "Task count was wrong (got %s)" % (current_list['tasks_count']))
     
     response = self.app.post(TASK_PATH, params=task_data)
     self.assertEqual('200 OK', response.status, "Should be able to post a new task because the last one was archived.")
 
     # Delete an ARCHIVED TASK. This should not lower the active tasks count, so this should be an error.
     self.assertEqual(archived_task['archived'], True)
-    response = self.app.delete(path.join(TASK_PATH, str(archived_task['id'])))
+    response = self.app.delete('%s%s/' % (TASK_PATH, archived_task['id']))
     self.assertEqual('200 OK', response.status)
     
     # This should STILL BE 400 even though we just deleted a task, because that task should be archived.
@@ -186,15 +187,15 @@ class TaskAPITest(unittest.TestCase):
     self.assertEqual('200 OK', response.status, "Should be able to post a new ARCHIVED task.")
     
     new_archived_task = json.loads(response.body)['task']
-    response = self.app.put(path.join(TASK_PATH, str(new_archived_task['id'])), params={ 'archived': 'false' }, expect_errors=True)
+    response = self.app.put('%s%s/' % (TASK_PATH, new_archived_task['id']), params={ 'archived': 'false' }, expect_errors=True)
     self.assertEqual('400 Bad Request', response.status, "Response should be 400 because we are attempting to unarchive a task when we have no room, was %s." % response.status)
     
     # Archive a task
     last_task = tasks.pop()
-    response = self.app.put(path.join(TASK_PATH, str(last_task['id'])), params={ 'complete': 'true', 'archived': 'true' })
+    response = self.app.put('%s%s/' % (TASK_PATH, str(last_task['id'])), params={ 'complete': 'true', 'archived': 'true' })
     self.assertEqual('200 OK', response.status, "Should be able to archive a task.")
     
-    response = self.app.put(path.join(TASK_PATH, str(new_archived_task['id'])), params={ 'archived': 'false' })
+    response = self.app.put('%s%s/' % (TASK_PATH, str(new_archived_task['id'])), params={ 'archived': 'false' })
     self.assertEqual('200 OK', response.status, "Response should be OK now, was %s." % response.status)
     
 
@@ -238,7 +239,7 @@ class TaskAPITest(unittest.TestCase):
       self.assertTrue(dictresponse['updated_at'] is not None, "Updated_at timestamp should not be none")
       initial_updated_at = dictresponse['updated_at']
       
-      response = self.app.get(path.join(TASK_PATH, str(dictresponse['id'])))
+      response = self.app.get('%s%s/' % (TASK_PATH, str(dictresponse['id'])))
       dictresponse = json.loads(response.body)['task']
       self.assertEqual('200 OK', response.status, "Should be able to GET /t/id")
       
@@ -263,7 +264,7 @@ class TaskAPITest(unittest.TestCase):
         'project': new_project,
         'sort_date': str(task.created_at + timedelta(days=1, hours=2, seconds=15)),
       }
-      response = self.app.put(path.join(TASK_PATH, task_id), params=changes)
+      response = self.app.put('%s%s/' % (TASK_PATH, task_id), params=changes)
       self.assertEqual('200 OK', response.status)
       task_dict = json.loads(response.body)['task']
       self.assertEqual(changes['body'], task_dict['body'], "New body should reflect changes, but was %s!" % repr(task_dict['body']))
@@ -271,7 +272,7 @@ class TaskAPITest(unittest.TestCase):
       self.assertEqual(changes['sort_date'], task_dict['sort_date'], "New sort date was not absorbed")
       self.assertTrue(old_updated_at != task_dict['updated_at'], "New updated_at should be different but were %s and %s" % (old_updated_at, task_dict['updated_at']))
       
-      response = self.app.get(path.join(TASK_PATH,task_id))
+      response = self.app.get('%s%s/' % (TASK_PATH, task_id))
       self.assertEqual('200 OK', response.status)
       task_dict = json.loads(response.body)['task']
       self.assertEqual(changes['body'], task_dict['body'], "New body should reflect changes, but was %s!" % repr(task_dict['body']))
@@ -288,7 +289,7 @@ class TaskAPITest(unittest.TestCase):
         'body': task.body + appendage,
       }
       task_id = str(task.key().id())
-      response = self.app.put(path.join(API_PREFIX,'t',task_id), expect_errors=True, params=changes)
+      response = self.app.put('%s%s/' % (TASK_PATH, task_id), expect_errors=True, params=changes)
       self.assertEqual('404 Not Found', response.status, "Should not allow PUT against another person's tasks")
   
   def test_put_task_archived(self):
@@ -314,10 +315,10 @@ class TaskAPITest(unittest.TestCase):
       task_id = task['id']
       
       self.assertTrue(not task['complete'], "Task should not be complete")
-      response = self.app.put(path.join(TASK_PATH, str(task_id)), params={ 'archived': 'true' }, expect_errors=True)
+      response = self.app.put('%s%s/' % (TASK_PATH, str(task_id)), params={ 'archived': 'true' }, expect_errors=True)
       self.assertTrue('400' in response.status, "Status should be 400 -- can't archive an incomplete task. Was: %s" % response.status)
       
-      response = self.app.put(path.join(TASK_PATH, str(task_id)), params={ 'complete': 'true', 'archived': 'true' })
+      response = self.app.put('%s%s/' % (TASK_PATH, str(task_id)), params={ 'complete': 'true', 'archived': 'true' })
       self.assertEqual('200 OK', response.status)
       
       new_tasks = tasks_for_list()
@@ -326,8 +327,8 @@ class TaskAPITest(unittest.TestCase):
       size -= 1
       archived_size += 1
       
-      self.assertEqual(size, len(new_tasks), "New task list length should be one less because we archived a task; was %d" % size)
-      self.assertEqual(archived_size, len(archived_tasks), "Archived length should be %d; was %d" % (archived_size, len(archived_tasks)))
+      self.assertEqual(size, len(new_tasks), "New task list length should be one less because we archived a task; was %s" % size)
+      self.assertEqual(archived_size, len(archived_tasks), "Archived length should be %s; was %s" % (archived_size, len(archived_tasks)))
       self.assertTrue(task_id not in [t['id'] for t in new_tasks], "New tasks list should not contain the task we just archived.")
       
   def test_archived_tasks(self):
@@ -360,7 +361,7 @@ class TaskAPITest(unittest.TestCase):
     task_list = TaskList.gql('where ancestor is :user', user=self.dnzo_user).get()
     all_tasks_response = self.app.get(TASK_PATH, params={ 'task_list': task_list.short_name })
     all_tasks = json.loads(all_tasks_response.body)['tasks']
-    self.app.put(path.join(TASK_PATH, str(all_tasks[0]['id'])), params={ 'complete': 'true', 'archived': 'true' })
+    self.app.put('%s%s/' % (TASK_PATH, str(all_tasks[0]['id'])), params={ 'complete': 'true', 'archived': 'true' })
     
     archived = archived_tasks_for(start,stop)
     self.assertEqual(1, len(archived), "Archived tasks should have one entry.")
@@ -374,15 +375,15 @@ class TaskAPITest(unittest.TestCase):
     for task in tasks:
       task_id = str(task.key().id())
       
-      response = self.app.get(path.join(TASK_PATH,task_id), expect_errors=True)
+      response = self.app.get('%s%s/' % (TASK_PATH, task_id), expect_errors=True)
       self.assertEqual('200 OK', response.status)
       
-      response = self.app.delete(path.join(TASK_PATH, task_id))
+      response = self.app.delete('%s%s/' % (TASK_PATH, task_id))
       self.assertEqual('200 OK', response.status)
       
-      response = self.app.get(path.join(TASK_PATH,task_id), expect_errors=True)
+      response = self.app.get('%s%s/' % (TASK_PATH, task_id), expect_errors=True)
       self.assertEqual('404 Not Found', response.status, "Task should be deleted!")
-      response = self.app.delete(path.join(TASK_PATH, task_id), expect_errors=True)
+      response = self.app.delete('%s%s/' % (TASK_PATH, task_id), expect_errors=True)
       self.assertEqual('404 Not Found', response.status, "Task should be deleted!")
       
     another_user = TasksUser.gql('WHERE user=:1', users.User(ANOTHER_USER_ADDRESS)).get()
@@ -391,7 +392,7 @@ class TaskAPITest(unittest.TestCase):
     for task in tasks:
       task_id = str(task.key().id())
       
-      response = self.app.delete(path.join(API_PREFIX,'t',task_id), expect_errors=True)
+      response = self.app.delete('%s%s/' % (TASK_PATH, task_id), expect_errors=True)
       self.assertEqual('404 Not Found', response.status, "Should not allow DELETE against another person's tasks")
       
 
@@ -414,7 +415,7 @@ class TaskAPITest(unittest.TestCase):
       task_id = str(task.key().id())
       
       changes = { 'body': task.body + "!!!!!!!" }
-      response = self.app.put(path.join(TASK_PATH, task_id), params=changes)
+      response = self.app.put('%s%s/' % (TASK_PATH, task_id), params=changes)
       self.assertEqual('200 OK', response.status)
       
       response = self.app.get(TASK_PATH, params={ 'updated_since': now })
@@ -462,7 +463,7 @@ class TaskAPITest(unittest.TestCase):
       task_id = str(task.key().id())
       self.assertTrue(task_id in all_tasks, "Task ID should appear in the list of all tasks from before")
       
-      response = self.app.get(path.join(TASK_PATH,task_id))
+      response = self.app.get('%s%s/' % (TASK_PATH, task_id))
       self.assertEqual('200 OK', response.status)
       self.assertTrue(json.dumps(task.body) in response,
                       "Response should include JSON-encoded task body.")
@@ -479,12 +480,12 @@ class TaskAPITest(unittest.TestCase):
     self.assertTrue(len(tasks) > 0, "There should be some tasks from another user.")
     for task in tasks:
       task_id = str(task.key().id())
-      response = self.app.get(path.join(API_PREFIX,'t',task_id), expect_errors=True)
+      response = self.app.get('%s%s/' % (TASK_PATH, task_id), expect_errors=True)
       self.assertEqual('404 Not Found', response.status)
       self.assertTrue(task_id not in all_tasks, "Task ID from another user should NOT appear in the list of all tasks from before")
 
     for bogus_id in BOGUS_IDS:
-      response = self.app.get(path.join(API_PREFIX,'t',bogus_id), expect_errors=True)
+      response = self.app.get('%s%s/' % (TASK_PATH, bogus_id), expect_errors=True)
       self.assertTrue('404 Not Found' in response.status,
                       "Bogus ID task should be Not Found, but response was (%s)" % response.status)
                       

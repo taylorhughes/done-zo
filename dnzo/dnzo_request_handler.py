@@ -51,7 +51,7 @@ class DNZORequestHandler(BaseRequestHandler):
       self.redirect(create_logout_url('/'))
 
   def list_redirect(self, task_list):
-    self.redirect('/l/%s/' % urllib.quote(task_list.short_name))
+    self.redirect(self.url_for('TaskListHandler', task_list.short_name))
   
   def referer_redirect(self):
     super(DNZORequestHandler,self).referer_redirect(self.most_recent_redirect)
