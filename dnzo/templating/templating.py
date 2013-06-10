@@ -1,12 +1,13 @@
 from django import template
 from django.template import Library, Node, Context, loader, resolve_variable
 from django.template.defaultfilters import date
+from django.utils.html import escape
 from datetime import datetime
 
 import environment
 
 register = Library()
-    
+
 # STOLEN FROM Django 1.0
 
 _base_js_escapes = (
@@ -106,3 +107,18 @@ class CSSTag(VersionedTag):
   def render(self, context):
     filename = '/stylesheets/%s/%s.css' % (self.version, self.filename)
     return '<link rel="stylesheet" href="%s" type="text/css" media="all">' % filename
+
+
+@register.tag
+def url(parser, token):
+  contents = token.split_contents()[1:]
+  return URLTag(contents[0], contents[1:])
+
+class URLTag(Node):
+  def __init__(self, handler, vars):
+    self.handler = handler
+    self.vars = [template.Variable(v) for v in vars]
+  def render(self, context):
+    from webapp2 import uri_for
+    uri = uri_for(self.handler, None, *[v.resolve(context) for v in self.vars])
+    return escape(uri)

@@ -4,10 +4,6 @@ from base_request_handler import BaseRequestHandler
 
 import urllib
 
-from google.appengine.ext.webapp import template
-template.register_template_library('dnzo_templating')
-
-TEMPLATES_DIR = 'resources/templates/'
 
 COOKIE_STATUS = 'dnzo-status'
 COOKIE_UNDO   = 'dnzo-undo'
@@ -22,16 +18,16 @@ def dnzo_login_required(fn):
   return logged_in_wrapper
   
 class NotFoundHandler(BaseRequestHandler):
-  def __init__(self):
-    super(NotFoundHandler, self).__init__(TEMPLATES_DIR)
+  def __init__(self, *args):
+    super(NotFoundHandler, self).__init__(*args)
   def get(self):
     self.not_found()
   def post(self):
     self.not_found()
 
 class DNZORequestHandler(BaseRequestHandler):
-  def __init__(self):
-    super(DNZORequestHandler, self).__init__(TEMPLATES_DIR)
+  def __init__(self, *args):
+    super(DNZORequestHandler, self).__init__(*args)
     
     from tasks_data.users import get_dnzo_user
     self.dnzo_user = get_dnzo_user()

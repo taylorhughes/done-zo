@@ -1,5 +1,5 @@
-<script type="text/javascript">
-  var DNZO = {
+<script>
+  window.DNZO = {
     timezoneInfo: { 
       offset:    parseInt("{{ user.timezone_offset_mins }}") || 0,
       updateUrl: "{% url TransparentSettingsHandler %}"
@@ -8,7 +8,7 @@
     projects: [{% for project in user.mru_projects %}"{{ project|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
     contexts: [{% for context in user.mru_contexts %}"@{{ context|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}]
   };
-  DNZO.Messages = {
+  window.DNZO.Messages = {
     DEFAULT_ERROR:
       "Ruh roh! Something went wrong, and we couldn't perform " + 
       "the action you requested. Please refresh the page and try again.\n" + 

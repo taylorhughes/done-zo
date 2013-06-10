@@ -1,20 +1,21 @@
-
+import logging
 from os import path
 
-from google.appengine.ext import webapp
-from google.appengine.ext.webapp import template
+import webapp2
+from django.template import loader as template_loader
+from django.template import Context
+
 
 AJAX_HEADER   = 'X-Requested-With'
 REFERER_HEADER = 'Referer'
 
-template.register_template_library('templating')
-  
-class BaseRequestHandler(webapp.RequestHandler):
-  def __init__(self, templates_dir):
-    self.templates_dir = templates_dir
+
+class BaseRequestHandler(webapp2.RequestHandler):
+  def __init__(self, *args):
+    super(BaseRequestHandler, self).__init__(*args)
     self.__cookie_set = None
     self.__is_handling_error = False
-    
+
   def login_required(self):
     self.access_error_redirect()
     
@@ -29,7 +30,6 @@ class BaseRequestHandler(webapp.RequestHandler):
     if debug_mode:
       super(BaseRequestHandler,self).handle_exception(exception,debug_mode)
     else:
-      import logging
       logging.exception("An exception occurred. Rendered a 500 error message. Yikes!")
       self.__is_handling_error = True
       self.error(500)
@@ -44,14 +44,11 @@ class BaseRequestHandler(webapp.RequestHandler):
   #  TEMPLATING
   #
   def render(self, template_name, **kwargs):
-    template_path = path.join(path.dirname(__file__), self.templates_dir, template_name)
     template_values = self.always_includes(self.is_handling_error())
     template_values.update(kwargs)
-
-    import django.conf
-    setattr(django.conf.settings, 'DEFAULT_CONTENT_TYPE', 'text/html;charset=UTF-8')
     
-    response = template.render(template_path, template_values, True)
+    template = template_loader.get_template(template_name)
+    response = template.render(Context(template_values))
 
     self.render_text(response)
 
@@ -65,10 +62,9 @@ class BaseRequestHandler(webapp.RequestHandler):
   # REDIRECTS
   #
   def url_for(self, handler_name, *args):
-    app = webapp.WSGIApplication.active_instance
-    handler = app.get_registered_handler_by_name(handler_name)
-    return handler.get_url(implicit_args=True, *args)
-    
+    app = webapp2.WSGIApplication.active_instance
+    return app.router.build(self.request, handler_name, args, {})
+
   def redirect_to(self,*args):
     self.redirect(self.url_for(*args))
     

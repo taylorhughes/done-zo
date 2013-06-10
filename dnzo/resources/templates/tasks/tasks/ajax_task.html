@@ -1,6 +1,6 @@
-{% include "../status.html" %}
+{% include "tasks/status.html" %}
 <table id="task-ajax-response">
   {% if task %}
-  {% include "task.html" %}
+    {% include "tasks/tasks/task.html" %}
   {% endif %}
 </table>

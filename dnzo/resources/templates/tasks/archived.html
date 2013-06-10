@@ -1,4 +1,4 @@
-{% extends "../layouts/logged_in.html" %}
+{% extends "layouts/logged_in.html" %}
 
 {% block page_title %}Done-zo / Archived Tasks{% endblock %}
 
@@ -35,7 +35,7 @@
   </tr>
 {% if tasks %}
   {% for task in tasks %}
-    {% include "tasks/archived_task.html" %}
+    {% include "tasks/tasks/archived_task.html" %}
   {% endfor %}
 {% else %}
   <tr>

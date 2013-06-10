@@ -1,10 +1,19 @@
 application: dnzo
 version: 425
-runtime: python
+runtime: python27
 api_version: 1
+threadsafe: false
+
 
 derived_file_type:
 - python_precompiled
+
+libraries:
+- name: django
+  version: "1.4"
+- name: webapp2
+  version: "2.5.2"
+
 
 handlers:  
 - url: /stylesheets/(r[0-9]+/)?([^/]+\.css)

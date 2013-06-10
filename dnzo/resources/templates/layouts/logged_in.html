@@ -5,14 +5,14 @@
   <title>{% block page_title %}{% endblock %}</title>
 
   {% css_tag style %}
-  {% include "../tasks/js_vars.js" %}
+  {% include "tasks/js_vars.js" %}
 </head>
 <body>
   
   <div id="header">
     <p id="branding-lists">
       <span>Done-zo</span>
-      {% include "../tasks/switcher.html" %}
+      {% include "tasks/switcher.html" %}
     </p>
     <p id="user">
       <strong>{{ user.user.nickname|escape }}</strong> -
@@ -21,7 +21,7 @@
     </p>
   </div>  <!-- end DIV header -->
   
-  {% include "../tasks/status.html" %}
+  {% include "tasks/status.html" %}
   
   <div id="body">
     {% block preheader %}{% endblock %}
