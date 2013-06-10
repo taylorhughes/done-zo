@@ -43,7 +43,7 @@ handlers:
   login: admin
   script: gaeunit.py
   
-- url: /(about/?)?
+- url: /((about|terms|privacy)/?)?
   script: main.py
   
 - url: /api/.+
