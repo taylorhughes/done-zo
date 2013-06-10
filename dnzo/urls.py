@@ -34,7 +34,7 @@ from tasks.views import TaskListHandler, ProjectTaskListHandler, \
   ContextTaskListHandler, DueTaskListHandler, AddTaskListHandler, \
   PurgeTaskListHandler, DeleteTaskListHandler, ArchivedListHandler, \
   TransparentSettingsHandler, SettingsHandler, RedirectHandler, \
-  TaskHandler, UndoHandler, NoopHandler
+  NewTaskHandler, TaskHandler, UndoHandler, NoopHandler
 
 list_pattern = r'/l/<:[a-z0-9][a-z0-9_-]*>'
 TASKS_URLS = [  
@@ -66,7 +66,7 @@ TASKS_URLS = [
   
   #  /username/t/id => specific task
   (r'/t/<:\d+>/', TaskHandler),
-  (r'/t/', TaskHandler),
+  (r'/t/', NewTaskHandler),
 
   #  /u/id => undo
   (r'/u/<:\d+>/', UndoHandler),

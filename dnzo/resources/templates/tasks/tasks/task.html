@@ -55,10 +55,10 @@
   </td>
   <td class="edit">
     <input type="hidden" class="task-id" value="{{ task.key.id }}">
-    <a href="/t/{{ task.key.id|escape }}/" class="edit" title="Edit task">edit</a>
+    <a href="{% url TaskHandler task.key.id %}" class="edit" title="Edit task">edit</a>
   </td>
   <td class="cancel">
-    <a href="/t/{{ task.key.id|escape }}?delete=true" class="delete" title="Delete task">delete</a>
+    <a href="{% url TaskHandler task.key.id %}?delete=true" class="delete" title="Delete task">delete</a>
   </td>
 </tr>
 {% endif %}

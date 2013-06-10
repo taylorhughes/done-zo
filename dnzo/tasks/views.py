@@ -391,6 +391,9 @@ class TaskHandler(DNZOLoggedInRequestHandler):
         task_list=(task and task.task_list)
       )
 
+class NewTaskHandler(TaskHandler):
+  pass
+
 class NoopHandler(DNZOLoggedInRequestHandler):
   def get(self):
     self.render_text('DNZO-OK')
