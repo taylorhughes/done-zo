@@ -1,8 +1,8 @@
 &nbsp;
 <select id="switcher" disabled="disabled">
 {% for list in task_lists %}
-  <option value="/l/{{ list.short_name|escape }}/"
-          {% ifequal list.key task_list.key %} selected{% endifequal %}>{{ list.name|escape }}</option>
+  <option value="/l/{{ list.short_name }}/"
+          {% ifequal list.key task_list.key %} selected{% endifequal %}>{{ list.name }}</option>
 {% endfor %}
   <option value="{% url ArchivedListHandler %}"{% if not task_list %} selected{% endif %}>Archived tasks</option>
 </select>

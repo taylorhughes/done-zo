@@ -15,7 +15,7 @@
       {% include "tasks/switcher.html" %}
     </p>
     <p id="user">
-      <strong>{{ user.user.nickname|escape }}</strong> -
+      <strong>{{ user.user.nickname }}</strong> -
       <a href="{% url SettingsHandler %}" class="dialog">Settings</a> -
       <a href="{{ logout_url }}">Sign out</a>
     </p>

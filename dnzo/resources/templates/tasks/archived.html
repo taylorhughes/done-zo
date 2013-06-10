@@ -3,7 +3,7 @@
 {% block page_title %}Done-zo / Archived Tasks{% endblock %}
 
 {% block header %}
-  Archived Tasks{% if filter_title %} / {{ filter_title|escape }}{% endif %}
+  Archived Tasks{% if filter_title %} / {{ filter_title }}{% endif %}
 {% endblock %}
 
 {% block preheader %}
@@ -44,7 +44,7 @@
   <td>
     There are no archived tasks to display for
     {% if filter_title %} 
-      {{ filter_title|escape|lower }}.
+      {{ filter_title|lower }}.
     {% else %}
       this time period.
     {% endif %}

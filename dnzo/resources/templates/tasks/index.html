@@ -1,10 +1,10 @@
 {% extends "layouts/logged_in.html" %}
 
-{% block page_title %}Done-zo / {{ task_list.name|escape }}{% if filter_title %} / {{ filter_title|escape }}{% endif %}{% endblock %}
+{% block page_title %}Done-zo / {{ task_list.name }}{% if filter_title %} / {{ filter_title }}{% endif %}{% endblock %}
 
 {% block header %}
   {% if filter_title %}<a href="{% url TaskListHandler task_list.short_name %}">{% endif %}
-  {{ task_list.name|escape }}{% if filter_title %}</a> / {{ filter_title|escape }}{% endif %}
+  {{ task_list.name }}{% if filter_title %}</a> / {{ filter_title }}{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -42,7 +42,7 @@
 </table>
 
 {% if tasks|length_is:max_records %}
-<p>Results limited to {{ max_records|escape }} items.</p>
+<p>Results limited to {{ max_records }} items.</p>
 {% endif %}
 
 <form method="POST" id="tasks_form" action="/t/?task_list={{task_list.short_name}}">
@@ -55,7 +55,7 @@
 {% endblock %}
 
 {% block footer %}
-<form action="/l/{{ task_list.short_name|escape }}/purge/" method="POST">
+<form action="{% url PurgeTaskListHandler task_list.short_name %}" method="POST">
 <p id="archive">
     <input type="submit" value="Archive completed tasks">&nbsp;
 </p>
@@ -63,7 +63,7 @@
 
 <div id="new-delete">
 {% if not task_lists|length_is:1 %}
-<p><a href="/l/{{ task_list.short_name|escape }}/delete/">Delete list</a></p>
+<p><a href="/l/{{ task_list.short_name }}/delete/">Delete list</a></p>
 {% endif %}
 <form action="{% url AddTaskListHandler %}" method="GET">
   <input type="submit" value="Add list" id="add_list"{% if not can_add_list %} disabled="disabled"{% endif %}>&nbsp;

@@ -1,17 +1,17 @@
 <tr class="task-row{% if task.complete and not task.archived %} completed{% endif %}">
   <td class="list">
-    {{ task.task_list.name|escape }}
+    {{ task.task_list.name }}
   </td>
   <td class="task">
-    {{ task.body|escape }}
+    {{ task.body }}
   </td>
   <td class="project">
     {% if task.project %}
-      {{ task.project|escape }}
+      {{ task.project }}
     {% endif %}
   </td>
   <td class="context">
-    {% for context in task.contexts %}@{{ context|escape }} {% endfor %}
+    {% for context in task.contexts %}@{{ context }} {% endfor %}
   </td>
   <td class="due">
     {{ task.due_date|short_date }}
